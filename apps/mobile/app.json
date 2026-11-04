@@ -6,6 +6,7 @@
     "orientation": "portrait",
     "scheme": "matrixsplit",
     "userInterfaceStyle": "automatic",
+    "platforms": ["ios", "android", "web"],
     "splash": {
       "backgroundColor": "#0F172A"
     },

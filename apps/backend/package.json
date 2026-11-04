@@ -6,7 +6,7 @@
     "build": "tsc -p tsconfig.build.json",
     "start": "node dist/main",
     "start:dev": "node -r ts-node/register src/main.ts",
-    "test": "node --test test/**/*.test.js"
+    "test": "node -r ts-node/register --test test/**/*.test.ts"
   },
   "dependencies": {
     "@matrixsplit/shared": "^1.0.0",
