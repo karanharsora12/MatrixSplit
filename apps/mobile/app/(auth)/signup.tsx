@@ -3,22 +3,23 @@ import {
   View,
   Text,
   StyleSheet,
-  SafeAreaView,
   TouchableOpacity,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
   Alert,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import {
   Button,
   Input,
   useWatermelonTheme,
 } from '@matrixsplit/watermelon-ui';
-import { apiClient } from '../../src/services/api';
+import { apiClient, API_BASE_URL } from '../../src/services/api';
 import { useAuthStore } from '../../src/stores/authStore';
-import { CurrencyCode, SUPPORTED_CURRENCIES } from '@matrixsplit/shared';
+import { CurrencyCode } from '@matrixsplit/shared';
 
 export default function SignupScreen() {
   const router = useRouter();
@@ -59,8 +60,11 @@ export default function SignupScreen() {
       setAuth(user, accessToken, refreshToken);
       router.replace('/(tabs)');
     } catch (err: any) {
-      const msg = err.response?.data?.message || 'Failed to sign up. Please try again.';
-      Alert.alert('Sign Up Error', msg);
+      const serverMsg = err.response?.data?.message;
+      const netMsg = err.message === 'Network Error' || !err.response
+        ? `Cannot reach backend at ${API_BASE_URL}.\nMake sure the NestJS backend is running.`
+        : err.message;
+      Alert.alert('Sign Up Error', serverMsg || netMsg || 'Failed to sign up.');
     } finally {
       setLoading(false);
     }
@@ -69,7 +73,7 @@ export default function SignupScreen() {
   const currencyOptions: CurrencyCode[] = ['INR', 'USD', 'EUR', 'GBP'];
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
+    <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]} edges={['top', 'bottom', 'left', 'right']}>
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={{ flex: 1 }}
@@ -77,9 +81,10 @@ export default function SignupScreen() {
         <ScrollView contentContainerStyle={styles.scrollContent}>
           <TouchableOpacity
             onPress={() => router.back()}
-            style={styles.backButton}
+            style={[styles.backButton, { flexDirection: 'row', alignItems: 'center' }]}
           >
-            <Text style={[styles.backText, { color: theme.text }]}>‹ Back</Text>
+            <Ionicons name="chevron-back" size={22} color={theme.text} />
+            <Text style={[styles.backText, { color: theme.text, marginLeft: 2 }]}>Back</Text>
           </TouchableOpacity>
 
           <View style={styles.header}>
@@ -121,60 +126,58 @@ export default function SignupScreen() {
             />
 
             <Input
-              label="Password"
-              placeholder="Minimum 8 characters"
+              label="Password (min 8 characters)"
+              placeholder="••••••••"
               value={password}
               onChangeText={setPassword}
               secureTextEntry
               error={errors.password}
             />
 
-            {/* Currency selector chips */}
-            <View style={{ marginVertical: 8 }}>
-              <Text
-                style={[
-                  styles.currencyLabel,
-                  { color: theme.text, fontSize: typography.fontSize.sm },
-                ]}
-              >
-                Default Currency
-              </Text>
-              <View style={styles.currencyRow}>
-                {currencyOptions.map((code) => {
-                  const isSelected = defaultCurrency === code;
-                  const cfg = SUPPORTED_CURRENCIES[code];
-                  return (
-                    <TouchableOpacity
-                      key={code}
-                      onPress={() => setDefaultCurrency(code)}
+            {/* Default Currency Selection */}
+            <Text
+              style={[
+                styles.currencyLabel,
+                { color: theme.text, fontSize: typography.fontSize.sm },
+              ]}
+            >
+              Default Currency
+            </Text>
+            <View style={styles.currencyRow}>
+              {currencyOptions.map((curr) => {
+                const selected = defaultCurrency === curr;
+                return (
+                  <TouchableOpacity
+                    key={curr}
+                    activeOpacity={0.8}
+                    onPress={() => setDefaultCurrency(curr)}
+                    style={[
+                      styles.currencyChip,
+                      {
+                        backgroundColor: selected
+                          ? theme.primary
+                          : theme.card,
+                        borderColor: selected
+                          ? theme.primary
+                          : theme.border,
+                        borderRadius: borderRadius.md,
+                      },
+                    ]}
+                  >
+                    <Text
                       style={[
-                        styles.currencyChip,
+                        styles.currencyChipText,
                         {
-                          backgroundColor: isSelected
-                            ? theme.primary
-                            : theme.surface,
-                          borderColor: isSelected
-                            ? theme.primary
-                            : theme.border,
-                          borderRadius: borderRadius.md,
+                          color: selected ? '#FFFFFF' : theme.text,
+                          fontWeight: selected ? '700' : '500',
                         },
                       ]}
                     >
-                      <Text
-                        style={[
-                          styles.currencyChipText,
-                          {
-                            color: isSelected ? '#FFFFFF' : theme.text,
-                            fontWeight: isSelected ? '700' : '500',
-                          },
-                        ]}
-                      >
-                        {cfg.symbol} {code}
-                      </Text>
-                    </TouchableOpacity>
-                  );
-                })}
-              </View>
+                      {curr}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
             </View>
 
             <Button
@@ -189,7 +192,7 @@ export default function SignupScreen() {
           <View style={styles.footer}>
             <Text style={{ color: theme.textMuted }}>Already have an account? </Text>
             <TouchableOpacity onPress={() => router.push('/(auth)/login')}>
-              <Text style={{ color: theme.primary, fontWeight: '700' }}>Sign In</Text>
+              <Text style={{ color: theme.primary, fontWeight: '700' }}>Log In</Text>
             </TouchableOpacity>
           </View>
         </ScrollView>
@@ -216,8 +219,8 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   header: {
-    marginTop: 10,
-    marginBottom: 20,
+    marginTop: 16,
+    marginBottom: 24,
   },
   title: {
     fontWeight: '800',
@@ -232,20 +235,22 @@ const styles = StyleSheet.create({
   currencyLabel: {
     fontWeight: '600',
     marginBottom: 8,
+    marginTop: 4,
   },
   currencyRow: {
     flexDirection: 'row',
-    gap: 8,
+    marginBottom: 16,
   },
   currencyChip: {
     flex: 1,
     paddingVertical: 10,
-    borderWidth: 1.5,
     alignItems: 'center',
     justifyContent: 'center',
+    marginHorizontal: 4,
+    borderWidth: 1,
   },
   currencyChipText: {
-    fontSize: 13,
+    fontSize: 14,
   },
   footer: {
     flexDirection: 'row',

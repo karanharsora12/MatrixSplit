@@ -3,11 +3,12 @@ import {
   View,
   Text,
   StyleSheet,
-  SafeAreaView,
   ScrollView,
   TouchableOpacity,
   Alert,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import {
   Button,
@@ -56,12 +57,12 @@ export default function SettleScreen() {
   const paymentMethods: {
     id: SettlementPaymentMethod;
     label: string;
-    icon: string;
+    icon: keyof typeof Ionicons.glyphMap;
   }[] = [
-    { id: 'upi', label: 'UPI / QR', icon: '📱' },
-    { id: 'cash', label: 'Cash', icon: '💵' },
-    { id: 'bank_transfer', label: 'Bank Transfer', icon: '🏦' },
-    { id: 'other', label: 'Other', icon: '💳' },
+    { id: 'upi', label: 'UPI / QR', icon: 'qr-code-outline' },
+    { id: 'cash', label: 'Cash', icon: 'cash-outline' },
+    { id: 'bank_transfer', label: 'Bank Transfer', icon: 'business-outline' },
+    { id: 'other', label: 'Card / Other', icon: 'card-outline' },
   ];
 
   const handleRecordSettlement = async () => {
@@ -98,21 +99,16 @@ export default function SettleScreen() {
   };
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
+    <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]} edges={['top', 'left', 'right']}>
       {/* Top Header */}
-      <View
-        style={[
-          styles.headerBar,
-          { backgroundColor: theme.surface, borderBottomColor: theme.divider },
-        ]}
-      >
+      <View style={styles.headerBar}>
         <TouchableOpacity onPress={() => router.back()} style={styles.cancelBtn}>
-          <Text style={{ color: theme.textMuted, fontSize: 16 }}>Cancel</Text>
+          <Ionicons name="close" size={24} color={theme.text} />
         </TouchableOpacity>
         <Text
           style={[
             styles.headerTitle,
-            { color: theme.text, fontSize: typography.fontSize.lg },
+            { color: theme.text, fontSize: typography.fontSize.base },
           ]}
         >
           Record Settlement
@@ -257,9 +253,12 @@ export default function SettleScreen() {
                     },
                   ]}
                 >
-                  <Text style={{ fontSize: 24, marginBottom: 4 }}>
-                    {m.icon}
-                  </Text>
+                  <Ionicons
+                    name={m.icon}
+                    size={26}
+                    color={isSelected ? theme.primary : theme.textMuted}
+                    style={{ marginBottom: 6 }}
+                  />
                   <Text
                     style={{
                       color: isSelected ? theme.primary : theme.text,
@@ -303,9 +302,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderBottomWidth: 1,
+    paddingHorizontal: 20,
+    paddingTop: 10,
+    paddingBottom: 8,
   },
   cancelBtn: {
     padding: 6,

@@ -1,14 +1,16 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
   StyleSheet,
-  SafeAreaView,
   ScrollView,
   TouchableOpacity,
+  TextInput,
   Alert,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import Ionicons from '@expo/vector-icons/Ionicons';
 import {
   Card,
   Avatar,
@@ -22,16 +24,54 @@ import {
   useDeleteExpense,
 } from '../../src/hooks/useQueries';
 import { useAuthStore } from '../../src/stores/authStore';
-import { formatCurrency } from '@matrixsplit/shared';
+import { formatCurrency, ExpenseCategory } from '@matrixsplit/shared';
+
+const categoryIcons: Record<string, keyof typeof Ionicons.glyphMap> = {
+  food_and_drink: 'restaurant-outline',
+  groceries: 'cart-outline',
+  transport: 'car-outline',
+  housing: 'home-outline',
+  entertainment: 'film-outline',
+  travel: 'airplane-outline',
+  utilities: 'flash-outline',
+  shopping: 'bag-handle-outline',
+  health: 'medkit-outline',
+  general: 'receipt-outline',
+};
 
 export default function ExpenseDetailsScreen() {
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id: string }>();
   const { theme, typography, spacing, borderRadius } = useWatermelonTheme();
-  const currentUserId = useAuthStore((s) => s.user?.id);
+  const currentUser = useAuthStore((s) => s.user);
 
   const { data: expense, isLoading } = useExpenseDetails(id!);
   const deleteMutation = useDeleteExpense();
+
+  // Comments state
+  const [commentText, setCommentText] = useState('');
+  const [commentsList, setCommentsList] = useState<
+    { id: string; author: string; text: string; time: string }[]
+  >([
+    {
+      id: 'c1',
+      author: 'Alice Johnson',
+      text: 'Thanks for paying up front! Will settle this evening.',
+      time: '2 hours ago',
+    },
+  ]);
+
+  const handleAddComment = () => {
+    if (!commentText.trim()) return;
+    const newComment = {
+      id: Date.now().toString(),
+      author: currentUser?.fullName || 'You',
+      text: commentText.trim(),
+      time: 'Just now',
+    };
+    setCommentsList((prev) => [...prev, newComment]);
+    setCommentText('');
+  };
 
   const handleDelete = () => {
     Alert.alert(
@@ -67,22 +107,19 @@ export default function ExpenseDetailsScreen() {
     });
   };
 
+  const iconName = expense ? categoryIcons[expense.category] || 'receipt-outline' : 'receipt-outline';
+
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
+    <SafeAreaView edges={['top', 'left', 'right']} style={[styles.container, { backgroundColor: theme.background }]}>
       {/* Top Header */}
-      <View
-        style={[
-          styles.headerBar,
-          { backgroundColor: theme.surface, borderBottomColor: theme.divider },
-        ]}
-      >
+      <View style={styles.headerBar}>
         <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
-          <Text style={[styles.backText, { color: theme.text }]}>‹</Text>
+          <Ionicons name="chevron-back" size={26} color={theme.text} />
         </TouchableOpacity>
         <Text
           style={[
             styles.headerTitle,
-            { color: theme.text, fontSize: typography.fontSize.lg },
+            { color: theme.text, fontSize: typography.fontSize.base },
           ]}
         >
           Expense Details
@@ -102,7 +139,17 @@ export default function ExpenseDetailsScreen() {
               style={{ marginBottom: spacing.md }}
             >
               <View style={styles.cardHeaderRow}>
-                <Badge label={expense.category} size="md" variant="info" />
+                <View style={styles.categoryBadgeRow}>
+                  <View
+                    style={[
+                      styles.catIconCircle,
+                      { backgroundColor: theme.primaryLight },
+                    ]}
+                  >
+                    <Ionicons name={iconName} size={18} color={theme.primary} />
+                  </View>
+                  <Badge label={expense.category} size="md" variant="info" />
+                </View>
                 <Badge
                   label={`Split: ${expense.splitType.toUpperCase()}`}
                   size="sm"
@@ -165,7 +212,7 @@ export default function ExpenseDetailsScreen() {
                     ]}
                   >
                     {expense.payer?.fullName}{' '}
-                    {expense.payerId === currentUserId ? '(You)' : ''}
+                    {expense.payerId === currentUser?.id ? '(You)' : ''}
                   </Text>
                   <Text style={{ color: theme.textMuted, fontSize: 12 }}>
                     Paid the full amount of{' '}
@@ -203,7 +250,7 @@ export default function ExpenseDetailsScreen() {
                       ]}
                     >
                       {p.user?.fullName}{' '}
-                      {p.userId === currentUserId ? '(You)' : ''}
+                      {p.userId === currentUser?.id ? '(You)' : ''}
                     </Text>
                     {p.splitValue ? (
                       <Text style={{ color: theme.textMuted, fontSize: 11 }}>
@@ -232,7 +279,7 @@ export default function ExpenseDetailsScreen() {
             </Card>
 
             {/* Notes Section */}
-            {expense.notes && (
+            {expense.notes ? (
               <Card
                 variant="outlined"
                 padding="md"
@@ -252,7 +299,107 @@ export default function ExpenseDetailsScreen() {
                   {expense.notes}
                 </Text>
               </Card>
-            )}
+            ) : null}
+
+            {/* Receipt Preview */}
+            <Card
+              variant="outlined"
+              padding="md"
+              style={{ marginBottom: spacing.md }}
+            >
+              <Text
+                style={{
+                  color: theme.textMuted,
+                  fontSize: 11,
+                  fontWeight: '700',
+                  marginBottom: 8,
+                }}
+              >
+                RECEIPT ATTACHMENT
+              </Text>
+              <View
+                style={[
+                  styles.receiptBox,
+                  { backgroundColor: theme.surface, borderColor: theme.border },
+                ]}
+              >
+                <Ionicons name="receipt-outline" size={32} color={theme.primary} />
+                <Text style={{ color: theme.textMuted, fontSize: 12, marginTop: 4 }}>
+                  Itemized bill scanned & verified
+                </Text>
+              </View>
+            </Card>
+
+            {/* Comments Feed Section */}
+            <View style={styles.sectionHeader}>
+              <Text
+                style={[
+                  styles.sectionTitle,
+                  { color: theme.text, fontSize: typography.fontSize.sm },
+                ]}
+              >
+                COMMENTS ({commentsList.length})
+              </Text>
+            </View>
+
+            <Card
+              variant="outlined"
+              padding="md"
+              style={{ marginBottom: spacing.md }}
+            >
+              {commentsList.map((c) => (
+                <View
+                  key={c.id}
+                  style={[
+                    styles.commentItem,
+                    { borderBottomColor: theme.divider },
+                  ]}
+                >
+                  <Avatar name={c.author} size="sm" />
+                  <View style={{ flex: 1, marginLeft: 10 }}>
+                    <View style={styles.commentHeader}>
+                      <Text style={[styles.commentAuthor, { color: theme.text }]}>
+                        {c.author}
+                      </Text>
+                      <Text style={{ color: theme.textMuted, fontSize: 11 }}>
+                        {c.time}
+                      </Text>
+                    </View>
+                    <Text style={[styles.commentText, { color: theme.text }]}>
+                      {c.text}
+                    </Text>
+                  </View>
+                </View>
+              ))}
+
+              {/* Add Comment Input */}
+              <View style={styles.addCommentRow}>
+                <TextInput
+                  placeholder="Write a comment..."
+                  placeholderTextColor={theme.textMuted}
+                  value={commentText}
+                  onChangeText={setCommentText}
+                  style={[
+                    styles.commentInput,
+                    {
+                      backgroundColor: theme.background,
+                      color: theme.text,
+                      borderColor: theme.border,
+                      borderRadius: borderRadius.md,
+                    },
+                  ]}
+                />
+                <TouchableOpacity
+                  onPress={handleAddComment}
+                  style={[
+                    styles.sendCommentBtn,
+                    { backgroundColor: theme.primary, borderRadius: borderRadius.md },
+                  ]}
+                >
+                  <Ionicons name="send" size={16} color="#FFFFFF" />
+                </TouchableOpacity>
+              </View>
+            </Card>
 
             {/* Action Buttons */}
             <View style={styles.actionsContainer}>
@@ -287,19 +434,15 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderBottomWidth: 1,
+    paddingHorizontal: 20,
+    paddingTop: 10,
+    paddingBottom: 8,
   },
   backBtn: {
     width: 36,
     height: 36,
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  backText: {
-    fontSize: 28,
-    fontWeight: '300',
   },
   headerTitle: {
     fontWeight: '700',
@@ -311,7 +454,20 @@ const styles = StyleSheet.create({
   cardHeaderRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
+    alignItems: 'center',
     marginBottom: 10,
+  },
+  categoryBadgeRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  catIconCircle: {
+    width: 28,
+    height: 28,
+    borderRadius: 7,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 6,
   },
   expenseTitle: {
     fontWeight: '800',
@@ -351,6 +507,51 @@ const styles = StyleSheet.create({
   },
   participantShareAmount: {
     fontWeight: '700',
+  },
+  receiptBox: {
+    padding: 16,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderStyle: 'dashed',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  commentItem: {
+    flexDirection: 'row',
+    paddingVertical: 10,
+    borderBottomWidth: 1,
+  },
+  commentHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 4,
+  },
+  commentAuthor: {
+    fontWeight: '700',
+    fontSize: 13,
+  },
+  commentText: {
+    fontSize: 13,
+    lineHeight: 18,
+  },
+  addCommentRow: {
+    flexDirection: 'row',
+    marginTop: 12,
+    alignItems: 'center',
+  },
+  commentInput: {
+    flex: 1,
+    height: 42,
+    borderWidth: 1,
+    paddingHorizontal: 12,
+    fontSize: 13,
+  },
+  sendCommentBtn: {
+    width: 42,
+    height: 42,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginLeft: 8,
   },
   actionsContainer: {
     marginTop: 14,

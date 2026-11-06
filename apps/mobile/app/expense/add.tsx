@@ -3,13 +3,14 @@ import {
   View,
   Text,
   StyleSheet,
-  SafeAreaView,
   ScrollView,
   TouchableOpacity,
   KeyboardAvoidingView,
   Platform,
   Alert,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import {
   Button,
@@ -35,17 +36,17 @@ import {
   resolveSplit,
 } from '@matrixsplit/shared';
 
-const categoryOptions: { label: string; value: ExpenseCategory; icon: string }[] = [
-  { label: 'Food & Drink', value: 'food_and_drink', icon: '🍔' },
-  { label: 'Groceries', value: 'groceries', icon: '🛒' },
-  { label: 'Transport', value: 'transport', icon: '🚕' },
-  { label: 'Housing', value: 'housing', icon: '🏠' },
-  { label: 'Entertainment', value: 'entertainment', icon: '🎬' },
-  { label: 'Travel', value: 'travel', icon: '✈️' },
-  { label: 'Utilities', value: 'utilities', icon: '💡' },
-  { label: 'Shopping', value: 'shopping', icon: '🛍️' },
-  { label: 'Health', value: 'health', icon: '💊' },
-  { label: 'General', value: 'general', icon: '🧾' },
+const categoryOptions: { label: string; value: ExpenseCategory; icon: keyof typeof Ionicons.glyphMap }[] = [
+  { label: 'Food & Drink', value: 'food_and_drink', icon: 'fast-food-outline' },
+  { label: 'Groceries', value: 'groceries', icon: 'cart-outline' },
+  { label: 'Transport', value: 'transport', icon: 'car-outline' },
+  { label: 'Housing', value: 'housing', icon: 'home-outline' },
+  { label: 'Entertainment', value: 'entertainment', icon: 'film-outline' },
+  { label: 'Travel', value: 'travel', icon: 'airplane-outline' },
+  { label: 'Utilities', value: 'utilities', icon: 'bulb-outline' },
+  { label: 'Shopping', value: 'shopping', icon: 'bag-handle-outline' },
+  { label: 'Health', value: 'health', icon: 'medkit-outline' },
+  { label: 'General', value: 'general', icon: 'receipt-outline' },
 ];
 
 export default function AddExpenseScreen() {
@@ -222,25 +223,20 @@ export default function AddExpenseScreen() {
   };
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
+    <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]} edges={['top', 'left', 'right']}>
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         style={{ flex: 1 }}
       >
         {/* Top Header */}
-        <View
-          style={[
-            styles.headerBar,
-            { backgroundColor: theme.surface, borderBottomColor: theme.divider },
-          ]}
-        >
+        <View style={styles.headerBar}>
           <TouchableOpacity onPress={() => router.back()} style={styles.cancelBtn}>
-            <Text style={{ color: theme.textMuted, fontSize: 16 }}>Cancel</Text>
+            <Ionicons name="close" size={24} color={theme.text} />
           </TouchableOpacity>
           <Text
             style={[
               styles.headerTitle,
-              { color: theme.text, fontSize: typography.fontSize.lg },
+              { color: theme.text, fontSize: typography.fontSize.base },
             ]}
           >
             Add Expense
@@ -250,6 +246,7 @@ export default function AddExpenseScreen() {
             disabled={createExpenseMutation.isPending}
             style={[styles.saveBtn, { backgroundColor: theme.primary }]}
           >
+            <Ionicons name="checkmark" size={16} color="#FFFFFF" style={{ marginRight: 4 }} />
             <Text style={styles.saveBtnText}>Save</Text>
           </TouchableOpacity>
         </View>
@@ -388,7 +385,12 @@ export default function AddExpenseScreen() {
                       },
                     ]}
                   >
-                    <Text style={{ marginRight: 6 }}>{opt.icon}</Text>
+                    <Ionicons
+                      name={opt.icon}
+                      size={16}
+                      color={isSelected ? theme.primary : theme.textMuted}
+                      style={{ marginRight: 6 }}
+                    />
                     <Text
                       style={{
                         color: isSelected ? theme.primary : theme.text,
@@ -494,7 +496,7 @@ export default function AddExpenseScreen() {
                     ]}
                   >
                     {p.selected && (
-                      <Text style={{ color: '#FFFFFF', fontSize: 11 }}>✓</Text>
+                      <Ionicons name="checkmark" size={13} color="#FFFFFF" />
                     )}
                   </View>
                   <Text
@@ -566,9 +568,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderBottomWidth: 1,
+    paddingHorizontal: 20,
+    paddingTop: 10,
+    paddingBottom: 8,
   },
   cancelBtn: {
     padding: 6,
@@ -577,6 +579,8 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   saveBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
     paddingHorizontal: 16,
     paddingVertical: 7,
     borderRadius: 8,

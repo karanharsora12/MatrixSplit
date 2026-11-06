@@ -3,10 +3,11 @@ import {
   View,
   Text,
   StyleSheet,
-  SafeAreaView,
   ScrollView,
   RefreshControl,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { Ionicons } from '@expo/vector-icons';
 import {
   Card,
   Avatar,
@@ -15,18 +16,18 @@ import {
 } from '@matrixsplit/watermelon-ui';
 import { useActivities } from '../../src/hooks/useQueries';
 
-const activityIcons: Record<string, string> = {
-  expense_created: '💳',
-  expense_updated: '✏️',
-  expense_deleted: '🗑️',
-  settlement_created: '💸',
-  settlement_confirmed: '✅',
-  settlement_rejected: '❌',
-  group_created: '🎉',
-  member_joined: '👋',
-  member_removed: '🚪',
-  friend_request_sent: '✉️',
-  friend_request_accepted: '🤝',
+const activityIcons: Record<string, keyof typeof Ionicons.glyphMap> = {
+  expense_created: 'receipt-outline',
+  expense_updated: 'create-outline',
+  expense_deleted: 'trash-outline',
+  settlement_created: 'paper-plane-outline',
+  settlement_confirmed: 'checkmark-circle-outline',
+  settlement_rejected: 'close-circle-outline',
+  group_created: 'people-circle-outline',
+  member_joined: 'person-add-outline',
+  member_removed: 'exit-outline',
+  friend_request_sent: 'mail-outline',
+  friend_request_accepted: 'people-outline',
 };
 
 export default function ActivityScreen() {
@@ -46,14 +47,9 @@ export default function ActivityScreen() {
   };
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
+    <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]} edges={['top', 'left', 'right']}>
       {/* Top Header */}
-      <View
-        style={[
-          styles.headerBar,
-          { backgroundColor: theme.surface, borderBottomColor: theme.divider },
-        ]}
-      >
+      <View style={styles.headerBar}>
         <Text
           style={[
             styles.headerTitle,
@@ -82,7 +78,7 @@ export default function ActivityScreen() {
           </>
         ) : activities && activities.length > 0 ? (
           activities.map((act: any) => {
-            const icon = activityIcons[act.type] || '⚡';
+            const iconName = activityIcons[act.type] || 'flash-outline';
             return (
               <Card
                 key={act.id}
@@ -96,10 +92,10 @@ export default function ActivityScreen() {
                     <View
                       style={[
                         styles.iconBadge,
-                        { backgroundColor: theme.surface },
+                        { backgroundColor: theme.surface, borderColor: theme.border, borderWidth: 1 },
                       ]}
                     >
-                      <Text style={{ fontSize: 10 }}>{icon}</Text>
+                      <Ionicons name={iconName} size={11} color={theme.primary} />
                     </View>
                   </View>
 
@@ -131,7 +127,7 @@ export default function ActivityScreen() {
           })
         ) : (
           <View style={styles.emptyContainer}>
-            <Text style={{ fontSize: 44, marginBottom: 12 }}>⚡</Text>
+            <Ionicons name="flash-outline" size={48} color={theme.textMuted} style={{ marginBottom: 12 }} />
             <Text
               style={[
                 styles.emptyTitle,
@@ -162,8 +158,8 @@ const styles = StyleSheet.create({
   },
   headerBar: {
     paddingHorizontal: 20,
-    paddingVertical: 14,
-    borderBottomWidth: 1,
+    paddingTop: 10,
+    paddingBottom: 8,
   },
   headerTitle: {
     fontWeight: '800',

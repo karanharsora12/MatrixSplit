@@ -3,12 +3,13 @@ import {
   View,
   Text,
   StyleSheet,
-  SafeAreaView,
   ScrollView,
   TouchableOpacity,
   RefreshControl,
   Alert,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { Ionicons } from '@expo/vector-icons';
 import {
   Card,
   Button,
@@ -49,14 +50,9 @@ export default function AnalyticsScreen() {
   };
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
+    <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]} edges={['top', 'left', 'right']}>
       {/* Top Header */}
-      <View
-        style={[
-          styles.headerBar,
-          { backgroundColor: theme.surface, borderBottomColor: theme.divider },
-        ]}
-      >
+      <View style={styles.headerBar}>
         <Text
           style={[
             styles.headerTitle,
@@ -69,16 +65,17 @@ export default function AnalyticsScreen() {
           onPress={handleExportCsv}
           style={[
             styles.exportBtn,
-            { backgroundColor: theme.card, borderColor: theme.border },
+            { backgroundColor: theme.card, borderColor: theme.border, flexDirection: 'row', alignItems: 'center' },
           ]}
         >
+          <Ionicons name="download-outline" size={15} color={theme.text} style={{ marginRight: 6 }} />
           <Text
             style={[
               styles.exportBtnText,
               { color: theme.text, fontSize: typography.fontSize.xs },
             ]}
           >
-            📥 Export CSV
+            Export CSV
           </Text>
         </TouchableOpacity>
       </View>
@@ -313,8 +310,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 20,
-    paddingVertical: 14,
-    borderBottomWidth: 1,
+    paddingTop: 10,
+    paddingBottom: 8,
   },
   headerTitle: {
     fontWeight: '800',

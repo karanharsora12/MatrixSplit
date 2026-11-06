@@ -1,5 +1,7 @@
 import React from 'react';
-import { View, Text, StyleSheet, SafeAreaView } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import {
   Button,
@@ -11,7 +13,7 @@ export default function WelcomeScreen() {
   const { theme, typography, spacing, borderRadius } = useWatermelonTheme();
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
+    <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]} edges={['top', 'bottom', 'left', 'right']}>
       <View style={styles.content}>
         {/* Logo / Brand Badge */}
         <View style={styles.brandContainer}>
@@ -21,7 +23,7 @@ export default function WelcomeScreen() {
               { backgroundColor: theme.primary, borderRadius: borderRadius.xl },
             ]}
           >
-            <Text style={styles.logoIcon}>⚡</Text>
+            <Ionicons name="flash" size={32} color="#FFFFFF" />
           </View>
           <Text
             style={[
@@ -54,7 +56,7 @@ export default function WelcomeScreen() {
           ]}
         >
           <View style={styles.featureItem}>
-            <Text style={styles.featureIcon}>✨</Text>
+            <Ionicons name="git-network-outline" size={24} color={theme.primary} style={{ marginRight: 14 }} />
             <View style={styles.featureTextContainer}>
               <Text style={[styles.featureTitle, { color: theme.text }]}>
                 Smart Debt Simplification
@@ -68,7 +70,7 @@ export default function WelcomeScreen() {
           <View style={[styles.divider, { backgroundColor: theme.divider }]} />
 
           <View style={styles.featureItem}>
-            <Text style={styles.featureIcon}>📊</Text>
+            <Ionicons name="pie-chart-outline" size={24} color={theme.primary} style={{ marginRight: 14 }} />
             <View style={styles.featureTextContainer}>
               <Text style={[styles.featureTitle, { color: theme.text }]}>
                 Precise Split Algorithms
@@ -82,7 +84,7 @@ export default function WelcomeScreen() {
           <View style={[styles.divider, { backgroundColor: theme.divider }]} />
 
           <View style={styles.featureItem}>
-            <Text style={styles.featureIcon}>⚡</Text>
+            <Ionicons name="flash-outline" size={24} color={theme.primary} style={{ marginRight: 14 }} />
             <View style={styles.featureTextContainer}>
               <Text style={[styles.featureTitle, { color: theme.text }]}>
                 Real-Time Settlements
@@ -101,13 +103,20 @@ export default function WelcomeScreen() {
             size="lg"
             variant="primary"
             onPress={() => router.push('/(auth)/signup')}
-            style={{ marginBottom: spacing.md }}
+            style={{ marginBottom: spacing.sm }}
           />
           <Button
             label="I already have an account"
             size="lg"
             variant="outline"
             onPress={() => router.push('/(auth)/login')}
+            style={{ marginBottom: spacing.sm }}
+          />
+          <Button
+            label="Feature Walkthrough"
+            size="sm"
+            variant="ghost"
+            onPress={() => router.push('/(auth)/onboarding')}
           />
         </View>
       </View>

@@ -3,12 +3,13 @@ import {
   View,
   Text,
   StyleSheet,
-  SafeAreaView,
   ScrollView,
   TouchableOpacity,
   Switch,
   Alert,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import {
   Card,
@@ -94,21 +95,16 @@ export default function SettingsScreen() {
   const currencies: CurrencyCode[] = ['INR', 'USD', 'EUR', 'GBP'];
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
+    <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]} edges={['top', 'left', 'right']}>
       {/* Top Header */}
-      <View
-        style={[
-          styles.headerBar,
-          { backgroundColor: theme.surface, borderBottomColor: theme.divider },
-        ]}
-      >
+      <View style={styles.headerBar}>
         <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
-          <Text style={[styles.backText, { color: theme.text }]}>‹</Text>
+          <Ionicons name="chevron-back" size={24} color={theme.text} />
         </TouchableOpacity>
         <Text
           style={[
             styles.headerTitle,
-            { color: theme.text, fontSize: typography.fontSize.lg },
+            { color: theme.text, fontSize: typography.fontSize.base },
           ]}
         >
           Settings & Profile
@@ -323,9 +319,10 @@ export default function SettingsScreen() {
           padding="md"
           style={{ marginBottom: spacing.xl }}
         >
-          <TouchableOpacity onPress={handleLogout} style={styles.logoutBtn}>
+          <TouchableOpacity onPress={handleLogout} style={[styles.logoutBtn, { flexDirection: 'row', alignItems: 'center' }]}>
+            <Ionicons name="log-out-outline" size={18} color={theme.primary} style={{ marginRight: 8 }} />
             <Text style={{ color: theme.primary, fontWeight: '700', fontSize: 15 }}>
-              🚪 Log Out
+              Log Out
             </Text>
           </TouchableOpacity>
 
@@ -333,12 +330,13 @@ export default function SettingsScreen() {
 
           <TouchableOpacity
             onPress={handleDeleteAccount}
-            style={styles.deleteBtn}
+            style={[styles.deleteBtn, { flexDirection: 'row', alignItems: 'center' }]}
           >
+            <Ionicons name="trash-outline" size={18} color={theme.negative} style={{ marginRight: 8 }} />
             <Text
               style={{ color: theme.negative, fontWeight: '700', fontSize: 15 }}
             >
-              🗑️ Delete Account
+              Delete Account
             </Text>
           </TouchableOpacity>
         </Card>
@@ -355,9 +353,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderBottomWidth: 1,
+    paddingHorizontal: 20,
+    paddingTop: 10,
+    paddingBottom: 8,
   },
   backBtn: {
     width: 36,

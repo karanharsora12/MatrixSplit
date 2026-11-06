@@ -3,13 +3,14 @@ import {
   View,
   Text,
   StyleSheet,
-  SafeAreaView,
   ScrollView,
   TouchableOpacity,
   RefreshControl,
   Alert,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
+import Ionicons from '@expo/vector-icons/Ionicons';
 import {
   Card,
   Button,
@@ -22,13 +23,13 @@ import {
 import { useMyGroups, useCreateGroup, useJoinGroup } from '../../src/hooks/useQueries';
 import { GroupCategory } from '@matrixsplit/shared';
 
-const categoryIcons: Record<string, string> = {
-  trip: '✈️',
-  home: '🏠',
-  couple: '❤️',
-  family: '👨‍👩‍👧',
-  friends: '🍻',
-  other: '📁',
+const categoryIcons: Record<string, keyof typeof Ionicons.glyphMap> = {
+  trip: 'airplane-outline',
+  home: 'home-outline',
+  couple: 'heart-outline',
+  family: 'people-outline',
+  friends: 'beer-outline',
+  other: 'folder-outline',
 };
 
 export default function GroupsScreen() {
@@ -95,14 +96,9 @@ export default function GroupsScreen() {
   ];
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
+    <SafeAreaView edges={['top', 'left', 'right']} style={[styles.container, { backgroundColor: theme.background }]}>
       {/* Top Header */}
-      <View
-        style={[
-          styles.headerBar,
-          { backgroundColor: theme.surface, borderBottomColor: theme.divider },
-        ]}
-      >
+      <View style={styles.headerBar}>
         <Text
           style={[
             styles.headerTitle,
@@ -119,6 +115,7 @@ export default function GroupsScreen() {
               { backgroundColor: theme.card, borderColor: theme.border },
             ]}
           >
+            <Ionicons name="enter-outline" size={16} color={theme.text} style={{ marginRight: 4 }} />
             <Text
               style={[
                 styles.joinBtnText,
@@ -132,7 +129,8 @@ export default function GroupsScreen() {
             onPress={() => setCreateSheetVisible(true)}
             style={[styles.addBtn, { backgroundColor: theme.primary }]}
           >
-            <Text style={styles.addBtnText}>+ Create</Text>
+            <Ionicons name="add" size={18} color="#FFFFFF" style={{ marginRight: 2 }} />
+            <Text style={styles.addBtnText}>Create</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -154,7 +152,7 @@ export default function GroupsScreen() {
           </>
         ) : groups && groups.length > 0 ? (
           groups.map((group: any) => {
-            const icon = categoryIcons[group.category] || '📁';
+            const iconName = categoryIcons[group.category] || 'folder-outline';
             return (
               <TouchableOpacity
                 key={group.id}
@@ -174,7 +172,7 @@ export default function GroupsScreen() {
                           { backgroundColor: theme.primaryLight },
                         ]}
                       >
-                        <Text style={{ fontSize: 24 }}>{icon}</Text>
+                        <Ionicons name={iconName} size={22} color={theme.primary} />
                       </View>
                       <View style={{ marginLeft: 12, flex: 1 }}>
                         <Text
@@ -218,7 +216,14 @@ export default function GroupsScreen() {
           })
         ) : (
           <View style={styles.emptyContainer}>
-            <Text style={{ fontSize: 48, marginBottom: 12 }}>🌴</Text>
+            <View
+              style={[
+                styles.emptyIconCircle,
+                { backgroundColor: theme.primaryLight, borderRadius: borderRadius.full },
+              ]}
+            >
+              <Ionicons name="people-outline" size={48} color={theme.primary} />
+            </View>
             <Text
               style={[
                 styles.emptyTitle,
@@ -251,91 +256,116 @@ export default function GroupsScreen() {
         onClose={() => setCreateSheetVisible(false)}
         title="Create New Group"
       >
-        <Input
-          label="Group Name"
-          placeholder="e.g. Summer Vacation, Flat 402"
-          value={groupName}
-          onChangeText={setGroupName}
-        />
+        <View style={styles.sheetContent}>
+          <Input
+            label="Group Name"
+            placeholder="e.g. Goa Trip 2026, Flat 402"
+            value={groupName}
+            onChangeText={setGroupName}
+          />
 
-        <Input
-          label="Description (Optional)"
-          placeholder="What is this group for?"
-          value={groupDesc}
-          onChangeText={setGroupDesc}
-        />
+          <Input
+            label="Description (Optional)"
+            placeholder="What is this group for?"
+            value={groupDesc}
+            onChangeText={setGroupDesc}
+          />
 
-        <Text
-          style={[
-            styles.categoryLabel,
-            { color: theme.text, fontSize: typography.fontSize.sm },
-          ]}
-        >
-          Category
-        </Text>
-        <View style={styles.categoryChipsRow}>
-          {categories.map((cat) => {
-            const isSelected = category === cat;
-            return (
-              <TouchableOpacity
-                key={cat}
-                onPress={() => setCategory(cat)}
-                style={[
-                  styles.categoryChip,
-                  {
-                    backgroundColor: isSelected
-                      ? theme.primary
-                      : theme.surface,
-                    borderColor: isSelected ? theme.primary : theme.border,
-                    borderRadius: borderRadius.md,
-                  },
-                ]}
-              >
-                <Text
-                  style={{
-                    color: isSelected ? '#FFFFFF' : theme.text,
-                    fontWeight: isSelected ? '700' : '500',
-                    fontSize: 12,
-                    textTransform: 'capitalize',
-                  }}
+          <Text
+            style={[
+              styles.categorySelectLabel,
+              { color: theme.text, fontSize: typography.fontSize.sm },
+            ]}
+          >
+            Category
+          </Text>
+
+          <View style={styles.categoryChipsContainer}>
+            {categories.map((cat) => {
+              const selected = category === cat;
+              const iconName = categoryIcons[cat] || 'folder-outline';
+              return (
+                <TouchableOpacity
+                  key={cat}
+                  activeOpacity={0.8}
+                  onPress={() => setCategory(cat)}
+                  style={[
+                    styles.categoryChip,
+                    {
+                      backgroundColor: selected
+                        ? theme.primary
+                        : theme.card,
+                      borderColor: selected
+                        ? theme.primary
+                        : theme.border,
+                      borderRadius: borderRadius.md,
+                    },
+                  ]}
                 >
-                  {categoryIcons[cat]} {cat}
-                </Text>
-              </TouchableOpacity>
-            );
-          })}
-        </View>
+                  <Ionicons
+                    name={iconName}
+                    size={16}
+                    color={selected ? '#FFFFFF' : theme.text}
+                    style={{ marginRight: 6 }}
+                  />
+                  <Text
+                    style={[
+                      styles.categoryChipText,
+                      {
+                        color: selected ? '#FFFFFF' : theme.text,
+                        fontWeight: selected ? '700' : '500',
+                      },
+                    ]}
+                  >
+                    {cat.toUpperCase()}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
 
-        <Button
-          label="Create Group"
-          size="lg"
-          onPress={handleCreate}
-          loading={createGroupMutation.isPending}
-          style={{ marginTop: spacing.xl }}
-        />
+          <Button
+            label="Create Group"
+            size="lg"
+            onPress={handleCreate}
+            loading={createGroupMutation.isPending}
+            style={{ marginTop: spacing.lg }}
+          />
+        </View>
       </BottomSheet>
 
       {/* Join Group Bottom Sheet */}
       <BottomSheet
         visible={joinSheetVisible}
         onClose={() => setJoinSheetVisible(false)}
-        title="Join Group via Invite Code"
+        title="Join Existing Group"
       >
-        <Input
-          label="6-Character Invite Code"
-          placeholder="e.g. A9B8C7"
-          value={inviteCodeInput}
-          onChangeText={setInviteCodeInput}
-          autoCapitalize="characters"
-        />
+        <View style={styles.sheetContent}>
+          <Input
+            label="Group Invite Code"
+            placeholder="e.g. TRIP-7X89A"
+            value={inviteCodeInput}
+            onChangeText={setInviteCodeInput}
+            autoCapitalize="characters"
+          />
+          <Text
+            style={{
+              color: theme.textMuted,
+              fontSize: typography.fontSize.xs,
+              marginTop: 4,
+              marginBottom: 16,
+            }}
+          >
+            Ask the group creator for their 6-character group invite code.
+          </Text>
 
-        <Button
-          label="Join Group"
-          size="lg"
-          onPress={handleJoin}
-          loading={joinGroupMutation.isPending}
-          style={{ marginTop: spacing.lg }}
-        />
+          <Button
+            label="Join Group"
+            size="lg"
+            onPress={handleJoin}
+            loading={joinGroupMutation.isPending}
+          />
+        </View>
       </BottomSheet>
     </SafeAreaView>
   );
@@ -350,8 +380,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 20,
-    paddingVertical: 14,
-    borderBottomWidth: 1,
+    paddingTop: 10,
+    paddingBottom: 8,
   },
   headerTitle: {
     fontWeight: '800',
@@ -359,20 +389,25 @@ const styles = StyleSheet.create({
   },
   headerActions: {
     flexDirection: 'row',
-    gap: 8,
+    alignItems: 'center',
   },
   joinBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
     paddingHorizontal: 12,
-    paddingVertical: 7,
-    borderWidth: 1,
+    paddingVertical: 6,
     borderRadius: 8,
+    borderWidth: 1,
+    marginRight: 8,
   },
   joinBtnText: {
     fontWeight: '600',
   },
   addBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
     paddingHorizontal: 14,
-    paddingVertical: 7,
+    paddingVertical: 8,
     borderRadius: 8,
   },
   addBtnText: {
@@ -382,12 +417,12 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     padding: 16,
-    flexGrow: 1,
+    paddingBottom: 40,
   },
   cardHeaderRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
+    justifyContent: 'space-between',
   },
   groupInfoLeft: {
     flexDirection: 'row',
@@ -395,9 +430,9 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   categoryIconCircle: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
+    width: 44,
+    height: 44,
+    borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -412,34 +447,48 @@ const styles = StyleSheet.create({
     lineHeight: 18,
   },
   emptyContainer: {
-    flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    padding: 32,
-    marginTop: 40,
+    paddingVertical: 60,
+    paddingHorizontal: 24,
+  },
+  emptyIconCircle: {
+    width: 96,
+    height: 96,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 16,
   },
   emptyTitle: {
-    fontWeight: '700',
+    fontWeight: '800',
+    marginBottom: 6,
   },
   emptyDesc: {
     textAlign: 'center',
     lineHeight: 20,
-    marginTop: 8,
-    maxWidth: 280,
   },
-  categoryLabel: {
+  sheetContent: {
+    paddingBottom: 24,
+  },
+  categorySelectLabel: {
     fontWeight: '600',
     marginTop: 12,
     marginBottom: 8,
   },
-  categoryChipsRow: {
+  categoryChipsContainer: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 8,
+    marginHorizontal: -4,
   },
   categoryChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderWidth: 1,
+    margin: 4,
+  },
+  categoryChipText: {
+    fontSize: 12,
   },
 });

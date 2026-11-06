@@ -1,13 +1,38 @@
 import React from 'react';
 import { Tabs } from 'expo-router';
 import { Text, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import Ionicons from '@expo/vector-icons/Ionicons';
 import { useWatermelonTheme } from '@matrixsplit/watermelon-ui';
 
-function TabIcon({ label, icon, focused, color }: { label: string; icon: string; focused: boolean; color: string }) {
+function TabIcon({
+  name,
+  outlineName,
+  label,
+  focused,
+  color,
+}: {
+  name: keyof typeof Ionicons.glyphMap;
+  outlineName: keyof typeof Ionicons.glyphMap;
+  label: string;
+  focused: boolean;
+  color: string;
+}) {
   return (
-    <View style={{ alignItems: 'center', justifyContent: 'center', top: 4 }}>
-      <Text style={{ fontSize: 20 }}>{icon}</Text>
-      <Text style={{ fontSize: 10, color, fontWeight: focused ? '700' : '500', marginTop: 2 }}>
+    <View style={{ alignItems: 'center', justifyContent: 'center', top: 2 }}>
+      <Ionicons
+        name={focused ? name : outlineName}
+        size={22}
+        color={color}
+      />
+      <Text
+        style={{
+          fontSize: 11,
+          color,
+          fontWeight: focused ? '700' : '500',
+          marginTop: 3,
+        }}
+      >
         {label}
       </Text>
     </View>
@@ -16,6 +41,7 @@ function TabIcon({ label, icon, focused, color }: { label: string; icon: string;
 
 export default function TabsLayout() {
   const { theme } = useWatermelonTheme();
+  const insets = useSafeAreaInsets();
 
   return (
     <Tabs
@@ -25,9 +51,15 @@ export default function TabsLayout() {
         tabBarStyle: {
           backgroundColor: theme.card,
           borderTopColor: theme.divider,
-          height: 64,
-          paddingBottom: 8,
           borderTopWidth: 1,
+          height: 60 + Math.max(insets.bottom, 8),
+          paddingBottom: Math.max(insets.bottom, 8),
+          paddingTop: 6,
+          elevation: 8,
+          shadowColor: '#000',
+          shadowOffset: { width: 0, height: -2 },
+          shadowOpacity: 0.05,
+          shadowRadius: 6,
         },
       }}
     >
@@ -37,7 +69,8 @@ export default function TabsLayout() {
           tabBarIcon: ({ focused }) => (
             <TabIcon
               label="Home"
-              icon="🏠"
+              name="home"
+              outlineName="home-outline"
               focused={focused}
               color={focused ? theme.primary : theme.textMuted}
             />
@@ -50,7 +83,8 @@ export default function TabsLayout() {
           tabBarIcon: ({ focused }) => (
             <TabIcon
               label="Groups"
-              icon="👥"
+              name="people"
+              outlineName="people-outline"
               focused={focused}
               color={focused ? theme.primary : theme.textMuted}
             />
@@ -63,7 +97,8 @@ export default function TabsLayout() {
           tabBarIcon: ({ focused }) => (
             <TabIcon
               label="Friends"
-              icon="🤝"
+              name="person"
+              outlineName="person-outline"
               focused={focused}
               color={focused ? theme.primary : theme.textMuted}
             />
@@ -76,7 +111,8 @@ export default function TabsLayout() {
           tabBarIcon: ({ focused }) => (
             <TabIcon
               label="Activity"
-              icon="⚡"
+              name="flash"
+              outlineName="flash-outline"
               focused={focused}
               color={focused ? theme.primary : theme.textMuted}
             />
@@ -89,7 +125,8 @@ export default function TabsLayout() {
           tabBarIcon: ({ focused }) => (
             <TabIcon
               label="Analytics"
-              icon="📊"
+              name="pie-chart"
+              outlineName="pie-chart-outline"
               focused={focused}
               color={focused ? theme.primary : theme.textMuted}
             />

@@ -3,12 +3,14 @@ import {
   View,
   Text,
   StyleSheet,
-  SafeAreaView,
   ScrollView,
   TouchableOpacity,
   RefreshControl,
+  Share,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
+import Ionicons from '@expo/vector-icons/Ionicons';
 import {
   BalanceCard,
   Card,
@@ -24,7 +26,29 @@ import {
   useMyGroups,
 } from '../../src/hooks/useQueries';
 import { useAuthStore } from '../../src/stores/authStore';
-import { formatCurrency } from '@matrixsplit/shared';
+import { formatCurrency, ExpenseCategory, GroupCategory } from '@matrixsplit/shared';
+
+const groupIcons: Record<string, keyof typeof Ionicons.glyphMap> = {
+  trip: 'airplane-outline',
+  home: 'home-outline',
+  couple: 'heart-outline',
+  family: 'people-outline',
+  friends: 'beer-outline',
+  other: 'folder-outline',
+};
+
+const expenseIcons: Record<string, keyof typeof Ionicons.glyphMap> = {
+  food_and_drink: 'restaurant-outline',
+  groceries: 'cart-outline',
+  transport: 'car-outline',
+  housing: 'home-outline',
+  entertainment: 'film-outline',
+  travel: 'airplane-outline',
+  utilities: 'flash-outline',
+  shopping: 'bag-handle-outline',
+  health: 'medkit-outline',
+  general: 'receipt-outline',
+};
 
 export default function DashboardScreen() {
   const router = useRouter();
@@ -51,15 +75,21 @@ export default function DashboardScreen() {
     refetchGroups();
   };
 
+  const handleInviteFriend = async () => {
+    try {
+      await Share.share({
+        message: `Join me on MatrixSplit to easily split bills, track shared expenses, and settle balances instantly! Connect with my email: ${user?.email || ''}`,
+        title: 'MatrixSplit Invite',
+      });
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
+    <SafeAreaView edges={['top', 'left', 'right']} style={[styles.container, { backgroundColor: theme.background }]}>
       {/* Top Header */}
-      <View
-        style={[
-          styles.topBar,
-          { backgroundColor: theme.surface, borderBottomColor: theme.divider },
-        ]}
-      >
+      <View style={styles.topBar}>
         <TouchableOpacity
           onPress={() => router.push('/settings')}
           style={styles.profileBtn}
@@ -87,9 +117,9 @@ export default function DashboardScreen() {
 
         <TouchableOpacity
           onPress={() => router.push('/settings')}
-          style={[styles.settingsIconBtn, { backgroundColor: theme.background }]}
+          style={[styles.settingsIconBtn, { backgroundColor: theme.card, borderColor: theme.border }]}
         >
-          <Text style={{ fontSize: 18 }}>⚙️</Text>
+          <Ionicons name="settings-outline" size={20} color={theme.text} />
         </TouchableOpacity>
       </View>
 
@@ -129,7 +159,7 @@ export default function DashboardScreen() {
               },
             ]}
           >
-            <Text style={styles.actionIcon}>➕</Text>
+            <Ionicons name="add-circle" size={24} color="#FFFFFF" />
             <Text style={styles.actionLabel}>Add Expense</Text>
           </TouchableOpacity>
 
@@ -144,7 +174,7 @@ export default function DashboardScreen() {
               },
             ]}
           >
-            <Text style={styles.actionIcon}>🤝</Text>
+            <Ionicons name="swap-horizontal" size={22} color="#FFFFFF" />
             <Text style={styles.actionLabel}>Settle Up</Text>
           </TouchableOpacity>
 
@@ -161,7 +191,7 @@ export default function DashboardScreen() {
               },
             ]}
           >
-            <Text style={styles.actionIcon}>👥</Text>
+            <Ionicons name="people-outline" size={22} color={theme.text} />
             <Text style={[styles.actionLabel, { color: theme.text }]}>
               Create Group
             </Text>
@@ -169,7 +199,7 @@ export default function DashboardScreen() {
 
           <TouchableOpacity
             activeOpacity={0.8}
-            onPress={() => router.push('/friends')}
+            onPress={handleInviteFriend}
             style={[
               styles.actionButton,
               {
@@ -180,7 +210,7 @@ export default function DashboardScreen() {
               },
             ]}
           >
-            <Text style={styles.actionIcon}>✉️</Text>
+            <Ionicons name="share-social-outline" size={20} color={theme.text} />
             <Text style={[styles.actionLabel, { color: theme.text }]}>
               Invite Friend
             </Text>
@@ -198,8 +228,8 @@ export default function DashboardScreen() {
             Active Groups
           </Text>
           <TouchableOpacity onPress={() => router.push('/groups')}>
-            <Text style={{ color: theme.primary, fontWeight: '600' }}>
-              See all
+            <Text style={{ color: theme.primary, fontWeight: '700', fontSize: 13 }}>
+              See all ›
             </Text>
           </TouchableOpacity>
         </View>
@@ -210,44 +240,47 @@ export default function DashboardScreen() {
             showsHorizontalScrollIndicator={false}
             style={styles.groupsScroll}
           >
-            {groups.map((group: any) => (
-              <TouchableOpacity
-                key={group.id}
-                activeOpacity={0.85}
-                onPress={() => router.push(`/group/${group.id}`)}
-                style={[
-                  styles.groupCard,
-                  {
-                    backgroundColor: theme.card,
-                    borderColor: theme.border,
-                    borderRadius: borderRadius.lg,
-                  },
-                ]}
-              >
-                <View style={styles.groupCardTop}>
-                  <View
-                    style={[
-                      styles.groupIconWrapper,
-                      { backgroundColor: theme.primaryLight },
-                    ]}
-                  >
-                    <Text style={{ fontSize: 18 }}>🌴</Text>
+            {groups.map((group: any) => {
+              const iconName = groupIcons[group.category] || 'folder-outline';
+              return (
+                <TouchableOpacity
+                  key={group.id}
+                  activeOpacity={0.85}
+                  onPress={() => router.push(`/group/${group.id}`)}
+                  style={[
+                    styles.groupCard,
+                    {
+                      backgroundColor: theme.card,
+                      borderColor: theme.border,
+                      borderRadius: borderRadius.lg,
+                    },
+                  ]}
+                >
+                  <View style={styles.groupCardTop}>
+                    <View
+                      style={[
+                        styles.groupIconWrapper,
+                        { backgroundColor: theme.primaryLight },
+                      ]}
+                    >
+                      <Ionicons name={iconName} size={18} color={theme.primary} />
+                    </View>
+                    <Badge label={group.category} size="sm" variant="info" />
                   </View>
-                  <Badge label={group.category} size="sm" variant="info" />
-                </View>
-                <Text
-                  numberOfLines={1}
-                  style={[styles.groupName, { color: theme.text }]}
-                >
-                  {group.name}
-                </Text>
-                <Text
-                  style={[styles.groupMembersText, { color: theme.textMuted }]}
-                >
-                  {group.membersCount || 1} members
-                </Text>
-              </TouchableOpacity>
-            ))}
+                  <Text
+                    numberOfLines={1}
+                    style={[styles.groupName, { color: theme.text }]}
+                  >
+                    {group.name}
+                  </Text>
+                  <Text
+                    style={[styles.groupMembersText, { color: theme.textMuted }]}
+                  >
+                    {group.membersCount || 1} members
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
           </ScrollView>
         ) : (
           <Card padding="md" variant="outlined" style={styles.emptyGroupCard}>
@@ -268,7 +301,7 @@ export default function DashboardScreen() {
             Recent Expenses
           </Text>
           <TouchableOpacity onPress={() => router.push('/expense/add')}>
-            <Text style={{ color: theme.primary, fontWeight: '600' }}>
+            <Text style={{ color: theme.primary, fontWeight: '700', fontSize: 13 }}>
               + Add
             </Text>
           </TouchableOpacity>
@@ -277,45 +310,55 @@ export default function DashboardScreen() {
         {loadingExpenses ? (
           <SkeletonCard />
         ) : recentExpenses && recentExpenses.length > 0 ? (
-          recentExpenses.map((exp: any) => (
-            <TouchableOpacity
-              key={exp.id}
-              activeOpacity={0.8}
-              onPress={() => router.push(`/expense/${exp.id}`)}
-            >
-              <Card
-                variant="outlined"
-                padding="sm"
-                style={{ marginBottom: spacing.sm }}
+          recentExpenses.map((exp: any) => {
+            const expIconName = expenseIcons[exp.category] || 'receipt-outline';
+            return (
+              <TouchableOpacity
+                key={exp.id}
+                activeOpacity={0.8}
+                onPress={() => router.push(`/expense/${exp.id}`)}
               >
-                <View style={styles.expenseRow}>
-                  <Avatar name={exp.payer?.fullName || 'User'} size="sm" />
-                  <View style={styles.expenseInfo}>
-                    <Text
-                      numberOfLines={1}
-                      style={[styles.expenseTitle, { color: theme.text }]}
+                <Card
+                  variant="outlined"
+                  padding="sm"
+                  style={{ marginBottom: spacing.sm }}
+                >
+                  <View style={styles.expenseRow}>
+                    <View
+                      style={[
+                        styles.categoryIconCircle,
+                        { backgroundColor: theme.primaryLight },
+                      ]}
                     >
-                      {exp.title}
-                    </Text>
+                      <Ionicons name={expIconName} size={18} color={theme.primary} />
+                    </View>
+                    <View style={styles.expenseInfo}>
+                      <Text
+                        numberOfLines={1}
+                        style={[styles.expenseTitle, { color: theme.text }]}
+                      >
+                        {exp.title}
+                      </Text>
+                      <Text
+                        style={[styles.expenseMeta, { color: theme.textMuted }]}
+                      >
+                        Paid by {exp.payer?.fullName || 'Someone'} •{' '}
+                        {new Date(exp.date).toLocaleDateString()}
+                      </Text>
+                    </View>
                     <Text
-                      style={[styles.expenseMeta, { color: theme.textMuted }]}
+                      style={[
+                        styles.expenseAmount,
+                        { color: theme.text, fontSize: typography.fontSize.base },
+                      ]}
                     >
-                      Paid by {exp.payer?.fullName || 'Someone'} •{' '}
-                      {new Date(exp.date).toLocaleDateString()}
+                      {formatCurrency(exp.totalAmountMinor, exp.currency)}
                     </Text>
                   </View>
-                  <Text
-                    style={[
-                      styles.expenseAmount,
-                      { color: theme.text, fontSize: typography.fontSize.base },
-                    ]}
-                  >
-                    {formatCurrency(exp.totalAmountMinor, exp.currency)}
-                  </Text>
-                </View>
-              </Card>
-            </TouchableOpacity>
-          ))
+                </Card>
+              </TouchableOpacity>
+            );
+          })
         ) : (
           <Card padding="md" variant="outlined">
             <Text style={{ color: theme.textMuted, textAlign: 'center' }}>
@@ -346,8 +389,15 @@ export default function DashboardScreen() {
                 style={{ marginBottom: spacing.sm }}
               >
                 <View style={styles.settlementRow}>
-                  <Text style={{ fontSize: 20, marginRight: 10 }}>💵</Text>
-                  <View style={{ flex: 1 }}>
+                  <View
+                    style={[
+                      styles.categoryIconCircle,
+                      { backgroundColor: theme.positiveBg },
+                    ]}
+                  >
+                    <Ionicons name="checkmark-done-outline" size={18} color={theme.positive} />
+                  </View>
+                  <View style={{ flex: 1, marginLeft: 10 }}>
                     <Text
                       style={[
                         styles.settlementTitle,
@@ -388,9 +438,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderBottomWidth: 1,
+    paddingHorizontal: 20,
+    paddingTop: 8,
+    paddingBottom: 8,
   },
   profileBtn: {
     flexDirection: 'row',
@@ -408,52 +458,48 @@ const styles = StyleSheet.create({
   settingsIconBtn: {
     width: 38,
     height: 38,
-    borderRadius: 19,
+    borderRadius: 10,
+    borderWidth: 1,
     alignItems: 'center',
     justifyContent: 'center',
   },
   scrollContent: {
-    paddingHorizontal: 16,
-    paddingTop: 12,
-    paddingBottom: 40,
+    padding: 16,
+    paddingBottom: 32,
   },
   actionsGrid: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 10,
-    marginVertical: 16,
+    justifyContent: 'space-between',
+    marginTop: 16,
+    marginBottom: 20,
   },
   actionButton: {
-    flexBasis: '48%',
-    flexGrow: 1,
-    paddingVertical: 14,
-    paddingHorizontal: 12,
+    flex: 1,
+    marginHorizontal: 3,
+    paddingVertical: 12,
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  actionIcon: {
-    fontSize: 22,
-    marginBottom: 4,
   },
   actionLabel: {
     color: '#FFFFFF',
     fontWeight: '700',
-    fontSize: 13,
+    fontSize: 11,
+    marginTop: 6,
+    textAlign: 'center',
   },
   sectionHeader: {
     flexDirection: 'row',
-    alignItems: 'center',
     justifyContent: 'space-between',
-    marginTop: 16,
+    alignItems: 'center',
     marginBottom: 10,
+    marginTop: 6,
   },
   sectionTitle: {
-    fontWeight: '700',
+    fontWeight: '800',
     letterSpacing: -0.3,
   },
   groupsScroll: {
-    flexDirection: 'row',
-    marginBottom: 8,
+    marginBottom: 20,
   },
   groupCard: {
     width: 140,
@@ -470,46 +516,53 @@ const styles = StyleSheet.create({
   groupIconWrapper: {
     width: 32,
     height: 32,
-    borderRadius: 16,
+    borderRadius: 8,
     alignItems: 'center',
     justifyContent: 'center',
   },
   groupName: {
     fontWeight: '700',
-    fontSize: 14,
-    marginBottom: 2,
+    fontSize: 13,
   },
   groupMembersText: {
     fontSize: 11,
+    marginTop: 2,
   },
   emptyGroupCard: {
-    marginVertical: 6,
+    marginBottom: 16,
   },
   expenseRow: {
     flexDirection: 'row',
     alignItems: 'center',
   },
+  categoryIconCircle: {
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   expenseInfo: {
     flex: 1,
-    marginLeft: 10,
+    marginLeft: 12,
   },
   expenseTitle: {
     fontWeight: '700',
     fontSize: 14,
   },
   expenseMeta: {
-    fontSize: 11,
+    fontSize: 12,
     marginTop: 2,
   },
   expenseAmount: {
-    fontWeight: '700',
+    fontWeight: '800',
   },
   settlementRow: {
     flexDirection: 'row',
     alignItems: 'center',
   },
   settlementTitle: {
-    fontWeight: '600',
+    fontWeight: '700',
   },
   settlementMethod: {
     marginTop: 2,
