@@ -3,7 +3,7 @@ import {
   View,
   Text,
   StyleSheet,
-  TouchableOpacity,
+  Pressable,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
@@ -18,23 +18,24 @@ import { apiClient } from '../../src/services/api';
 
 export default function ForgotPasswordScreen() {
   const router = useRouter();
-  const { theme, typography, spacing } = useWatermelonTheme();
+  const { theme, typography, spacing, borderRadius, isDark } = useWatermelonTheme();
 
   const [step, setStep] = useState<'request_otp' | 'reset_password'>('request_otp');
   const [email, setEmail] = useState('');
   const [otp, setOtp] = useState('');
   const [newPassword, setNewPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
 
   const handleRequestOtp = async () => {
-    if (!email) {
+    if (!email.trim()) {
       Alert.alert('Required', 'Please enter your registered email address');
       return;
     }
 
     setLoading(true);
     try {
-      const res = await apiClient.post('/auth/forgot-password', { email });
+      const res = await apiClient.post('/auth/forgot-password', { email: email.trim() });
       if (res.data?.debugOtp) {
         Alert.alert('Demo OTP', `Your reset OTP is: ${res.data.debugOtp}`);
       } else {
@@ -49,7 +50,7 @@ export default function ForgotPasswordScreen() {
   };
 
   const handleResetPassword = async () => {
-    if (!otp || !newPassword || newPassword.length < 8) {
+    if (!otp.trim() || !newPassword || newPassword.length < 8) {
       Alert.alert('Required', 'Enter the 6-digit OTP and new password (min 8 chars)');
       return;
     }
@@ -57,8 +58,8 @@ export default function ForgotPasswordScreen() {
     setLoading(true);
     try {
       await apiClient.post('/auth/reset-password', {
-        email,
-        otp,
+        email: email.trim(),
+        otp: otp.trim(),
         newPassword,
       });
 
@@ -74,26 +75,53 @@ export default function ForgotPasswordScreen() {
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]} edges={['top', 'bottom', 'left', 'right']}>
+      {/* Top Bar */}
+      <View style={styles.topBar}>
+        <Pressable
+          onPress={() => {
+            if (step === 'reset_password') {
+              setStep('request_otp');
+            } else if (router.canGoBack()) {
+              router.back();
+            } else {
+              router.replace('/(auth)/login');
+            }
+          }}
+          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+          style={({ pressed }) => [
+            styles.iconButton,
+            {
+              backgroundColor: theme.surface,
+              borderColor: theme.border,
+              opacity: pressed ? 0.7 : 1,
+            },
+          ]}
+        >
+          <Ionicons name="chevron-back" size={20} color={theme.text} />
+        </Pressable>
+
+        <View style={{ width: 38 }} />
+      </View>
+
       <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         style={{ flex: 1 }}
       >
-        <ScrollView contentContainerStyle={styles.scrollContent}>
-          <TouchableOpacity
-            onPress={() => {
-              if (router.canGoBack()) {
-                router.back();
-              } else {
-                router.replace('/(auth)/login');
-              }
-            }}
-            style={[styles.backButton, { flexDirection: 'row', alignItems: 'center' }]}
-          >
-            <Ionicons name="chevron-back" size={22} color={theme.text} />
-            <Text style={[styles.backText, { color: theme.text, marginLeft: 2 }]}>Back</Text>
-          </TouchableOpacity>
-
+        <ScrollView
+          contentContainerStyle={styles.scrollContent}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+        >
+          {/* Header */}
           <View style={styles.header}>
+            <View
+              style={[
+                styles.brandIcon,
+                { backgroundColor: theme.primary, borderRadius: borderRadius.lg },
+              ]}
+            >
+              <Ionicons name="key-outline" size={24} color="#FFFFFF" />
+            </View>
             <Text
               style={[
                 styles.title,
@@ -105,16 +133,45 @@ export default function ForgotPasswordScreen() {
             <Text
               style={[
                 styles.subtitle,
-                { color: theme.textMuted, fontSize: typography.fontSize.base },
+                { color: theme.textMuted, fontSize: typography.fontSize.sm },
               ]}
             >
               {step === 'request_otp'
-                ? "Enter your email and we'll send you a recovery code"
-                : 'Enter the 6-digit code and choose a new password'}
+                ? "Enter your email and we'll send a 6-digit verification code"
+                : `Enter the verification code sent to ${email}`}
             </Text>
+
+            {/* Stepper Pill */}
+            <View style={styles.stepIndicator}>
+              <View
+                style={[
+                  styles.stepDot,
+                  { backgroundColor: theme.primary, width: step === 'request_otp' ? 24 : 8 },
+                ]}
+              />
+              <View
+                style={[
+                  styles.stepDot,
+                  {
+                    backgroundColor: step === 'reset_password' ? theme.primary : theme.border,
+                    width: step === 'reset_password' ? 24 : 8,
+                  },
+                ]}
+              />
+            </View>
           </View>
 
-          <View style={styles.form}>
+          {/* Form Card */}
+          <View
+            style={[
+              styles.formCard,
+              {
+                backgroundColor: theme.card,
+                borderColor: theme.border,
+                borderRadius: borderRadius.xl,
+              },
+            ]}
+          >
             {step === 'request_otp' ? (
               <>
                 <Input
@@ -124,49 +181,84 @@ export default function ForgotPasswordScreen() {
                   onChangeText={setEmail}
                   keyboardType="email-address"
                   autoCapitalize="none"
+                  leftIcon={<Ionicons name="mail-outline" size={18} color={theme.textMuted} />}
                 />
+
                 <Button
-                  label="Send Recovery Code"
+                  label={loading ? 'Sending Code...' : 'Send Verification Code'}
                   size="lg"
-                  onPress={handleRequestOtp}
+                  variant="primary"
                   loading={loading}
-                  style={{ marginTop: spacing.lg }}
+                  onPress={handleRequestOtp}
+                  style={{ marginTop: 10 }}
                 />
               </>
             ) : (
               <>
                 <Input
-                  label="6-Digit OTP Code"
+                  label="6-Digit Verification Code"
                   placeholder="123456"
                   value={otp}
                   onChangeText={setOtp}
                   keyboardType="number-pad"
                   maxLength={6}
+                  leftIcon={<Ionicons name="shield-outline" size={18} color={theme.textMuted} />}
                 />
+
                 <Input
                   label="New Password"
-                  placeholder="Minimum 8 characters"
+                  placeholder="••••••••"
                   value={newPassword}
                   onChangeText={setNewPassword}
-                  secureTextEntry
+                  secureTextEntry={!showPassword}
+                  leftIcon={<Ionicons name="lock-closed-outline" size={18} color={theme.textMuted} />}
+                  rightIcon={
+                    <Ionicons
+                      name={showPassword ? 'eye-off-outline' : 'eye-outline'}
+                      size={18}
+                      color={theme.textMuted}
+                    />
+                  }
+                  onRightIconPress={() => setShowPassword(!showPassword)}
                 />
+
                 <Button
-                  label="Reset Password"
+                  label={loading ? 'Updating Password...' : 'Save New Password'}
                   size="lg"
-                  onPress={handleResetPassword}
+                  variant="primary"
                   loading={loading}
-                  style={{ marginTop: spacing.lg }}
+                  onPress={handleResetPassword}
+                  style={{ marginTop: 10 }}
                 />
+
+                <Pressable
+                  onPress={handleRequestOtp}
+                  style={({ pressed }) => [
+                    styles.resendBtn,
+                    { opacity: pressed ? 0.7 : 1 },
+                  ]}
+                >
+                  <Text style={[styles.resendText, { color: theme.primary }]}>
+                    Didn't receive code? Resend OTP
+                  </Text>
+                </Pressable>
               </>
             )}
           </View>
 
-          <View style={styles.footer}>
-            <TouchableOpacity onPress={() => router.replace('/(auth)/login')}>
-              <Text style={{ color: theme.primary, fontWeight: '700' }}>
-                Return to Login
+          {/* Footer Back to Login */}
+          <View style={styles.footerRow}>
+            <Text style={[styles.footerText, { color: theme.textMuted }]}>
+              Remembered your password?{' '}
+            </Text>
+            <Pressable
+              onPress={() => router.replace('/(auth)/login')}
+              style={({ pressed }) => [{ opacity: pressed ? 0.7 : 1 }]}
+            >
+              <Text style={[styles.signInLink, { color: theme.primary }]}>
+                Sign In
               </Text>
-            </TouchableOpacity>
+            </Pressable>
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
@@ -178,35 +270,82 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  scrollContent: {
-    paddingHorizontal: 24,
-    paddingVertical: 16,
-    flexGrow: 1,
+  topBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
     justifyContent: 'space-between',
+    paddingHorizontal: 20,
+    paddingTop: 8,
+    paddingBottom: 4,
   },
-  backButton: {
-    paddingVertical: 8,
+  iconButton: {
+    width: 38,
+    height: 38,
+    borderRadius: 12,
+    borderWidth: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  backText: {
-    fontSize: 18,
-    fontWeight: '600',
+  scrollContent: {
+    paddingHorizontal: 20,
+    paddingTop: 12,
+    paddingBottom: 32,
   },
   header: {
-    marginTop: 20,
-    marginBottom: 28,
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  brandIcon: {
+    width: 52,
+    height: 52,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 12,
   },
   title: {
     fontWeight: '800',
     letterSpacing: -0.5,
+    textAlign: 'center',
   },
   subtitle: {
+    textAlign: 'center',
     marginTop: 6,
+    maxWidth: 290,
   },
-  form: {
-    flex: 1,
-  },
-  footer: {
+  stepIndicator: {
+    flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 16,
+    marginTop: 14,
+    gap: 6,
+  },
+  stepDot: {
+    height: 6,
+    borderRadius: 3,
+  },
+  formCard: {
+    padding: 20,
+    borderWidth: 1,
+    marginBottom: 20,
+  },
+  resendBtn: {
+    alignItems: 'center',
+    marginTop: 14,
+  },
+  resendText: {
+    fontSize: 13,
+    fontWeight: '600',
+  },
+  footerRow: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 8,
+  },
+  footerText: {
+    fontSize: 14,
+  },
+  signInLink: {
+    fontSize: 14,
+    fontWeight: '700',
   },
 });

@@ -1,11 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   ScrollView,
-  TouchableOpacity,
+  Pressable,
   RefreshControl,
+  TextInput,
   Alert,
   Share,
 } from 'react-native';
@@ -30,10 +31,11 @@ import {
 } from '../../src/hooks/useQueries';
 import { apiClient } from '../../src/services/api';
 import { useAuthStore } from '../../src/stores/authStore';
+import { formatCurrency } from '@matrixsplit/shared';
 
 export default function FriendsScreen() {
   const router = useRouter();
-  const { theme, typography, spacing, borderRadius } = useWatermelonTheme();
+  const { theme, typography, spacing, borderRadius, isDark } = useWatermelonTheme();
   const currentUser = useAuthStore((s) => s.user);
 
   const { data: friends, isLoading, refetch, isRefetching } = useFriends();
@@ -43,9 +45,13 @@ export default function FriendsScreen() {
   const sendRequestMutation = useSendFriendRequest();
   const respondRequestMutation = useRespondFriendRequest();
 
+  const [filter, setFilter] = useState<'all' | 'owed' | 'owe' | 'settled'>('all');
+  const [searchQuery, setSearchQuery] = useState('');
   const [addSheetVisible, setAddSheetVisible] = useState(false);
   const [qrSheetVisible, setQrSheetVisible] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
+
+  // Search in add sheet
+  const [addSearchText, setAddSearchText] = useState('');
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [searching, setSearching] = useState(false);
 
@@ -54,8 +60,8 @@ export default function FriendsScreen() {
     refetchRequests();
   };
 
-  const handleSearch = async (text: string) => {
-    setSearchQuery(text);
+  const handleSearchUsers = async (text: string) => {
+    setAddSearchText(text);
     if (text.trim().length > 1) {
       setSearching(true);
       try {
@@ -76,8 +82,9 @@ export default function FriendsScreen() {
       await sendRequestMutation.mutateAsync(emailOrId);
       Alert.alert('Sent', 'Friend request sent successfully!');
       setAddSheetVisible(false);
-      setSearchQuery('');
+      setAddSearchText('');
       setSearchResults([]);
+      refetchRequests();
     } catch (err: any) {
       Alert.alert('Error', err.response?.data?.message || 'Failed to send request');
     }
@@ -104,33 +111,135 @@ export default function FriendsScreen() {
     }
   };
 
+  const filteredFriends = useMemo(() => {
+    if (!friends) return [];
+    return friends.filter((f: any) => {
+      const matchesSearch =
+        !searchQuery ||
+        f.fullName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (f.email && f.email.toLowerCase().includes(searchQuery.toLowerCase()));
+
+      const balance = f.balanceMinor || 0;
+      let matchesFilter = true;
+      if (filter === 'owed') matchesFilter = balance > 0;
+      else if (filter === 'owe') matchesFilter = balance < 0;
+      else if (filter === 'settled') matchesFilter = balance === 0;
+
+      return matchesSearch && matchesFilter;
+    });
+  }, [friends, searchQuery, filter]);
+
   return (
     <SafeAreaView edges={['top', 'left', 'right']} style={[styles.container, { backgroundColor: theme.background }]}>
       {/* Top Header */}
       <View style={styles.headerBar}>
-        <Text
-          style={[
-            styles.headerTitle,
-            { color: theme.text, fontSize: typography.fontSize['2xl'] },
-          ]}
-        >
-          Friends
-        </Text>
+        <View>
+          <Text
+            style={[
+              styles.headerTitle,
+              { color: theme.text, fontSize: typography.fontSize['2xl'] },
+            ]}
+          >
+            Friends
+          </Text>
+          <Text style={[styles.headerSubtitle, { color: theme.textMuted }]}>
+            {friends ? `${friends.length} connections` : 'Track balances with friends'}
+          </Text>
+        </View>
+
         <View style={styles.headerActions}>
-          <TouchableOpacity
+          <Pressable
             onPress={() => setQrSheetVisible(true)}
-            style={[styles.qrBtn, { backgroundColor: theme.card, borderColor: theme.border }]}
+            style={({ pressed }) => [
+              styles.qrBtn,
+              {
+                backgroundColor: theme.surface,
+                borderColor: theme.border,
+                opacity: pressed ? 0.7 : 1,
+              },
+            ]}
           >
             <Ionicons name="qr-code-outline" size={16} color={theme.text} style={{ marginRight: 4 }} />
-            <Text style={{ fontSize: 13, color: theme.text, fontWeight: '600' }}>QR</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
+            <Text style={{ fontSize: 12, color: theme.text, fontWeight: '700' }}>QR</Text>
+          </Pressable>
+
+          <Pressable
             onPress={() => setAddSheetVisible(true)}
-            style={[styles.addBtn, { backgroundColor: theme.primary }]}
+            style={({ pressed }) => [
+              styles.addBtn,
+              { backgroundColor: theme.primary, opacity: pressed ? 0.85 : 1 },
+            ]}
           >
             <Ionicons name="person-add-outline" size={16} color="#FFFFFF" style={{ marginRight: 4 }} />
-            <Text style={styles.addBtnText}>Add Friend</Text>
-          </TouchableOpacity>
+            <Text style={styles.addBtnText}>Add</Text>
+          </Pressable>
+        </View>
+      </View>
+
+      {/* Search & Status Filters */}
+      <View style={styles.searchSection}>
+        <View
+          style={[
+            styles.searchBar,
+            {
+              backgroundColor: theme.card,
+              borderColor: theme.border,
+              borderRadius: borderRadius.lg,
+            },
+          ]}
+        >
+          <Ionicons name="search-outline" size={18} color={theme.textMuted} style={{ marginRight: 8 }} />
+          <TextInput
+            placeholder="Search friends by name or email..."
+            placeholderTextColor={theme.textMuted}
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+            style={[styles.searchInput, { color: theme.text }]}
+          />
+          {searchQuery ? (
+            <Pressable onPress={() => setSearchQuery('')} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+              <Ionicons name="close-circle" size={18} color={theme.textMuted} />
+            </Pressable>
+          ) : null}
+        </View>
+
+        {/* Status Filters */}
+        <View style={styles.filterRow}>
+          {(['all', 'owed', 'owe', 'settled'] as const).map((tab) => {
+            const isSelected = filter === tab;
+            const labels = {
+              all: 'All',
+              owed: 'Owed to you',
+              owe: 'You owe',
+              settled: 'Settled',
+            };
+            return (
+              <Pressable
+                key={tab}
+                onPress={() => setFilter(tab)}
+                style={({ pressed }) => [
+                  styles.filterTab,
+                  {
+                    backgroundColor: isSelected ? theme.primary : theme.surface,
+                    borderColor: isSelected ? theme.primary : theme.border,
+                    opacity: pressed ? 0.8 : 1,
+                  },
+                ]}
+              >
+                <Text
+                  style={[
+                    styles.filterTabText,
+                    {
+                      color: isSelected ? '#FFFFFF' : theme.text,
+                      fontWeight: isSelected ? '700' : '500',
+                    },
+                  ]}
+                >
+                  {labels[tab]}
+                </Text>
+              </Pressable>
+            );
+          })}
         </View>
       </View>
 
@@ -147,56 +256,76 @@ export default function FriendsScreen() {
         {/* Pending Requests Banner */}
         {pendingRequests && pendingRequests.length > 0 && (
           <View style={styles.pendingSection}>
-            <Text
-              style={[
-                styles.pendingHeaderTitle,
-                { color: theme.text, fontSize: typography.fontSize.sm },
-              ]}
-            >
-              FRIEND REQUESTS ({pendingRequests.length})
-            </Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 8 }}>
+              <Ionicons name="notifications-outline" size={16} color={theme.primary} style={{ marginRight: 6 }} />
+              <Text
+                style={[
+                  styles.pendingHeaderTitle,
+                  { color: theme.text, fontSize: typography.fontSize.xs },
+                ]}
+              >
+                FRIEND REQUESTS ({pendingRequests.length})
+              </Text>
+            </View>
+
             {pendingRequests.map((req: any) => (
               <Card
                 key={req.id}
                 variant="outlined"
                 padding="sm"
-                style={{ marginBottom: spacing.sm }}
+                style={{
+                  marginBottom: spacing.sm,
+                  borderColor: theme.primary,
+                  backgroundColor: isDark ? 'rgba(16,185,129,0.08)' : '#ECFDF5',
+                }}
               >
-                <View style={styles.requestRow}>
-                  <Avatar name={req.sender?.fullName || 'User'} size="sm" />
+                <View style={styles.reqRow}>
+                  <Avatar name={req.sender?.fullName || 'Friend'} size="sm" />
                   <View style={{ flex: 1, marginLeft: 10 }}>
-                    <Text style={[styles.friendName, { color: theme.text }]}>
+                    <Text
+                      style={[
+                        styles.reqName,
+                        { color: theme.text, fontSize: typography.fontSize.sm },
+                      ]}
+                    >
                       {req.sender?.fullName}
                     </Text>
                     <Text
-                      style={[styles.friendEmail, { color: theme.textMuted }]}
+                      style={[
+                        styles.reqEmail,
+                        { color: theme.textMuted, fontSize: typography.fontSize.xs },
+                      ]}
                     >
                       {req.sender?.email}
                     </Text>
                   </View>
-                  <View style={styles.requestActions}>
-                    <TouchableOpacity
-                      onPress={() => handleRespond(req.id, 'accept')}
-                      style={[
-                        styles.reqBtn,
-                        { backgroundColor: theme.primary, marginRight: 6 },
-                      ]}
-                    >
-                      <Text style={styles.reqBtnText}>Accept</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity
+                  <View style={{ flexDirection: 'row', gap: 6 }}>
+                    <Pressable
                       onPress={() => handleRespond(req.id, 'reject')}
-                      style={[
-                        styles.reqBtn,
-                        { backgroundColor: theme.neutralBg },
+                      style={({ pressed }) => [
+                        styles.declineBtn,
+                        {
+                          backgroundColor: theme.surface,
+                          borderColor: theme.border,
+                          opacity: pressed ? 0.7 : 1,
+                        },
                       ]}
                     >
-                      <Text
-                        style={[styles.reqBtnText, { color: theme.textMuted }]}
-                      >
+                      <Text style={{ fontSize: 12, color: theme.textMuted, fontWeight: '600' }}>
                         Decline
                       </Text>
-                    </TouchableOpacity>
+                    </Pressable>
+                    <Pressable
+                      onPress={() => handleRespond(req.id, 'accept')}
+                      style={({ pressed }) => [
+                        styles.acceptBtn,
+                        { backgroundColor: theme.primary, opacity: pressed ? 0.85 : 1 },
+                      ]}
+                    >
+                      <Text style={{ fontSize: 12, color: '#FFFFFF', fontWeight: '700' }}>
+                        Accept
+                      </Text>
+                    </Pressable>
                   </View>
                 </View>
               </Card>
@@ -209,85 +338,87 @@ export default function FriendsScreen() {
           <>
             <SkeletonCard />
             <SkeletonCard />
+            <SkeletonCard />
           </>
-        ) : friends && friends.length > 0 ? (
-          friends.map((friend: any) => (
-            <TouchableOpacity
-              key={friend.id}
-              activeOpacity={0.8}
-              onPress={() => router.push(`/friend/${friend.id}`)}
-            >
-              <Card
-                variant="outlined"
-                padding="md"
-                style={{ marginBottom: spacing.sm }}
-              >
-                <View style={styles.friendCardRow}>
-                  <Avatar name={friend.fullName} size="md" />
-                  <View style={styles.friendInfo}>
-                    <Text
-                      style={[
-                        styles.friendName,
-                        { color: theme.text, fontSize: typography.fontSize.base },
-                      ]}
-                    >
-                      {friend.fullName}
-                    </Text>
-                    <Text
-                      style={[
-                        styles.friendEmail,
-                        { color: theme.textMuted, fontSize: typography.fontSize.xs },
-                      ]}
-                    >
-                      {friend.email}
-                    </Text>
-                  </View>
+        ) : filteredFriends && filteredFriends.length > 0 ? (
+          filteredFriends.map((friend: any) => {
+            const balanceMinor = friend.balanceMinor || 0;
+            const isPositive = balanceMinor > 0;
+            const isNegative = balanceMinor < 0;
 
-                  {/* Mutual Balance Pill */}
-                  <View style={styles.balanceCol}>
-                    <BalancePill
-                      amountMinor={friend.netBalanceMinor || 0}
-                      currency={friend.defaultCurrency || 'INR'}
-                    />
-                    {friend.netBalanceMinor !== 0 && (
-                      <TouchableOpacity
-                        onPress={() =>
-                          router.push({
-                            pathname: '/settle',
-                            params: {
-                              targetUserId: friend.id,
-                              targetName: friend.fullName,
-                              amountMinor: Math.abs(friend.netBalanceMinor),
-                            },
-                          })
-                        }
-                        style={{ marginTop: 6 }}
+            return (
+              <Pressable
+                key={friend.id}
+                onPress={() => router.push(`/friend/${friend.id}`)}
+                style={({ pressed }) => [{ opacity: pressed ? 0.85 : 1 }]}
+              >
+                <Card
+                  variant="outlined"
+                  padding="md"
+                  style={{ marginBottom: spacing.sm }}
+                >
+                  <View style={styles.friendRow}>
+                    <Avatar name={friend.fullName} size="md" />
+                    <View style={styles.friendInfo}>
+                      <Text
+                        style={[
+                          styles.friendName,
+                          { color: theme.text, fontSize: typography.fontSize.base },
+                        ]}
                       >
-                        <Text
-                          style={{
-                            color: theme.primary,
-                            fontSize: typography.fontSize.xs,
-                            fontWeight: '700',
-                          }}
-                        >
-                          Settle Up ›
-                        </Text>
-                      </TouchableOpacity>
-                    )}
+                        {friend.fullName}
+                      </Text>
+                      <Text
+                        style={[
+                          styles.friendEmail,
+                          { color: theme.textMuted, fontSize: typography.fontSize.xs },
+                        ]}
+                      >
+                        {friend.email}
+                      </Text>
+                    </View>
+
+                    <View style={{ alignItems: 'flex-end' }}>
+                      <BalancePill
+                        amountMinor={balanceMinor}
+                        currency={friend.defaultCurrency || 'INR'}
+                      />
+                      <Text
+                        style={{
+                          fontSize: 10,
+                          fontWeight: '600',
+                          marginTop: 4,
+                          color: isPositive
+                            ? theme.positive
+                            : isNegative
+                            ? theme.negative
+                            : theme.textMuted,
+                        }}
+                      >
+                        {isPositive
+                          ? 'owes you'
+                          : isNegative
+                          ? 'you owe'
+                          : 'all settled'}
+                      </Text>
+                    </View>
                   </View>
-                </View>
-              </Card>
-            </TouchableOpacity>
-          ))
+                </Card>
+              </Pressable>
+            );
+          })
         ) : (
           <View style={styles.emptyContainer}>
             <View
               style={[
                 styles.emptyIconCircle,
-                { backgroundColor: theme.primaryLight, borderRadius: borderRadius.full },
+                {
+                  backgroundColor: isDark ? 'rgba(16,185,129,0.15)' : '#D1FAE5',
+                  borderRadius: borderRadius.full,
+                },
               ]}
             >
-              <Ionicons name="people-outline" size={48} color={theme.primary} />
+              <Ionicons name="person-outline" size={48} color={theme.primary} />
             </View>
             <Text
               style={[
@@ -295,7 +426,7 @@ export default function FriendsScreen() {
                 { color: theme.text, fontSize: typography.fontSize.xl },
               ]}
             >
-              No friends added yet
+              {searchQuery ? 'No friends found' : 'No friends connected yet'}
             </Text>
             <Text
               style={[
@@ -303,14 +434,24 @@ export default function FriendsScreen() {
                 { color: theme.textMuted, fontSize: typography.fontSize.sm },
               ]}
             >
-              Connect with your friends to split bills, share rent, track group
-              vacations, and settle up easily.
+              {searchQuery
+                ? 'Try searching with a different name or email.'
+                : 'Connect with friends to easily track mutual dinner bills, cab rides, and rent.'}
             </Text>
-            <Button
-              label="+ Add Your First Friend"
-              onPress={() => setAddSheetVisible(true)}
-              style={{ marginTop: spacing.lg }}
-            />
+            {!searchQuery && (
+              <View style={{ flexDirection: 'row', gap: 10, marginTop: 16 }}>
+                <Button
+                  label="+ Add Friend"
+                  onPress={() => setAddSheetVisible(true)}
+                  variant="primary"
+                />
+                <Button
+                  label="Invite Link"
+                  onPress={handleShareInvite}
+                  variant="outline"
+                />
+              </View>
+            )}
           </View>
         )}
       </ScrollView>
@@ -318,123 +459,124 @@ export default function FriendsScreen() {
       {/* Add Friend Bottom Sheet */}
       <BottomSheet
         visible={addSheetVisible}
-        onClose={() => {
-          setAddSheetVisible(false);
-          setSearchQuery('');
-          setSearchResults([]);
-        }}
-        title="Add Friend"
+        onClose={() => setAddSheetVisible(false)}
+        title="Add Friend on MatrixSplit"
       >
         <View style={styles.sheetContent}>
           <Input
-            label="Search by Name or Email"
-            placeholder="e.g. bob@matrixsplit.com"
-            value={searchQuery}
-            onChangeText={handleSearch}
+            label="Search by Email or Name"
+            placeholder="e.g. bob@example.com"
+            value={addSearchText}
+            onChangeText={handleSearchUsers}
             autoCapitalize="none"
+            leftIcon={<Ionicons name="search-outline" size={18} color={theme.textMuted} />}
           />
 
-          {searching && (
-            <Text style={{ color: theme.textMuted, marginVertical: 8 }}>
-              Searching MatrixSplit directory...
+          {searching ? (
+            <Text style={{ color: theme.textMuted, fontSize: 12, marginVertical: 8 }}>
+              Searching users...
             </Text>
-          )}
-
-          {searchResults.length > 0 && (
-            <View style={styles.searchResultsList}>
-              {searchResults.map((usr: any) => (
+          ) : searchResults && searchResults.length > 0 ? (
+            <View style={{ marginVertical: 8 }}>
+              <Text
+                style={{
+                  color: theme.text,
+                  fontSize: typography.fontSize.xs,
+                  fontWeight: '700',
+                  marginBottom: 8,
+                }}
+              >
+                MATCHING USERS ({searchResults.length})
+              </Text>
+              {searchResults.map((u: any) => (
                 <View
-                  key={usr.id}
+                  key={u.id}
                   style={[
                     styles.searchResultRow,
-                    { borderBottomColor: theme.divider },
+                    {
+                      backgroundColor: theme.surface,
+                      borderColor: theme.border,
+                      borderRadius: borderRadius.md,
+                    },
                   ]}
                 >
-                  <Avatar name={usr.fullName} size="sm" />
-                  <View style={{ flex: 1, marginLeft: 10 }}>
-                    <Text style={[styles.searchUserName, { color: theme.text }]}>
-                      {usr.fullName}
+                  <Avatar name={u.fullName} size="sm" />
+                  <View style={{ marginLeft: 10, flex: 1 }}>
+                    <Text style={{ color: theme.text, fontWeight: '700', fontSize: 13 }}>
+                      {u.fullName}
                     </Text>
                     <Text style={{ color: theme.textMuted, fontSize: 11 }}>
-                      {usr.email}
+                      {u.email}
                     </Text>
                   </View>
                   <Button
-                    label="Send Request"
+                    label="Send Invite"
                     size="sm"
-                    variant="outline"
-                    onPress={() => handleSendRequest(usr.id)}
+                    variant="primary"
+                    onPress={() => handleSendRequest(u.email || u.id)}
                   />
                 </View>
               ))}
             </View>
-          )}
+          ) : addSearchText.length > 1 ? (
+            <View style={{ marginVertical: 8, alignItems: 'center' }}>
+              <Text style={{ color: theme.textMuted, fontSize: 12, marginBottom: 8 }}>
+                No registered user found with that email.
+              </Text>
+              <Button
+                label="Send Request Anyway"
+                size="sm"
+                variant="outline"
+                onPress={() => handleSendRequest(addSearchText.trim())}
+              />
+            </View>
+          ) : null}
 
-          {searchQuery.includes('@') && searchResults.length === 0 && !searching && (
-            <Button
-              label={`Invite ${searchQuery}`}
-              size="md"
-              variant="primary"
-              onPress={() => handleSendRequest(searchQuery)}
-              style={{ marginTop: spacing.md }}
-            />
-          )}
+          <View style={[styles.sheetDivider, { backgroundColor: theme.divider }]} />
 
           <Button
-            label="Share My Invite Link"
-            size="md"
-            variant="ghost"
+            label="Share My MatrixSplit Invite Link"
+            variant="outline"
             onPress={handleShareInvite}
-            style={{ marginTop: spacing.sm }}
+            icon={<Ionicons name="share-social-outline" size={18} color={theme.text} />}
           />
         </View>
       </BottomSheet>
 
-      {/* My QR Code Bottom Sheet */}
+      {/* QR Code Bottom Sheet */}
       <BottomSheet
         visible={qrSheetVisible}
         onClose={() => setQrSheetVisible(false)}
-        title="My Friend QR Code"
+        title="Your MatrixSplit ID"
       >
-        <View style={{ alignItems: 'center', paddingVertical: 16 }}>
+        <View style={styles.qrSheetContent}>
           <View
             style={[
               styles.qrBox,
-              { backgroundColor: '#FFFFFF', borderColor: theme.border },
+              {
+                backgroundColor: theme.surface,
+                borderColor: theme.border,
+                borderRadius: borderRadius.xl,
+              },
             ]}
           >
-            <Ionicons name="qr-code" size={130} color="#0F172A" />
+            <View style={[styles.qrIconWrap, { backgroundColor: theme.primary }]}>
+              <Ionicons name="qr-code" size={64} color="#FFFFFF" />
+            </View>
+            <Text style={[styles.qrName, { color: theme.text }]}>
+              {currentUser?.fullName}
+            </Text>
+            <Text style={[styles.qrEmail, { color: theme.textMuted }]}>
+              {currentUser?.email}
+            </Text>
           </View>
 
-          <Text
-            style={[
-              styles.qrName,
-              { color: theme.text, fontSize: typography.fontSize.lg },
-            ]}
-          >
-            {currentUser?.fullName}
-          </Text>
-          <Text style={{ color: theme.textMuted, fontSize: 13, marginTop: 4 }}>
-            {currentUser?.email}
-          </Text>
-          <Text
-            style={{
-              color: theme.textMuted,
-              fontSize: 12,
-              textAlign: 'center',
-              marginTop: 12,
-              paddingHorizontal: 24,
-            }}
-          >
-            Friends can scan this QR code or search your email to connect instantly on MatrixSplit.
-          </Text>
-
           <Button
-            label="Share My Code"
-            size="md"
+            label="Share Invite"
             variant="primary"
+            size="lg"
             onPress={handleShareInvite}
-            style={{ marginTop: spacing.lg, width: '100%' }}
+            style={{ width: '100%', marginTop: 14 }}
           />
         </View>
       </BottomSheet>
@@ -451,40 +593,77 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 20,
-    paddingTop: 10,
+    paddingTop: 8,
     paddingBottom: 8,
   },
   headerTitle: {
     fontWeight: '800',
     letterSpacing: -0.5,
   },
+  headerSubtitle: {
+    fontSize: 12,
+    marginTop: 2,
+  },
   headerActions: {
     flexDirection: 'row',
     alignItems: 'center',
+    gap: 8,
   },
   qrBtn: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 7,
+    borderRadius: 18,
     borderWidth: 1,
-    marginRight: 8,
   },
   addBtn: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 8,
+    paddingHorizontal: 14,
+    paddingVertical: 7,
+    borderRadius: 18,
   },
   addBtnText: {
     color: '#FFFFFF',
     fontWeight: '700',
-    fontSize: 13,
+    fontSize: 12,
+  },
+  searchSection: {
+    paddingHorizontal: 20,
+    paddingBottom: 8,
+  },
+  searchBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 12,
+    height: 42,
+    borderWidth: 1,
+    marginBottom: 10,
+  },
+  searchInput: {
+    flex: 1,
+    fontSize: 14,
+    paddingVertical: 0,
+  },
+  filterRow: {
+    flexDirection: 'row',
+    gap: 6,
+  },
+  filterTab: {
+    flex: 1,
+    paddingVertical: 6,
+    borderRadius: 16,
+    borderWidth: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  filterTabText: {
+    fontSize: 11,
   },
   scrollContent: {
-    padding: 16,
+    padding: 20,
+    paddingTop: 8,
     paddingBottom: 40,
   },
   pendingSection: {
@@ -492,27 +671,30 @@ const styles = StyleSheet.create({
   },
   pendingHeaderTitle: {
     fontWeight: '700',
-    letterSpacing: 0.5,
-    marginBottom: 8,
+    letterSpacing: 0.6,
   },
-  requestRow: {
+  reqRow: {
     flexDirection: 'row',
     alignItems: 'center',
   },
-  requestActions: {
-    flexDirection: 'row',
+  reqName: {
+    fontWeight: '700',
   },
-  reqBtn: {
+  reqEmail: {
+    marginTop: 2,
+  },
+  declineBtn: {
     paddingHorizontal: 10,
     paddingVertical: 6,
-    borderRadius: 6,
+    borderRadius: 12,
+    borderWidth: 1,
   },
-  reqBtnText: {
-    color: '#FFFFFF',
-    fontWeight: '700',
-    fontSize: 12,
+  acceptBtn: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 12,
   },
-  friendCardRow: {
+  friendRow: {
     flexDirection: 'row',
     alignItems: 'center',
   },
@@ -526,62 +708,66 @@ const styles = StyleSheet.create({
   friendEmail: {
     marginTop: 2,
   },
-  balanceCol: {
-    alignItems: 'flex-end',
-  },
   emptyContainer: {
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 60,
+    paddingVertical: 48,
     paddingHorizontal: 24,
   },
   emptyIconCircle: {
-    width: 96,
-    height: 96,
+    width: 88,
+    height: 88,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 16,
   },
   emptyTitle: {
     fontWeight: '800',
-    marginBottom: 6,
+    marginBottom: 8,
   },
   emptyDesc: {
     textAlign: 'center',
     lineHeight: 20,
+    maxWidth: 290,
   },
   sheetContent: {
-    paddingBottom: 20,
-  },
-  searchResultsList: {
-    marginTop: 10,
+    paddingVertical: 4,
   },
   searchResultRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 10,
-    borderBottomWidth: 1,
+    padding: 10,
+    borderWidth: 1,
+    marginBottom: 8,
   },
-  searchUserName: {
-    fontWeight: '600',
-    fontSize: 13,
+  sheetDivider: {
+    height: 1,
+    marginVertical: 14,
+  },
+  qrSheetContent: {
+    alignItems: 'center',
+    paddingVertical: 12,
   },
   qrBox: {
-    width: 180,
-    height: 180,
+    alignItems: 'center',
+    padding: 24,
     borderWidth: 1,
-    borderRadius: 16,
+    width: '100%',
+  },
+  qrIconWrap: {
+    width: 100,
+    height: 100,
+    borderRadius: 20,
     alignItems: 'center',
     justifyContent: 'center',
-    marginVertical: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 4,
+    marginBottom: 16,
   },
   qrName: {
+    fontSize: 18,
     fontWeight: '800',
-    marginTop: 8,
+  },
+  qrEmail: {
+    fontSize: 13,
+    marginTop: 4,
   },
 });

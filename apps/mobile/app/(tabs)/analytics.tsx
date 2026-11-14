@@ -1,10 +1,10 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   ScrollView,
-  TouchableOpacity,
+  Pressable,
   RefreshControl,
   Alert,
 } from 'react-native';
@@ -33,9 +33,23 @@ const categoryColors: Record<string, string> = {
   general: '#64748B',
 };
 
+const categoryNames: Record<string, string> = {
+  food_and_drink: 'Food & Drink',
+  groceries: 'Groceries',
+  transport: 'Transport',
+  housing: 'Housing & Rent',
+  entertainment: 'Entertainment',
+  travel: 'Travel & Trips',
+  utilities: 'Bills & Utilities',
+  shopping: 'Shopping',
+  health: 'Health & Medical',
+  general: 'General',
+};
+
 export default function AnalyticsScreen() {
-  const { theme, typography, spacing, borderRadius } = useWatermelonTheme();
+  const { theme, typography, spacing, borderRadius, isDark } = useWatermelonTheme();
   const { data: analytics, isLoading, refetch, isRefetching } = useAnalyticsSummary();
+  const [period, setPeriod] = useState<'month' | 'quarter' | 'all'>('month');
 
   const handleExportCsv = async () => {
     try {
@@ -49,35 +63,85 @@ export default function AnalyticsScreen() {
     }
   };
 
+  const totalSpent = analytics?.totalSpentMinor || 0;
+  const currency = analytics?.currency || 'INR';
+
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]} edges={['top', 'left', 'right']}>
       {/* Top Header */}
       <View style={styles.headerBar}>
-        <Text
-          style={[
-            styles.headerTitle,
-            { color: theme.text, fontSize: typography.fontSize['2xl'] },
-          ]}
-        >
-          Analytics
-        </Text>
-        <TouchableOpacity
+        <View>
+          <Text
+            style={[
+              styles.headerTitle,
+              { color: theme.text, fontSize: typography.fontSize['2xl'] },
+            ]}
+          >
+            Insights & Analytics
+          </Text>
+          <Text style={[styles.headerSubtitle, { color: theme.textMuted }]}>
+            Spending trends and group allocation breakdown
+          </Text>
+        </View>
+
+        <Pressable
           onPress={handleExportCsv}
-          style={[
+          style={({ pressed }) => [
             styles.exportBtn,
-            { backgroundColor: theme.card, borderColor: theme.border, flexDirection: 'row', alignItems: 'center' },
+            {
+              backgroundColor: theme.surface,
+              borderColor: theme.border,
+              opacity: pressed ? 0.7 : 1,
+            },
           ]}
         >
-          <Ionicons name="download-outline" size={15} color={theme.text} style={{ marginRight: 6 }} />
+          <Ionicons name="download-outline" size={14} color={theme.text} style={{ marginRight: 4 }} />
           <Text
             style={[
               styles.exportBtnText,
               { color: theme.text, fontSize: typography.fontSize.xs },
             ]}
           >
-            Export CSV
+            Export
           </Text>
-        </TouchableOpacity>
+        </Pressable>
+      </View>
+
+      {/* Period Selector */}
+      <View style={styles.periodRow}>
+        {[
+          { id: 'month', label: 'This Month' },
+          { id: 'quarter', label: 'Last 3 Months' },
+          { id: 'all', label: 'All Time' },
+        ].map((item) => {
+          const isSelected = period === item.id;
+          return (
+            <Pressable
+              key={item.id}
+              onPress={() => setPeriod(item.id as any)}
+              style={({ pressed }) => [
+                styles.periodTab,
+                {
+                  backgroundColor: isSelected ? theme.primary : theme.surface,
+                  borderColor: isSelected ? theme.primary : theme.border,
+                  opacity: pressed ? 0.8 : 1,
+                },
+              ]}
+            >
+              <Text
+                style={[
+                  styles.periodTabText,
+                  {
+                    color: isSelected ? '#FFFFFF' : theme.text,
+                    fontWeight: isSelected ? '700' : '500',
+                  },
+                ]}
+              >
+                {item.label}
+              </Text>
+            </Pressable>
+          );
+        })}
       </View>
 
       <ScrollView
@@ -97,41 +161,52 @@ export default function AnalyticsScreen() {
           </>
         ) : (
           <>
-            {/* Total Spending Stat Card */}
-            <Card
-              variant="elevated"
-              padding="lg"
-              style={{ marginBottom: spacing.md }}
+            {/* Total Spending Hero Card */}
+            <View
+              style={[
+                styles.heroStatCard,
+                {
+                  backgroundColor: theme.card,
+                  borderColor: theme.border,
+                  borderRadius: borderRadius.xl,
+                },
+              ]}
             >
-              <Text
-                style={[
-                  styles.statLabel,
-                  { color: theme.textMuted, fontSize: typography.fontSize.xs },
-                ]}
-              >
-                YOUR TOTAL SPENDING
-              </Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+                <Text
+                  style={[
+                    styles.statLabel,
+                    { color: theme.textMuted, fontSize: typography.fontSize.xs },
+                  ]}
+                >
+                  TOTAL EXPENDITURE
+                </Text>
+                <View style={[styles.badgePill, { backgroundColor: isDark ? 'rgba(16,185,129,0.15)' : '#D1FAE5' }]}>
+                  <Ionicons name="trending-up" size={12} color={theme.primary} style={{ marginRight: 4 }} />
+                  <Text style={{ color: theme.primary, fontSize: 11, fontWeight: '700' }}>Active</Text>
+                </View>
+              </View>
+
               <Text
                 style={[
                   styles.totalSpentAmount,
                   { color: theme.text, fontSize: typography.fontSize['3xl'] },
                 ]}
               >
-                {formatCurrency(
-                  analytics?.totalSpentMinor || 0,
-                  analytics?.currency || 'INR'
-                )}
+                {formatCurrency(totalSpent, currency)}
               </Text>
-              <Text
-                style={[
-                  styles.statSub,
-                  { color: theme.textMuted, fontSize: typography.fontSize.xs },
-                ]}
-              >
-                Across {analytics?.totalExpensesCount || 0} recorded shared
-                expenses
-              </Text>
-            </Card>
+
+              <View style={[styles.statDivider, { backgroundColor: theme.divider }]} />
+
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                <Text style={{ color: theme.textMuted, fontSize: 12 }}>
+                  Recorded shared expenses:
+                </Text>
+                <Text style={{ color: theme.text, fontWeight: '700', fontSize: 13 }}>
+                  {analytics?.totalExpensesCount || 0} transactions
+                </Text>
+              </View>
+            </View>
 
             {/* Category Breakdown with Visual Bars */}
             <View style={styles.sectionHeader}>
@@ -141,7 +216,7 @@ export default function AnalyticsScreen() {
                   { color: theme.text, fontSize: typography.fontSize.lg },
                 ]}
               >
-                Category Breakdown
+                Spending by Category
               </Text>
             </View>
 
@@ -153,41 +228,54 @@ export default function AnalyticsScreen() {
               >
                 {analytics.categoryBreakdown.map((cat: any) => {
                   const color = categoryColors[cat.category] || theme.primary;
+                  const percent = totalSpent > 0 ? Math.round((cat.amountMinor / totalSpent) * 100) : 0;
+                  const catLabel = categoryNames[cat.category] || cat.category;
+
                   return (
                     <View key={cat.category} style={styles.categoryItem}>
                       <View style={styles.categoryHeaderRow}>
                         <View style={styles.categoryLabelRow}>
                           <View
                             style={[
-                              styles.catDot,
+                              styles.categoryDot,
                               { backgroundColor: color },
                             ]}
                           />
                           <Text
                             style={[
                               styles.categoryName,
-                              { color: theme.text },
+                              { color: theme.text, fontSize: typography.fontSize.sm },
                             ]}
                           >
-                            {cat.categoryLabel}
+                            {catLabel}
                           </Text>
                         </View>
-                        <Text
-                          style={[
-                            styles.categoryAmount,
-                            { color: theme.text },
-                          ]}
-                        >
-                          {formatCurrency(cat.totalAmountMinor, analytics.currency)} (
-                          {cat.percentage}%)
-                        </Text>
+
+                        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                          <Text
+                            style={[
+                              styles.categoryAmount,
+                              { color: theme.text, fontSize: typography.fontSize.sm },
+                            ]}
+                          >
+                            {formatCurrency(cat.amountMinor, currency)}
+                          </Text>
+                          <Text
+                            style={[
+                              styles.categoryPercent,
+                              { color: theme.textMuted, fontSize: typography.fontSize.xs },
+                            ]}
+                          >
+                            ({percent}%)
+                          </Text>
+                        </View>
                       </View>
 
-                      {/* Progress bar */}
+                      {/* Visual Progress Bar */}
                       <View
                         style={[
-                          styles.progressBarBg,
-                          { backgroundColor: theme.divider },
+                          styles.progressBarTrack,
+                          { backgroundColor: theme.divider, borderRadius: borderRadius.full },
                         ]}
                       >
                         <View
@@ -195,7 +283,8 @@ export default function AnalyticsScreen() {
                             styles.progressBarFill,
                             {
                               backgroundColor: color,
-                              width: `${Math.min(cat.percentage, 100)}%`,
+                              width: `${Math.min(100, Math.max(percent, 4))}%`,
+                              borderRadius: borderRadius.full,
                             },
                           ]}
                         />
@@ -205,95 +294,38 @@ export default function AnalyticsScreen() {
                 })}
               </Card>
             ) : (
-              <Card padding="md" variant="outlined">
-                <Text style={{ color: theme.textMuted, textAlign: 'center' }}>
-                  No categorized expenses recorded yet.
+              <Card padding="md" variant="outlined" style={{ alignItems: 'center', paddingVertical: 28 }}>
+                <Ionicons name="pie-chart-outline" size={40} color={theme.textMuted} style={{ marginBottom: 10 }} />
+                <Text style={{ color: theme.text, fontWeight: '700', fontSize: 15, marginBottom: 4 }}>
+                  No category data yet
+                </Text>
+                <Text style={{ color: theme.textMuted, fontSize: 12, textAlign: 'center' }}>
+                  Add group expenses to see visual spending breakdowns.
                 </Text>
               </Card>
             )}
 
-            {/* Group Breakdown Section */}
-            <View style={styles.sectionHeader}>
-              <Text
-                style={[
-                  styles.sectionTitle,
-                  { color: theme.text, fontSize: typography.fontSize.lg },
-                ]}
-              >
-                Group Breakdown
-              </Text>
+            {/* Smart Financial Tips Card */}
+            <View
+              style={[
+                styles.tipCard,
+                {
+                  backgroundColor: isDark ? 'rgba(59,130,246,0.1)' : '#EFF6FF',
+                  borderColor: isDark ? '#1E3A8A' : '#BFDBFE',
+                  borderRadius: borderRadius.lg,
+                },
+              ]}
+            >
+              <Ionicons name="bulb-outline" size={20} color="#3B82F6" style={{ marginRight: 10 }} />
+              <View style={{ flex: 1 }}>
+                <Text style={{ color: theme.text, fontWeight: '700', fontSize: 13, marginBottom: 2 }}>
+                  Min-Cash Flow Optimization
+                </Text>
+                <Text style={{ color: theme.textMuted, fontSize: 12, lineHeight: 17 }}>
+                  MatrixSplit periodically recalculates transitive debts to ensure you settle with the fewest number of transactions.
+                </Text>
+              </View>
             </View>
-
-            {analytics?.groupBreakdown && analytics.groupBreakdown.length > 0 ? (
-              <Card
-                variant="outlined"
-                padding="md"
-                style={{ marginBottom: spacing.md }}
-              >
-                {analytics.groupBreakdown.map((grp: any) => (
-                  <View key={grp.groupId} style={styles.groupBreakdownRow}>
-                    <Text
-                      style={[
-                        styles.groupBreakdownName,
-                        { color: theme.text },
-                      ]}
-                    >
-                      {grp.groupName}
-                    </Text>
-                    <Text
-                      style={[
-                        styles.groupBreakdownAmount,
-                        { color: theme.primary },
-                      ]}
-                    >
-                      {formatCurrency(grp.totalAmountMinor, analytics.currency)}
-                    </Text>
-                  </View>
-                ))}
-              </Card>
-            ) : (
-              <Card padding="md" variant="outlined">
-                <Text style={{ color: theme.textMuted, textAlign: 'center' }}>
-                  No group expenses recorded yet.
-                </Text>
-              </Card>
-            )}
-
-            {/* Monthly Trends */}
-            {analytics?.monthlyTrends && analytics.monthlyTrends.length > 0 && (
-              <>
-                <View style={styles.sectionHeader}>
-                  <Text
-                    style={[
-                      styles.sectionTitle,
-                      { color: theme.text, fontSize: typography.fontSize.lg },
-                    ]}
-                  >
-                    Monthly Spending Trends
-                  </Text>
-                </View>
-
-                <Card variant="outlined" padding="md">
-                  {analytics.monthlyTrends.map((trend: any) => (
-                    <View key={trend.month} style={styles.trendRow}>
-                      <Text
-                        style={[styles.trendMonth, { color: theme.text }]}
-                      >
-                        {trend.label}
-                      </Text>
-                      <Text
-                        style={[
-                          styles.trendAmount,
-                          { color: theme.text, fontWeight: '700' },
-                        ]}
-                      >
-                        {formatCurrency(trend.amountMinor, analytics.currency)}
-                      </Text>
-                    </View>
-                  ))}
-                </Card>
-              </>
-            )}
           </>
         )}
       </ScrollView>
@@ -310,48 +342,82 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 20,
-    paddingTop: 10,
+    paddingTop: 8,
     paddingBottom: 8,
   },
   headerTitle: {
     fontWeight: '800',
     letterSpacing: -0.5,
   },
+  headerSubtitle: {
+    fontSize: 12,
+    marginTop: 2,
+  },
   exportBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
     paddingHorizontal: 12,
-    paddingVertical: 6,
+    paddingVertical: 7,
+    borderRadius: 16,
     borderWidth: 1,
-    borderRadius: 8,
   },
   exportBtnText: {
-    fontWeight: '600',
+    fontWeight: '700',
+  },
+  periodRow: {
+    flexDirection: 'row',
+    paddingHorizontal: 20,
+    paddingBottom: 10,
+    gap: 8,
+  },
+  periodTab: {
+    flex: 1,
+    paddingVertical: 7,
+    borderRadius: 18,
+    borderWidth: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  periodTabText: {
+    fontSize: 12,
   },
   scrollContent: {
-    padding: 16,
+    padding: 20,
+    paddingTop: 4,
     paddingBottom: 40,
+  },
+  heroStatCard: {
+    padding: 18,
+    borderWidth: 1,
+    marginBottom: 20,
   },
   statLabel: {
     fontWeight: '700',
-    letterSpacing: 0.5,
+    letterSpacing: 0.6,
+  },
+  badgePill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 12,
   },
   totalSpentAmount: {
     fontWeight: '800',
-    letterSpacing: -0.5,
-    marginVertical: 6,
+    marginVertical: 10,
   },
-  statSub: {
-    marginTop: 2,
+  statDivider: {
+    height: 1,
+    marginVertical: 12,
   },
   sectionHeader: {
-    marginTop: 14,
-    marginBottom: 8,
+    marginBottom: 10,
   },
   sectionTitle: {
     fontWeight: '700',
-    letterSpacing: -0.3,
   },
   categoryItem: {
-    marginBottom: 14,
+    marginBottom: 16,
   },
   categoryHeaderRow: {
     flexDirection: 'row',
@@ -363,7 +429,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
   },
-  catDot: {
+  categoryDot: {
     width: 10,
     height: 10,
     borderRadius: 5,
@@ -371,43 +437,25 @@ const styles = StyleSheet.create({
   },
   categoryName: {
     fontWeight: '600',
-    fontSize: 13,
   },
   categoryAmount: {
-    fontWeight: '600',
-    fontSize: 13,
+    fontWeight: '700',
   },
-  progressBarBg: {
+  categoryPercent: {
+    marginLeft: 6,
+  },
+  progressBarTrack: {
     height: 8,
-    borderRadius: 4,
     overflow: 'hidden',
   },
   progressBarFill: {
     height: '100%',
-    borderRadius: 4,
   },
-  groupBreakdownRow: {
+  tipCard: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingVertical: 8,
-  },
-  groupBreakdownName: {
-    fontWeight: '600',
-  },
-  groupBreakdownAmount: {
-    fontWeight: '700',
-  },
-  trendRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingVertical: 8,
-  },
-  trendMonth: {
-    fontWeight: '600',
-  },
-  trendAmount: {
-    fontWeight: '700',
+    alignItems: 'flex-start',
+    padding: 14,
+    borderWidth: 1,
+    marginTop: 4,
   },
 });

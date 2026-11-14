@@ -4,7 +4,7 @@ import {
   Text,
   StyleSheet,
   ScrollView,
-  TouchableOpacity,
+  Pressable,
   TextInput,
   Alert,
 } from "react-native";
@@ -42,7 +42,7 @@ const categoryIcons: Record<string, keyof typeof Ionicons.glyphMap> = {
 export default function ExpenseDetailsScreen() {
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id: string }>();
-  const { theme, typography, spacing, borderRadius } = useWatermelonTheme();
+  const { theme, typography, spacing, borderRadius, isDark } = useWatermelonTheme();
   const currentUser = useAuthStore((s) => s.user);
 
   const { data: expense, isLoading } = useExpenseDetails(id!);
@@ -91,23 +91,13 @@ export default function ExpenseDetailsScreen() {
             } catch (err: any) {
               Alert.alert(
                 "Error",
-                err.response?.data?.message || "Failed to delete",
+                err.response?.data?.message || "Failed to delete"
               );
             }
           },
         },
-      ],
+      ]
     );
-  };
-
-  const handleDuplicate = () => {
-    if (!expense) return;
-    router.push({
-      pathname: "/expense/add",
-      params: {
-        preselectedGroupId: expense.groupId,
-      },
-    });
   };
 
   const iconName = expense
@@ -121,18 +111,44 @@ export default function ExpenseDetailsScreen() {
     >
       {/* Top Header */}
       <View style={styles.headerBar}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
-          <Ionicons name="chevron-back" size={26} color={theme.text} />
-        </TouchableOpacity>
+        <Pressable
+          onPress={() => router.back()}
+          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+          style={({ pressed }) => [
+            styles.backBtn,
+            {
+              backgroundColor: theme.surface,
+              borderColor: theme.border,
+              opacity: pressed ? 0.7 : 1,
+            },
+          ]}
+        >
+          <Ionicons name="chevron-back" size={20} color={theme.text} />
+        </Pressable>
+
         <Text
           style={[
             styles.headerTitle,
             { color: theme.text, fontSize: typography.fontSize.base },
           ]}
         >
-          Expense Details
+          Expense Receipt
         </Text>
-        <View style={{ width: 36 }} />
+
+        <Pressable
+          onPress={handleDelete}
+          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+          style={({ pressed }) => [
+            styles.backBtn,
+            {
+              backgroundColor: theme.surface,
+              borderColor: theme.border,
+              opacity: pressed ? 0.7 : 1,
+            },
+          ]}
+        >
+          <Ionicons name="trash-outline" size={18} color={theme.negative} />
+        </Pressable>
       </View>
 
       <ScrollView contentContainerStyle={styles.scrollContent}>
@@ -140,35 +156,25 @@ export default function ExpenseDetailsScreen() {
           <SkeletonCard />
         ) : (
           <>
-            {/* Header Amount Card */}
+            {/* Hero Receipt Card */}
             <Card
               variant="elevated"
               padding="lg"
-              style={{ marginBottom: spacing.md }}
+              style={{ marginBottom: spacing.md, alignItems: "center" }}
             >
-              <View style={styles.cardHeaderRow}>
-                <View style={styles.categoryBadgeRow}>
-                  <View
-                    style={[
-                      styles.catIconCircle,
-                      { backgroundColor: theme.primaryLight },
-                    ]}
-                  >
-                    <Ionicons name={iconName} size={18} color={theme.primary} />
-                  </View>
-                  <Badge label={expense.category} size="md" variant="info" />
-                </View>
-                <Badge
-                  label={`Split: ${expense.splitType.toUpperCase()}`}
-                  size="sm"
-                  variant="primary"
-                />
+              <View
+                style={[
+                  styles.categoryCircle,
+                  { backgroundColor: isDark ? 'rgba(16,185,129,0.15)' : '#D1FAE5' },
+                ]}
+              >
+                <Ionicons name={iconName} size={36} color={theme.primary} />
               </View>
 
               <Text
                 style={[
                   styles.expenseTitle,
-                  { color: theme.text, fontSize: typography.fontSize["2xl"] },
+                  { color: theme.text, fontSize: typography.fontSize.xl },
                 ]}
               >
                 {expense.title}
@@ -176,192 +182,184 @@ export default function ExpenseDetailsScreen() {
 
               <Text
                 style={[
-                  styles.expenseAmount,
-                  { color: theme.text, fontSize: typography.fontSize["4xl"] },
+                  styles.expenseAmountLarge,
+                  { color: theme.text, fontSize: typography.fontSize['4xl'] },
                 ]}
               >
                 {formatCurrency(expense.totalAmountMinor, expense.currency)}
               </Text>
 
-              <Text
-                style={[
-                  styles.expenseDate,
-                  { color: theme.textMuted, fontSize: typography.fontSize.xs },
-                ]}
-              >
-                Added on {new Date(expense.date).toLocaleDateString()}
-              </Text>
-            </Card>
-
-            {/* Payer Card */}
-            <View style={styles.sectionHeader}>
-              <Text
-                style={[
-                  styles.sectionTitle,
-                  { color: theme.text, fontSize: typography.fontSize.sm },
-                ]}
-              >
-                PAID BY
-              </Text>
-            </View>
-
-            <Card
-              variant="outlined"
-              padding="sm"
-              style={{ marginBottom: spacing.md }}
-            >
-              <View style={styles.payerRow}>
-                <Avatar name={expense.payer?.fullName || "User"} size="md" />
-                <View style={{ marginLeft: 12, flex: 1 }}>
-                  <Text
-                    style={[
-                      styles.payerName,
-                      { color: theme.text, fontSize: typography.fontSize.base },
-                    ]}
-                  >
-                    {expense.payer?.fullName}{" "}
-                    {expense.payerId === currentUser?.id ? "(You)" : ""}
-                  </Text>
-                  <Text style={{ color: theme.textMuted, fontSize: 12 }}>
-                    Paid the full amount of{" "}
-                    {formatCurrency(expense.totalAmountMinor, expense.currency)}
-                  </Text>
-                </View>
+              <View style={styles.metaRow}>
+                <Badge label={expense.category} size="sm" variant="info" />
+                <Text style={{ color: theme.textMuted, marginHorizontal: 8 }}>•</Text>
+                <Text style={{ color: theme.textMuted, fontSize: 12 }}>
+                  {new Date(expense.date).toLocaleDateString(undefined, {
+                    year: 'numeric',
+                    month: 'short',
+                    day: 'numeric',
+                  })}
+                </Text>
               </View>
-            </Card>
 
-            {/* Participant Breakdown */}
-            <View style={styles.sectionHeader}>
-              <Text
-                style={[
-                  styles.sectionTitle,
-                  { color: theme.text, fontSize: typography.fontSize.sm },
-                ]}
-              >
-                PARTICIPANTS & SHARES ({expense.participants?.length || 0})
-              </Text>
-            </View>
-
-            <Card
-              variant="outlined"
-              padding="sm"
-              style={{ marginBottom: spacing.md }}
-            >
-              {expense.participants?.map((p: any) => (
-                <View key={p.id} style={styles.participantShareRow}>
-                  <Avatar name={p.user?.fullName || "User"} size="sm" />
-                  <View style={{ flex: 1, marginLeft: 10 }}>
-                    <Text
-                      style={[
-                        styles.participantName,
-                        { color: theme.text, fontSize: typography.fontSize.sm },
-                      ]}
-                    >
-                      {p.user?.fullName}{" "}
-                      {p.userId === currentUser?.id ? "(You)" : ""}
-                    </Text>
-                    {p.splitValue ? (
-                      <Text style={{ color: theme.textMuted, fontSize: 11 }}>
-                        {expense.splitType === "percentage"
-                          ? `${p.splitValue}% share`
-                          : `${p.splitValue} shares`}
-                      </Text>
-                    ) : null}
-                  </View>
-                  <Text
-                    style={[
-                      styles.participantShareAmount,
-                      {
-                        color:
-                          p.userId === expense.payerId
-                            ? theme.positive
-                            : theme.text,
-                        fontSize: typography.fontSize.base,
-                      },
-                    ]}
-                  >
-                    {formatCurrency(p.allocatedAmountMinor, expense.currency)}
+              {expense.notes ? (
+                <View style={[styles.notesBox, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+                  <Ionicons name="document-text-outline" size={16} color={theme.textMuted} style={{ marginRight: 6 }} />
+                  <Text style={{ color: theme.text, fontSize: 13, flex: 1 }}>
+                    {expense.notes}
                   </Text>
                 </View>
-              ))}
+              ) : null}
             </Card>
 
-            {/* Notes Section */}
-            {expense.notes ? (
-              <Card
-                variant="outlined"
-                padding="md"
-                style={{ marginBottom: spacing.md }}
-              >
-                <Text
-                  style={{
-                    color: theme.textMuted,
-                    fontSize: 11,
-                    fontWeight: "700",
-                    marginBottom: 4,
-                  }}
-                >
-                  NOTES
-                </Text>
-                <Text style={{ color: theme.text, lineHeight: 20 }}>
-                  {expense.notes}
-                </Text>
-              </Card>
-            ) : null}
-
-            {/* Receipt Preview */}
+            {/* Paid By Info Card */}
             <Card
               variant="outlined"
               padding="md"
               style={{ marginBottom: spacing.md }}
             >
               <Text
-                style={{
-                  color: theme.textMuted,
-                  fontSize: 11,
-                  fontWeight: "700",
-                  marginBottom: 8,
-                }}
-              >
-                RECEIPT ATTACHMENT
-              </Text>
-              <View
                 style={[
-                  styles.receiptBox,
-                  { backgroundColor: theme.surface, borderColor: theme.border },
+                  styles.sectionHeaderLabel,
+                  { color: theme.textMuted, fontSize: typography.fontSize.xs },
                 ]}
               >
-                <Ionicons
-                  name="receipt-outline"
-                  size={32}
-                  color={theme.primary}
-                />
-                <Text
-                  style={{ color: theme.textMuted, fontSize: 12, marginTop: 4 }}
-                >
-                  Itemized bill scanned & verified
+                PAID BY
+              </Text>
+              <View style={styles.payerRow}>
+                <Avatar name={expense.payer?.fullName || "User"} size="md" />
+                <View style={{ marginLeft: 12, flex: 1 }}>
+                  <Text style={{ color: theme.text, fontWeight: "700", fontSize: 15 }}>
+                    {expense.payer?.fullName}
+                  </Text>
+                  <Text style={{ color: theme.textMuted, fontSize: 12 }}>
+                    Paid the entire amount upfront
+                  </Text>
+                </View>
+                <Text style={{ color: theme.primary, fontWeight: "800", fontSize: 15 }}>
+                  {formatCurrency(expense.totalAmountMinor, expense.currency)}
                 </Text>
               </View>
             </Card>
 
-            {/* Action Buttons */}
-            <View style={styles.actionsContainer}>
-              <Button
-                label="Duplicate Expense"
-                variant="outline"
-                size="md"
-                onPress={handleDuplicate}
-                style={{ marginBottom: spacing.sm }}
-              />
+            {/* Split Breakdown Table */}
+            <Card
+              variant="outlined"
+              padding="md"
+              style={{ marginBottom: spacing.md }}
+            >
+              <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
+                <Text
+                  style={[
+                    styles.sectionHeaderLabel,
+                    { color: theme.textMuted, fontSize: typography.fontSize.xs },
+                  ]}
+                >
+                  SPLIT BREAKDOWN ({expense.participants?.length || 0})
+                </Text>
+                <Badge
+                  label={expense.splitType.toUpperCase()}
+                  size="sm"
+                  variant="neutral"
+                />
+              </View>
 
-              <Button
-                label="Delete Expense"
-                variant="danger"
-                size="md"
-                onPress={handleDelete}
-                loading={deleteMutation.isPending}
-              />
-            </View>
+              {expense.participants?.map((p: any) => {
+                const isCurrentUser = p.userId === currentUser?.id;
+                return (
+                  <View
+                    key={p.userId}
+                    style={[
+                      styles.participantRow,
+                      { borderBottomColor: theme.divider },
+                    ]}
+                  >
+                    <Avatar name={p.user?.fullName || "User"} size="sm" />
+                    <View style={{ marginLeft: 10, flex: 1 }}>
+                      <Text
+                        style={{
+                          color: theme.text,
+                          fontWeight: isCurrentUser ? "800" : "600",
+                          fontSize: 14,
+                        }}
+                      >
+                        {p.user?.fullName} {isCurrentUser ? "(You)" : ""}
+                      </Text>
+                    </View>
+                    <Text
+                      style={{
+                        color: theme.text,
+                        fontWeight: "700",
+                        fontSize: 14,
+                      }}
+                    >
+                      {formatCurrency(p.allocatedAmountMinor, expense.currency)}
+                    </Text>
+                  </View>
+                );
+              })}
+            </Card>
+
+            {/* Activity & Comments Section */}
+            <Card
+              variant="outlined"
+              padding="md"
+              style={{ marginBottom: spacing.lg }}
+            >
+              <Text
+                style={[
+                  styles.sectionHeaderLabel,
+                  { color: theme.textMuted, fontSize: typography.fontSize.xs, marginBottom: 10 },
+                ]}
+              >
+                NOTES & COMMENTS ({commentsList.length})
+              </Text>
+
+              {commentsList.map((c) => (
+                <View
+                  key={c.id}
+                  style={[
+                    styles.commentBubble,
+                    { backgroundColor: theme.surface, borderColor: theme.border },
+                  ]}
+                >
+                  <View style={{ flexDirection: "row", justifyContent: "space-between", marginBottom: 3 }}>
+                    <Text style={{ color: theme.text, fontWeight: "700", fontSize: 12 }}>
+                      {c.author}
+                    </Text>
+                    <Text style={{ color: theme.textMuted, fontSize: 10 }}>
+                      {c.time}
+                    </Text>
+                  </View>
+                  <Text style={{ color: theme.text, fontSize: 13 }}>
+                    {c.text}
+                  </Text>
+                </View>
+              ))}
+
+              <View style={styles.addCommentRow}>
+                <TextInput
+                  placeholder="Add a comment or receipt note..."
+                  placeholderTextColor={theme.textMuted}
+                  value={commentText}
+                  onChangeText={setCommentText}
+                  style={[
+                    styles.commentInput,
+                    {
+                      backgroundColor: theme.surface,
+                      borderColor: theme.border,
+                      color: theme.text,
+                    },
+                  ]}
+                />
+                <Button
+                  label="Send"
+                  size="sm"
+                  variant="primary"
+                  onPress={handleAddComment}
+                  style={{ marginLeft: 8 }}
+                />
+              </View>
+            </Card>
           </>
         )}
       </ScrollView>
@@ -378,125 +376,87 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
     paddingHorizontal: 20,
-    paddingTop: 10,
+    paddingTop: 8,
     paddingBottom: 8,
   },
   backBtn: {
     width: 36,
     height: 36,
+    borderRadius: 12,
+    borderWidth: 1,
     alignItems: "center",
     justifyContent: "center",
   },
   headerTitle: {
-    fontWeight: "700",
+    fontWeight: "800",
   },
   scrollContent: {
-    padding: 16,
+    padding: 20,
+    paddingTop: 8,
     paddingBottom: 40,
   },
-  cardHeaderRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 10,
-  },
-  categoryBadgeRow: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  catIconCircle: {
-    width: 28,
-    height: 28,
-    borderRadius: 7,
+  categoryCircle: {
+    width: 68,
+    height: 68,
+    borderRadius: 22,
     alignItems: "center",
     justifyContent: "center",
-    marginRight: 6,
+    marginBottom: 12,
   },
   expenseTitle: {
     fontWeight: "800",
-    letterSpacing: -0.3,
-  },
-  expenseAmount: {
-    fontWeight: "800",
-    letterSpacing: -0.5,
-    marginVertical: 6,
-  },
-  expenseDate: {
-    fontWeight: "500",
-  },
-  sectionHeader: {
     marginBottom: 6,
-    marginLeft: 2,
+    textAlign: "center",
   },
-  sectionTitle: {
+  expenseAmountLarge: {
+    fontWeight: "900",
+    marginBottom: 10,
+  },
+  metaRow: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  notesBox: {
+    flexDirection: "row",
+    alignItems: "center",
+    padding: 10,
+    borderRadius: 10,
+    borderWidth: 1,
+    marginTop: 14,
+    width: "100%",
+  },
+  sectionHeaderLabel: {
     fontWeight: "700",
-    letterSpacing: 0.5,
+    letterSpacing: 0.6,
+    marginBottom: 8,
   },
   payerRow: {
     flexDirection: "row",
     alignItems: "center",
-    paddingVertical: 4,
   },
-  payerName: {
-    fontWeight: "700",
-  },
-  participantShareRow: {
+  participantRow: {
     flexDirection: "row",
     alignItems: "center",
-    paddingVertical: 8,
-  },
-  participantName: {
-    fontWeight: "600",
-  },
-  participantShareAmount: {
-    fontWeight: "700",
-  },
-  receiptBox: {
-    padding: 16,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderStyle: "dashed",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  commentItem: {
-    flexDirection: "row",
     paddingVertical: 10,
     borderBottomWidth: 1,
   },
-  commentHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginBottom: 4,
-  },
-  commentAuthor: {
-    fontWeight: "700",
-    fontSize: 13,
-  },
-  commentText: {
-    fontSize: 13,
-    lineHeight: 18,
+  commentBubble: {
+    padding: 10,
+    borderRadius: 10,
+    borderWidth: 1,
+    marginBottom: 8,
   },
   addCommentRow: {
     flexDirection: "row",
-    marginTop: 12,
     alignItems: "center",
+    marginTop: 8,
   },
   commentInput: {
     flex: 1,
-    height: 42,
+    height: 40,
+    borderRadius: 10,
     borderWidth: 1,
     paddingHorizontal: 12,
     fontSize: 13,
-  },
-  sendCommentBtn: {
-    width: 42,
-    height: 42,
-    alignItems: "center",
-    justifyContent: "center",
-    marginLeft: 8,
-  },
-  actionsContainer: {
-    marginTop: 14,
   },
 });

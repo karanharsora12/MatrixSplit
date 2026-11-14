@@ -3,7 +3,7 @@ import {
   View,
   Text,
   StyleSheet,
-  TouchableOpacity,
+  Pressable,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
@@ -19,13 +19,13 @@ import { useAuthStore } from '../../src/stores/authStore';
 
 export default function LoginScreen() {
   const router = useRouter();
-  const { theme, typography, spacing } = useWatermelonTheme();
+  const { theme, typography, spacing, isDark, borderRadius } = useWatermelonTheme();
   const setAuth = useAuthStore((s) => s.setAuth);
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [googleLoading, setGoogleLoading] = useState(false);
   const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
 
   const handleLogin = async () => {
@@ -51,71 +51,68 @@ export default function LoginScreen() {
       router.replace('/(tabs)');
     } catch (err: any) {
       const serverMsg = err.response?.data?.message;
-      const netMsg = err.message === 'Network Error' || !err.response
-        ? `Cannot reach backend at ${API_BASE_URL}.\nMake sure the NestJS backend is running.`
-        : err.message;
+      const netMsg =
+        err.message === 'Network Error' || !err.response
+          ? `Cannot reach backend at ${API_BASE_URL}.\nMake sure the NestJS backend is running.`
+          : err.message;
       Alert.alert('Login Failed', serverMsg || netMsg || 'Failed to log in.');
     } finally {
       setLoading(false);
     }
   };
 
-  const handleGoogleLogin = async () => {
-    setGoogleLoading(true);
-    try {
-      // Simulate Google Authentication sign-in
-      const res = await apiClient.post('/auth/google', {
-        idToken: 'simulated_google_token',
-        email: 'google_user@matrixsplit.com',
-        fullName: 'Google User',
-      }).catch(async () => {
-        // Fallback demo user
-        return await apiClient.post('/auth/login', {
-          email: 'alice@matrixsplit.com',
-          password: 'Password123!',
-        });
-      });
-
-      if (res?.data) {
-        const { user, accessToken, refreshToken } = res.data;
-        setAuth(user, accessToken, refreshToken);
-        router.replace('/(tabs)');
-      }
-    } catch {
-      Alert.alert('Google Sign-In', 'Google sign-in completed. Redirecting to dashboard.');
-      router.replace('/(tabs)');
-    } finally {
-      setGoogleLoading(false);
-    }
-  };
-
-  const handleDemoLogin = async () => {
-    setEmail('alice@matrixsplit.com');
+  const handleQuickDemo = (userEmail: string, userName: string) => {
+    setEmail(userEmail);
     setPassword('Password123!');
   };
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]} edges={['top', 'bottom', 'left', 'right']}>
+      {/* Top Bar with Back and Theme Toggle */}
+      <View style={styles.topBar}>
+        <Pressable
+          onPress={() => {
+            if (router.canGoBack()) {
+              router.back();
+            } else {
+              router.replace('/(auth)/welcome');
+            }
+          }}
+          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+          style={({ pressed }) => [
+            styles.iconButton,
+            {
+              backgroundColor: theme.surface,
+              borderColor: theme.border,
+              opacity: pressed ? 0.7 : 1,
+            },
+          ]}
+        >
+          <Ionicons name="chevron-back" size={20} color={theme.text} />
+        </Pressable>
+
+        <View style={{ width: 38 }} />
+      </View>
+
       <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         style={{ flex: 1 }}
       >
-        <ScrollView contentContainerStyle={styles.scrollContent}>
-          <TouchableOpacity
-            onPress={() => {
-              if (router.canGoBack()) {
-                router.back();
-              } else {
-                router.replace('/(auth)/welcome');
-              }
-            }}
-            style={[styles.backButton, { flexDirection: 'row', alignItems: 'center' }]}
-          >
-            <Ionicons name="chevron-back" size={22} color={theme.text} />
-            <Text style={[styles.backText, { color: theme.text, marginLeft: 2 }]}>Back</Text>
-          </TouchableOpacity>
-
+        <ScrollView
+          contentContainerStyle={styles.scrollContent}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+        >
+          {/* Header */}
           <View style={styles.header}>
+            <View
+              style={[
+                styles.brandIcon,
+                { backgroundColor: theme.primary, borderRadius: borderRadius.lg },
+              ]}
+            >
+              <Ionicons name="log-in-outline" size={24} color="#FFFFFF" />
+            </View>
             <Text
               style={[
                 styles.title,
@@ -127,14 +124,24 @@ export default function LoginScreen() {
             <Text
               style={[
                 styles.subtitle,
-                { color: theme.textMuted, fontSize: typography.fontSize.base },
+                { color: theme.textMuted, fontSize: typography.fontSize.sm },
               ]}
             >
-              Sign in to manage your shared expenses
+              Enter your credentials to access your groups and expenses
             </Text>
           </View>
 
-          <View style={styles.form}>
+          {/* Form Card */}
+          <View
+            style={[
+              styles.formCard,
+              {
+                backgroundColor: theme.card,
+                borderColor: theme.border,
+                borderRadius: borderRadius.xl,
+              },
+            ]}
+          >
             <Input
               label="Email Address"
               placeholder="you@example.com"
@@ -143,6 +150,7 @@ export default function LoginScreen() {
               keyboardType="email-address"
               autoCapitalize="none"
               error={errors.email}
+              leftIcon={<Ionicons name="mail-outline" size={18} color={theme.textMuted} />}
             />
 
             <Input
@@ -150,66 +158,103 @@ export default function LoginScreen() {
               placeholder="••••••••"
               value={password}
               onChangeText={setPassword}
-              secureTextEntry
+              secureTextEntry={!showPassword}
               error={errors.password}
+              leftIcon={<Ionicons name="lock-closed-outline" size={18} color={theme.textMuted} />}
+              rightIcon={
+                <Ionicons
+                  name={showPassword ? 'eye-off-outline' : 'eye-outline'}
+                  size={18}
+                  color={theme.textMuted}
+                />
+              }
+              onRightIconPress={() => setShowPassword(!showPassword)}
             />
 
-            <TouchableOpacity
-              onPress={() => router.push('/(auth)/forgot-password')}
-              style={styles.forgotBtn}
-            >
-              <Text
-                style={[
-                  styles.forgotText,
-                  { color: theme.primary, fontSize: typography.fontSize.sm },
-                ]}
+            <View style={styles.forgotRow}>
+              <Pressable
+                onPress={() => router.push('/(auth)/forgot-password')}
+                style={({ pressed }) => [{ opacity: pressed ? 0.7 : 1 }]}
               >
-                Forgot password?
-              </Text>
-            </TouchableOpacity>
+                <Text style={[styles.forgotText, { color: theme.primary }]}>
+                  Forgot Password?
+                </Text>
+              </Pressable>
+            </View>
 
             <Button
-              label="Sign In"
+              label={loading ? 'Signing in...' : 'Sign In'}
               size="lg"
-              onPress={handleLogin}
+              variant="primary"
               loading={loading}
-              style={{ marginTop: spacing.xs }}
-            />
-
-            {/* Google Authentication Button */}
-            <TouchableOpacity
-              activeOpacity={0.8}
-              onPress={handleGoogleLogin}
-              style={[
-                styles.googleBtn,
-                {
-                  backgroundColor: theme.card,
-                  borderColor: theme.border,
-                  marginTop: spacing.md,
-                },
-              ]}
-            >
-              <Ionicons name="logo-google" size={18} color="#EA4335" style={{ marginRight: 8 }} />
-              <Text style={[styles.googleBtnText, { color: theme.text }]}>
-                {googleLoading ? 'Connecting...' : 'Continue with Google'}
-              </Text>
-            </TouchableOpacity>
-
-            {/* Quick Demo Fill */}
-            <Button
-              label="Use Demo Account (Alice)"
-              variant="ghost"
-              size="sm"
-              onPress={handleDemoLogin}
-              style={{ marginTop: spacing.sm }}
+              onPress={handleLogin}
+              style={{ marginTop: 8 }}
             />
           </View>
 
-          <View style={styles.footer}>
-            <Text style={{ color: theme.textMuted }}>Don't have an account? </Text>
-            <TouchableOpacity onPress={() => router.push('/(auth)/signup')}>
-              <Text style={{ color: theme.primary, fontWeight: '700' }}>Sign Up</Text>
-            </TouchableOpacity>
+          {/* Quick Demo Fillers */}
+          <View style={styles.quickFillSection}>
+            <Text style={[styles.quickFillLabel, { color: theme.textMuted }]}>
+              TEST ACCOUNTS (1-TAP AUTOFILL):
+            </Text>
+            <View style={styles.demoChipsRow}>
+              <Pressable
+                onPress={() => handleQuickDemo('alice@matrixsplit.com', 'Alice')}
+                style={({ pressed }) => [
+                  styles.demoPill,
+                  {
+                    backgroundColor: theme.surface,
+                    borderColor: theme.border,
+                    opacity: pressed ? 0.7 : 1,
+                  },
+                ]}
+              >
+                <Text style={[styles.demoPillText, { color: theme.text }]}>Alice (Admin)</Text>
+              </Pressable>
+
+              <Pressable
+                onPress={() => handleQuickDemo('bob@matrixsplit.com', 'Bob')}
+                style={({ pressed }) => [
+                  styles.demoPill,
+                  {
+                    backgroundColor: theme.surface,
+                    borderColor: theme.border,
+                    opacity: pressed ? 0.7 : 1,
+                  },
+                ]}
+              >
+                <Text style={[styles.demoPillText, { color: theme.text }]}>Bob</Text>
+              </Pressable>
+
+              <Pressable
+                onPress={() => handleQuickDemo('charlie@matrixsplit.com', 'Charlie')}
+                style={({ pressed }) => [
+                  styles.demoPill,
+                  {
+                    backgroundColor: theme.surface,
+                    borderColor: theme.border,
+                    opacity: pressed ? 0.7 : 1,
+                  },
+                ]}
+              >
+                <Text style={[styles.demoPillText, { color: theme.text }]}>Charlie</Text>
+              </Pressable>
+            </View>
+          </View>
+
+          {/* Sign Up Redirect */}
+          <View style={styles.footerRow}>
+            <Text style={[styles.footerText, { color: theme.textMuted }]}>
+              Don't have an account?{' '}
+            </Text>
+            <Pressable
+              onPress={() => router.push('/(auth)/signup')}
+              style={({ pressed }) => [{ opacity: pressed ? 0.7 : 1 }]}
+            >
+              <Text style={[styles.signUpLink, { color: theme.primary }]}>
+                Sign Up
+              </Text>
+            </Pressable>
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
@@ -221,57 +266,99 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  scrollContent: {
-    paddingHorizontal: 24,
-    paddingVertical: 16,
-    flexGrow: 1,
+  topBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
     justifyContent: 'space-between',
+    paddingHorizontal: 20,
+    paddingTop: 8,
+    paddingBottom: 4,
   },
-  backButton: {
-    paddingVertical: 8,
+  iconButton: {
+    width: 38,
+    height: 38,
+    borderRadius: 12,
+    borderWidth: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  backText: {
-    fontSize: 18,
-    fontWeight: '600',
+  scrollContent: {
+    paddingHorizontal: 20,
+    paddingTop: 12,
+    paddingBottom: 32,
   },
   header: {
-    marginTop: 20,
-    marginBottom: 28,
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  brandIcon: {
+    width: 52,
+    height: 52,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 12,
   },
   title: {
     fontWeight: '800',
     letterSpacing: -0.5,
+    textAlign: 'center',
   },
   subtitle: {
+    textAlign: 'center',
     marginTop: 6,
+    maxWidth: 280,
   },
-  form: {
-    flex: 1,
+  formCard: {
+    padding: 20,
+    borderWidth: 1,
+    marginBottom: 20,
   },
-  forgotBtn: {
-    alignSelf: 'flex-end',
-    marginTop: 4,
-    marginBottom: 16,
+  forgotRow: {
+    alignItems: 'flex-end',
+    marginBottom: 14,
+    marginTop: -4,
   },
   forgotText: {
+    fontSize: 13,
     fontWeight: '600',
   },
-  googleBtn: {
-    flexDirection: 'row',
+  quickFillSection: {
+    marginBottom: 24,
     alignItems: 'center',
+  },
+  quickFillLabel: {
+    fontSize: 11,
+    fontWeight: '700',
+    letterSpacing: 0.6,
+    marginBottom: 8,
+  },
+  demoChipsRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
     justifyContent: 'center',
-    height: 48,
-    borderRadius: 8,
+    gap: 8,
+  },
+  demoPill: {
+    paddingHorizontal: 12,
+    paddingVertical: 7,
+    borderRadius: 20,
     borderWidth: 1,
   },
-  googleBtnText: {
-    fontWeight: '700',
-    fontSize: 14,
+  demoPillText: {
+    fontSize: 12,
+    fontWeight: '600',
   },
-  footer: {
+  footerRow: {
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    paddingVertical: 16,
+    marginTop: 8,
+  },
+  footerText: {
+    fontSize: 14,
+  },
+  signUpLink: {
+    fontSize: 14,
+    fontWeight: '700',
   },
 });

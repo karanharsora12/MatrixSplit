@@ -26,7 +26,6 @@ import {
   useFriends,
 } from '../../src/hooks/useQueries';
 import { useAuthStore } from '../../src/stores/authStore';
-import { useThemeStore } from '../../src/stores/themeStore';
 import {
   ExpenseCategory,
   SplitType,
@@ -61,7 +60,6 @@ export default function AddExpenseScreen() {
   }>();
   const preselectedGroupId = params?.preselectedGroupId;
   const { theme, typography, spacing, borderRadius, isDark } = useWatermelonTheme();
-  const { toggleTheme } = useThemeStore();
   const user = useAuthStore((s) => s.user);
 
   const { data: groups } = useMyGroups();
@@ -406,63 +404,38 @@ export default function AddExpenseScreen() {
             </Text>
           </View>
 
-          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-            <Pressable
-              onPress={toggleTheme}
-              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-              style={({ pressed }) => [
-                {
-                  backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)',
-                  width: 36,
-                  height: 36,
-                  borderRadius: 18,
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  marginRight: 8,
-                  opacity: pressed ? 0.7 : 1,
-                },
-              ]}
+          <Pressable
+            onPress={handleSave}
+            disabled={createExpenseMutation.isPending || !title.trim() || totalMinor <= 0}
+            style={({ pressed }) => [
+              {
+                backgroundColor: theme.primary,
+                opacity:
+                  createExpenseMutation.isPending || !title.trim() || totalMinor <= 0
+                    ? 0.5
+                    : pressed
+                    ? 0.85
+                    : 1,
+                flexDirection: 'row',
+                alignItems: 'center',
+                borderRadius: 20,
+                paddingHorizontal: 14,
+                paddingVertical: 7,
+              },
+            ]}
+          >
+            <Ionicons name="checkmark" size={16} color="#FFFFFF" />
+            <Text
+              style={{
+                color: '#FFFFFF',
+                fontWeight: '700',
+                fontSize: 12,
+                marginLeft: 4,
+              }}
             >
-              <Ionicons
-                name={isDark ? 'sunny' : 'moon'}
-                size={18}
-                color={isDark ? '#F59E0B' : theme.text}
-              />
-            </Pressable>
-
-            <Pressable
-              onPress={handleSave}
-              disabled={createExpenseMutation.isPending || !title.trim() || totalMinor <= 0}
-              style={({ pressed }) => [
-                {
-                  backgroundColor: theme.primary,
-                  opacity:
-                    createExpenseMutation.isPending || !title.trim() || totalMinor <= 0
-                      ? 0.5
-                      : pressed
-                      ? 0.85
-                      : 1,
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  borderRadius: 20,
-                  paddingHorizontal: 14,
-                  paddingVertical: 7,
-                },
-              ]}
-            >
-              <Ionicons name="checkmark" size={16} color="#FFFFFF" />
-              <Text
-                style={{
-                  color: '#FFFFFF',
-                  fontWeight: '700',
-                  fontSize: 12,
-                  marginLeft: 4,
-                }}
-              >
-                Save
-              </Text>
-            </Pressable>
-          </View>
+              Save
+            </Text>
+          </Pressable>
         </View>
 
         <ScrollView

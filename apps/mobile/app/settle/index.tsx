@@ -4,7 +4,8 @@ import {
   Text,
   StyleSheet,
   ScrollView,
-  TouchableOpacity,
+  Pressable,
+  TextInput,
   Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -37,7 +38,7 @@ export default function SettleScreen() {
     amountMinor?: string;
   }>();
 
-  const { theme, typography, spacing, borderRadius } = useWatermelonTheme();
+  const { theme, typography, spacing, borderRadius, isDark } = useWatermelonTheme();
   const user = useAuthStore((s) => s.user);
   const { data: friends } = useFriends();
   const createSettlementMutation = useCreateSettlement();
@@ -98,13 +99,27 @@ export default function SettleScreen() {
     }
   };
 
+  const selectedFriend = friends?.find((f: any) => f.id === selectedFriendId);
+
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]} edges={['top', 'left', 'right']}>
       {/* Top Header */}
       <View style={styles.headerBar}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.cancelBtn}>
-          <Ionicons name="close" size={24} color={theme.text} />
-        </TouchableOpacity>
+        <Pressable
+          onPress={() => router.back()}
+          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+          style={({ pressed }) => [
+            styles.cancelBtn,
+            {
+              backgroundColor: theme.surface,
+              borderColor: theme.border,
+              opacity: pressed ? 0.7 : 1,
+            },
+          ]}
+        >
+          <Ionicons name="close" size={20} color={theme.text} />
+        </Pressable>
+
         <Text
           style={[
             styles.headerTitle,
@@ -113,10 +128,65 @@ export default function SettleScreen() {
         >
           Record Settlement
         </Text>
-        <View style={{ width: 44 }} />
+
+        <View style={{ width: 36 }} />
       </View>
 
       <ScrollView contentContainerStyle={styles.scrollContent}>
+        {/* Recipient Picker */}
+        <View style={{ marginBottom: 16 }}>
+          <Text
+            style={[
+              styles.sectionLabel,
+              { color: theme.textMuted, fontSize: typography.fontSize.xs },
+            ]}
+          >
+            SETTLING WITH
+          </Text>
+
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginTop: 8 }}>
+            {friends?.map((f: any) => {
+              const isSelected = selectedFriendId === f.id;
+              return (
+                <Pressable
+                  key={f.id}
+                  onPress={() => setSelectedFriendId(f.id)}
+                  style={({ pressed }) => [
+                    styles.friendChip,
+                    {
+                      backgroundColor: isSelected
+                        ? (isDark ? 'rgba(16,185,129,0.18)' : '#D1FAE5')
+                        : theme.card,
+                      borderColor: isSelected ? theme.primary : theme.border,
+                      opacity: pressed ? 0.8 : 1,
+                    },
+                  ]}
+                >
+                  <Avatar name={f.fullName} size="sm" />
+                  <Text
+                    style={{
+                      color: isSelected ? theme.primary : theme.text,
+                      fontWeight: isSelected ? '700' : '500',
+                      fontSize: 13,
+                      marginLeft: 8,
+                    }}
+                  >
+                    {f.fullName}
+                  </Text>
+                  {isSelected && (
+                    <Ionicons
+                      name="checkmark-circle"
+                      size={16}
+                      color={theme.primary}
+                      style={{ marginLeft: 6 }}
+                    />
+                  )}
+                </Pressable>
+              );
+            })}
+          </ScrollView>
+        </View>
+
         {/* Settlement Amount Card */}
         <View
           style={[
@@ -138,137 +208,85 @@ export default function SettleScreen() {
           </Text>
 
           <View style={styles.amountInputRow}>
-            <Text
-              style={[
-                styles.currencySymbol,
-                { color: theme.primary, fontSize: typography.fontSize['4xl'] },
-              ]}
-            >
-              {user?.defaultCurrency === 'INR' ? '₹' : '$'}
+            <Text style={[styles.currencySymbol, { color: theme.primary }]}>
+              {user?.defaultCurrency === 'USD' ? '$' : '₹'}
             </Text>
-            <Input
+            <TextInput
               placeholder="0.00"
+              placeholderTextColor={theme.textMuted}
               value={amountStr}
               onChangeText={setAmountStr}
               keyboardType="decimal-pad"
-              style={[
-                styles.amountInput,
-                { color: theme.text, fontSize: typography.fontSize['3xl'] },
-              ]}
-              containerStyle={{ flex: 1, borderWidth: 0 }}
+              style={[styles.amountInput, { color: theme.text }]}
             />
           </View>
-        </View>
 
-        {/* Recipient Picker */}
-        <View style={{ marginVertical: 12 }}>
-          <Text style={[styles.sectionLabel, { color: theme.text }]}>
-            Settling With
-          </Text>
-
-          {params.targetName && (
-            <View
-              style={[
-                styles.targetCard,
-                {
-                  backgroundColor: theme.surface,
-                  borderColor: theme.primary,
-                  borderRadius: borderRadius.md,
-                },
-              ]}
-            >
-              <Avatar name={params.targetName} size="sm" />
-              <Text
-                style={[
-                  styles.targetNameText,
-                  { color: theme.text, marginLeft: 10 },
-                ]}
-              >
-                {params.targetName}
+          {selectedFriend && selectedFriend.netBalanceMinor ? (
+            <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 10 }}>
+              <Text style={{ color: theme.textMuted, fontSize: 12 }}>
+                Net balance: {formatCurrency(Math.abs(selectedFriend.netBalanceMinor), user?.defaultCurrency || 'INR')}
               </Text>
+              <Pressable
+                onPress={() =>
+                  setAmountStr(
+                    fromMinorUnits(Math.abs(selectedFriend.netBalanceMinor), user?.defaultCurrency || 'INR').toString()
+                  )
+                }
+                style={{ marginLeft: 10 }}
+              >
+                <Text style={{ color: theme.primary, fontWeight: '700', fontSize: 12 }}>
+                  Settle Full
+                </Text>
+              </Pressable>
             </View>
-          )}
-
-          {!params.targetUserId && friends && (
-            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-              {friends.map((f: any) => {
-                const isSelected = selectedFriendId === f.id;
-                return (
-                  <TouchableOpacity
-                    key={f.id}
-                    onPress={() => setSelectedFriendId(f.id)}
-                    style={[
-                      styles.friendChip,
-                      {
-                        backgroundColor: isSelected
-                          ? theme.primary
-                          : theme.surface,
-                        borderColor: isSelected
-                          ? theme.primary
-                          : theme.border,
-                        borderRadius: borderRadius.md,
-                      },
-                    ]}
-                  >
-                    <Avatar name={f.fullName} size="sm" />
-                    <Text
-                      style={{
-                        color: isSelected ? '#FFFFFF' : theme.text,
-                        fontWeight: isSelected ? '700' : '500',
-                        fontSize: 12,
-                        marginLeft: 8,
-                      }}
-                    >
-                      {f.fullName}
-                    </Text>
-                  </TouchableOpacity>
-                );
-              })}
-            </ScrollView>
-          )}
+          ) : null}
         </View>
 
         {/* Payment Method Selector */}
-        <View style={{ marginVertical: 12 }}>
-          <Text style={[styles.sectionLabel, { color: theme.text }]}>
-            Payment Method
+        <View style={{ marginVertical: 16 }}>
+          <Text
+            style={[
+              styles.sectionLabel,
+              { color: theme.textMuted, fontSize: typography.fontSize.xs },
+            ]}
+          >
+            PAYMENT METHOD
           </Text>
+
           <View style={styles.methodsGrid}>
             {paymentMethods.map((m) => {
               const isSelected = paymentMethod === m.id;
               return (
-                <TouchableOpacity
+                <Pressable
                   key={m.id}
                   onPress={() => setPaymentMethod(m.id)}
-                  style={[
+                  style={({ pressed }) => [
                     styles.methodCard,
                     {
                       backgroundColor: isSelected
-                        ? theme.primaryLight
-                        : theme.surface,
-                      borderColor: isSelected
-                        ? theme.primary
-                        : theme.border,
-                      borderRadius: borderRadius.md,
+                        ? (isDark ? 'rgba(16,185,129,0.18)' : '#D1FAE5')
+                        : theme.card,
+                      borderColor: isSelected ? theme.primary : theme.border,
+                      opacity: pressed ? 0.8 : 1,
                     },
                   ]}
                 >
                   <Ionicons
                     name={m.icon}
-                    size={26}
+                    size={22}
                     color={isSelected ? theme.primary : theme.textMuted}
-                    style={{ marginBottom: 6 }}
                   />
                   <Text
                     style={{
                       color: isSelected ? theme.primary : theme.text,
-                      fontWeight: isSelected ? '700' : '500',
+                      fontWeight: isSelected ? '700' : '600',
                       fontSize: 12,
+                      marginTop: 6,
                     }}
                   >
                     {m.label}
                   </Text>
-                </TouchableOpacity>
+                </Pressable>
               );
             })}
           </View>
@@ -276,18 +294,25 @@ export default function SettleScreen() {
 
         {/* Notes */}
         <Input
-          label="Payment Note / Transaction Reference"
-          placeholder="e.g. UPI ref #9382103, GPay, cash given at cafe"
+          label="Transaction Reference / Note (Optional)"
+          placeholder="e.g. GooglePay UPI Ref #123456"
           value={notes}
           onChangeText={setNotes}
+          leftIcon={<Ionicons name="document-text-outline" size={18} color={theme.textMuted} />}
         />
 
+        {/* Confirm Button */}
         <Button
-          label="Confirm & Record Settlement"
+          label={
+            createSettlementMutation.isPending
+              ? 'Recording Settlement...'
+              : 'Confirm & Record Payment'
+          }
           size="lg"
-          onPress={handleRecordSettlement}
+          variant="primary"
           loading={createSettlementMutation.isPending}
-          style={{ marginTop: spacing.xl }}
+          onPress={handleRecordSettlement}
+          style={{ marginTop: 16 }}
         />
       </ScrollView>
     </SafeAreaView>
@@ -303,74 +328,73 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 20,
-    paddingTop: 10,
+    paddingTop: 8,
     paddingBottom: 8,
   },
   cancelBtn: {
-    padding: 6,
+    width: 36,
+    height: 36,
+    borderRadius: 12,
+    borderWidth: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   headerTitle: {
-    fontWeight: '700',
+    fontWeight: '800',
   },
   scrollContent: {
-    padding: 16,
+    padding: 20,
+    paddingTop: 8,
     paddingBottom: 40,
-  },
-  amountCard: {
-    padding: 16,
-    borderWidth: 1,
-    marginBottom: 10,
-  },
-  amountLabel: {
-    fontWeight: '700',
-    letterSpacing: 0.5,
-  },
-  amountInputRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  currencySymbol: {
-    fontWeight: '800',
-    marginRight: 6,
-  },
-  amountInput: {
-    fontWeight: '800',
-    fontSize: 32,
   },
   sectionLabel: {
     fontWeight: '700',
-    fontSize: 13,
-    marginBottom: 8,
-  },
-  targetCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 12,
-    borderWidth: 1.5,
-  },
-  targetNameText: {
-    fontWeight: '700',
-    fontSize: 15,
+    letterSpacing: 0.6,
   },
   friendChip: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 12,
     paddingVertical: 8,
+    borderRadius: 20,
     borderWidth: 1,
     marginRight: 8,
   },
+  amountCard: {
+    padding: 18,
+    borderWidth: 1,
+  },
+  amountLabel: {
+    fontWeight: '700',
+    letterSpacing: 0.6,
+  },
+  amountInputRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 8,
+  },
+  currencySymbol: {
+    fontSize: 36,
+    fontWeight: '800',
+    marginRight: 8,
+  },
+  amountInput: {
+    fontSize: 36,
+    fontWeight: '800',
+    flex: 1,
+    paddingVertical: 0,
+  },
   methodsGrid: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 10,
+    gap: 8,
+    marginTop: 8,
   },
   methodCard: {
-    flexBasis: '48%',
-    flexGrow: 1,
+    flex: 1,
     paddingVertical: 14,
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 1.5,
+    borderRadius: 12,
+    borderWidth: 1,
   },
 });

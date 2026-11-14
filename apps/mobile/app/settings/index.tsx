@@ -4,7 +4,7 @@ import {
   Text,
   StyleSheet,
   ScrollView,
-  TouchableOpacity,
+  Pressable,
   Switch,
   Alert,
 } from 'react-native';
@@ -21,11 +21,18 @@ import { useWatermelonTheme } from '@/theme';
 import { useAuthStore } from '../../src/stores/authStore';
 import { useThemeStore } from '../../src/stores/themeStore';
 import { apiClient } from '../../src/services/api';
-import { CurrencyCode, SUPPORTED_CURRENCIES } from '@matrixsplit/shared';
+import { CurrencyCode } from '@matrixsplit/shared';
+
+const currencyOptions: { code: CurrencyCode; symbol: string; label: string }[] = [
+  { code: 'INR', symbol: '₹', label: 'INR' },
+  { code: 'USD', symbol: '$', label: 'USD' },
+  { code: 'EUR', symbol: '€', label: 'EUR' },
+  { code: 'GBP', symbol: '£', label: 'GBP' },
+];
 
 export default function SettingsScreen() {
   const router = useRouter();
-  const { theme, typography, spacing, borderRadius } = useWatermelonTheme();
+  const { theme, typography, spacing, borderRadius, isDark } = useWatermelonTheme();
   const { user, logout, setUser } = useAuthStore();
   const { mode, setMode } = useThemeStore();
 
@@ -92,23 +99,34 @@ export default function SettingsScreen() {
     );
   };
 
-  const currencies: CurrencyCode[] = ['INR', 'USD', 'EUR', 'GBP'];
-
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]} edges={['top', 'left', 'right']}>
       {/* Top Header */}
       <View style={styles.headerBar}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
-          <Ionicons name="chevron-back" size={24} color={theme.text} />
-        </TouchableOpacity>
+        <Pressable
+          onPress={() => router.back()}
+          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+          style={({ pressed }) => [
+            styles.backBtn,
+            {
+              backgroundColor: theme.surface,
+              borderColor: theme.border,
+              opacity: pressed ? 0.7 : 1,
+            },
+          ]}
+        >
+          <Ionicons name="chevron-back" size={20} color={theme.text} />
+        </Pressable>
+
         <Text
           style={[
             styles.headerTitle,
             { color: theme.text, fontSize: typography.fontSize.base },
           ]}
         >
-          Settings & Profile
+          Settings & Preferences
         </Text>
+
         <View style={{ width: 36 }} />
       </View>
 
@@ -130,11 +148,71 @@ export default function SettingsScreen() {
               },
             ]}
           >
-            {user?.fullName}
+            {user?.fullName || 'MatrixSplit User'}
           </Text>
           <Text style={[styles.userEmail, { color: theme.textMuted }]}>
             {user?.email}
           </Text>
+        </Card>
+
+        {/* Appearance / Theme Options */}
+        <View style={styles.sectionHeader}>
+          <Text
+            style={[
+              styles.sectionTitle,
+              { color: theme.textMuted, fontSize: typography.fontSize.xs },
+            ]}
+          >
+            APPEARANCE & THEME
+          </Text>
+        </View>
+
+        <Card
+          variant="outlined"
+          padding="md"
+          style={{ marginBottom: spacing.md }}
+        >
+          <View style={styles.themeSelectorRow}>
+            {[
+              { id: 'system', label: 'System', icon: 'phone-portrait-outline' },
+              { id: 'light', label: 'Light', icon: 'sunny-outline' },
+              { id: 'dark', label: 'Dark', icon: 'moon-outline' },
+            ].map((t) => {
+              const isSelected = mode === t.id;
+              return (
+                <Pressable
+                  key={t.id}
+                  onPress={() => setMode(t.id as any)}
+                  style={({ pressed }) => [
+                    styles.themeOptionCard,
+                    {
+                      backgroundColor: isSelected
+                        ? (isDark ? 'rgba(16,185,129,0.18)' : '#D1FAE5')
+                        : theme.surface,
+                      borderColor: isSelected ? theme.primary : theme.border,
+                      opacity: pressed ? 0.8 : 1,
+                    },
+                  ]}
+                >
+                  <Ionicons
+                    name={t.icon as any}
+                    size={20}
+                    color={isSelected ? theme.primary : theme.textMuted}
+                  />
+                  <Text
+                    style={{
+                      color: isSelected ? theme.primary : theme.text,
+                      fontWeight: isSelected ? '700' : '500',
+                      fontSize: 12,
+                      marginTop: 6,
+                    }}
+                  >
+                    {t.label}
+                  </Text>
+                </Pressable>
+              );
+            })}
+          </View>
         </Card>
 
         {/* Edit Profile Form */}
@@ -142,7 +220,7 @@ export default function SettingsScreen() {
           <Text
             style={[
               styles.sectionTitle,
-              { color: theme.text, fontSize: typography.fontSize.sm },
+              { color: theme.textMuted, fontSize: typography.fontSize.xs },
             ]}
           >
             PERSONAL INFORMATION
@@ -158,112 +236,67 @@ export default function SettingsScreen() {
             label="Full Name"
             value={fullName}
             onChangeText={setFullName}
+            leftIcon={<Ionicons name="person-outline" size={18} color={theme.textMuted} />}
           />
 
-          <View style={{ marginVertical: 8 }}>
-            <Text
-              style={[
-                styles.currencyLabel,
-                { color: theme.text, fontSize: typography.fontSize.sm },
-              ]}
-            >
-              Default Currency
-            </Text>
-            <View style={styles.currencyRow}>
-              {currencies.map((code) => {
-                const isSelected = currency === code;
-                return (
-                  <TouchableOpacity
-                    key={code}
-                    onPress={() => setCurrency(code)}
-                    style={[
-                      styles.currencyChip,
-                      {
-                        backgroundColor: isSelected
-                          ? theme.primary
-                          : theme.surface,
-                        borderColor: isSelected
-                          ? theme.primary
-                          : theme.border,
-                        borderRadius: borderRadius.md,
-                      },
-                    ]}
+          <Text
+            style={[
+              styles.fieldLabel,
+              { color: theme.text, fontSize: typography.fontSize.xs },
+            ]}
+          >
+            DEFAULT CURRENCY
+          </Text>
+
+          <View style={styles.currencyRow}>
+            {currencyOptions.map((c) => {
+              const isSelected = currency === c.code;
+              return (
+                <Pressable
+                  key={c.code}
+                  onPress={() => setCurrency(c.code)}
+                  style={({ pressed }) => [
+                    styles.currChip,
+                    {
+                      backgroundColor: isSelected
+                        ? theme.primary
+                        : theme.surface,
+                      borderColor: isSelected
+                        ? theme.primary
+                        : theme.border,
+                      opacity: pressed ? 0.8 : 1,
+                    },
+                  ]}
+                >
+                  <Text
+                    style={{
+                      color: isSelected ? '#FFFFFF' : theme.text,
+                      fontWeight: isSelected ? '700' : '600',
+                      fontSize: 13,
+                    }}
                   >
-                    <Text
-                      style={{
-                        color: isSelected ? '#FFFFFF' : theme.text,
-                        fontWeight: isSelected ? '700' : '500',
-                        fontSize: 12,
-                      }}
-                    >
-                      {SUPPORTED_CURRENCIES[code].symbol} {code}
-                    </Text>
-                  </TouchableOpacity>
-                );
-              })}
-            </View>
+                    {c.symbol} {c.label}
+                  </Text>
+                </Pressable>
+              );
+            })}
           </View>
 
           <Button
-            label="Save Changes"
+            label={updating ? 'Saving...' : 'Save Profile Changes'}
             onPress={handleUpdateProfile}
             loading={updating}
-            size="sm"
-            style={{ marginTop: 10 }}
+            variant="primary"
+            style={{ marginTop: 12 }}
           />
         </Card>
 
-        {/* Appearance / Theme Preferences */}
+        {/* Notification Preferences */}
         <View style={styles.sectionHeader}>
           <Text
             style={[
               styles.sectionTitle,
-              { color: theme.text, fontSize: typography.fontSize.sm },
-            ]}
-          >
-            APPEARANCE
-          </Text>
-        </View>
-
-        <Card
-          variant="outlined"
-          padding="md"
-          style={{ marginBottom: spacing.md }}
-        >
-          <View style={styles.themeRow}>
-            <View>
-              <Text
-                style={[
-                  styles.settingLabel,
-                  { color: theme.text, fontSize: typography.fontSize.base },
-                ]}
-              >
-                Dark Mode
-              </Text>
-              <Text
-                style={[
-                  styles.settingSub,
-                  { color: theme.textMuted, fontSize: typography.fontSize.xs },
-                ]}
-              >
-                Toggle between light and dark theme
-              </Text>
-            </View>
-            <Switch
-              value={mode === 'dark'}
-              onValueChange={(val) => setMode(val ? 'dark' : 'light')}
-              trackColor={{ false: theme.border, true: theme.primary }}
-              thumbColor="#FFFFFF"
-            />
-          </View>
-        </Card>
-
-        {/* Notifications Settings */}
-        <View style={styles.sectionHeader}>
-          <Text
-            style={[
-              styles.sectionTitle,
-              { color: theme.text, fontSize: typography.fontSize.sm },
+              { color: theme.textMuted, fontSize: typography.fontSize.xs },
             ]}
           >
             NOTIFICATIONS
@@ -275,106 +308,102 @@ export default function SettingsScreen() {
           padding="md"
           style={{ marginBottom: spacing.md }}
         >
-          <View style={styles.settingRow}>
-            <Text style={[styles.settingLabel, { color: theme.text }]}>
-              Push Notifications
-            </Text>
+          <View style={styles.switchRow}>
+            <View style={{ flex: 1 }}>
+              <Text style={[styles.settingLabel, { color: theme.text }]}>
+                Push Notifications
+              </Text>
+              <Text style={{ color: theme.textMuted, fontSize: 11, marginTop: 2 }}>
+                Instant alerts when you're added to expenses
+              </Text>
+            </View>
             <Switch
               value={pushEnabled}
               onValueChange={setPushEnabled}
               trackColor={{ false: theme.border, true: theme.primary }}
-              thumbColor="#FFFFFF"
             />
           </View>
 
           <View style={[styles.divider, { backgroundColor: theme.divider }]} />
 
-          <View style={styles.settingRow}>
-            <Text style={[styles.settingLabel, { color: theme.text }]}>
-              Email Alerts
-            </Text>
+          <View style={styles.switchRow}>
+            <View style={{ flex: 1 }}>
+              <Text style={[styles.settingLabel, { color: theme.text }]}>
+                Email Summaries
+              </Text>
+              <Text style={{ color: theme.textMuted, fontSize: 11, marginTop: 2 }}>
+                Weekly balance digests & settlement receipts
+              </Text>
+            </View>
             <Switch
               value={emailEnabled}
               onValueChange={setEmailEnabled}
               trackColor={{ false: theme.border, true: theme.primary }}
-              thumbColor="#FFFFFF"
             />
           </View>
         </Card>
 
-        {/* Design System & Components */}
-        <View style={styles.sectionHeader}>
-          <Text
-            style={[
-              styles.sectionTitle,
-              { color: theme.text, fontSize: typography.fontSize.sm },
-            ]}
-          >
-            DESIGN SYSTEM
-          </Text>
-        </View>
-
+        {/* UI Showcase link */}
         <Card
           variant="outlined"
           padding="md"
-          style={{ marginBottom: spacing.base }}
+          style={{ marginBottom: spacing.md }}
         >
-          <TouchableOpacity
+          <Pressable
             onPress={() => router.push('/settings/ui-showcase')}
-            style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 4 }}
+            style={({ pressed }) => [
+              styles.showcaseRow,
+              { opacity: pressed ? 0.7 : 1 },
+            ]}
           >
             <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-              <Ionicons name="sparkles" size={20} color={theme.primary} style={{ marginRight: 10 }} />
+              <Ionicons name="color-palette-outline" size={20} color={theme.primary} style={{ marginRight: 10 }} />
               <View>
-                <Text style={{ color: theme.text, fontWeight: '700', fontSize: 15 }}>
-                  React Native Reusables
+                <Text style={{ color: theme.text, fontWeight: '700', fontSize: 14 }}>
+                  Design System Showcase
                 </Text>
-                <Text style={{ color: theme.textMuted, fontSize: 12, marginTop: 2 }}>
-                  Interactive UI components showcase & tests
+                <Text style={{ color: theme.textMuted, fontSize: 11, marginTop: 2 }}>
+                  Preview all buttons, badges, avatars & input states
                 </Text>
               </View>
             </View>
             <Ionicons name="chevron-forward" size={18} color={theme.textMuted} />
-          </TouchableOpacity>
+          </Pressable>
         </Card>
 
         {/* Account Actions */}
-        <View style={styles.sectionHeader}>
-          <Text
-            style={[
-              styles.sectionTitle,
-              { color: theme.text, fontSize: typography.fontSize.sm },
-            ]}
-          >
-            ACCOUNT
-          </Text>
-        </View>
-
         <Card
           variant="outlined"
-          padding="md"
+          padding="sm"
           style={{ marginBottom: spacing.xl }}
         >
-          <TouchableOpacity onPress={handleLogout} style={[styles.logoutBtn, { flexDirection: 'row', alignItems: 'center' }]}>
-            <Ionicons name="log-out-outline" size={18} color={theme.primary} style={{ marginRight: 8 }} />
-            <Text style={{ color: theme.primary, fontWeight: '700', fontSize: 15 }}>
-              Log Out
+          <Pressable
+            onPress={handleLogout}
+            style={({ pressed }) => [
+              styles.actionItemRow,
+              { opacity: pressed ? 0.7 : 1 },
+            ]}
+          >
+            <Ionicons name="log-out-outline" size={18} color={theme.primary} style={{ marginRight: 10 }} />
+            <Text style={{ color: theme.primary, fontWeight: '700', fontSize: 14 }}>
+              Log Out of MatrixSplit
             </Text>
-          </TouchableOpacity>
+          </Pressable>
 
           <View style={[styles.divider, { backgroundColor: theme.divider }]} />
 
-          <TouchableOpacity
+          <Pressable
             onPress={handleDeleteAccount}
-            style={[styles.deleteBtn, { flexDirection: 'row', alignItems: 'center' }]}
+            style={({ pressed }) => [
+              styles.actionItemRow,
+              { opacity: pressed ? 0.7 : 1 },
+            ]}
           >
-            <Ionicons name="trash-outline" size={18} color={theme.negative} style={{ marginRight: 8 }} />
-            <Text
-              style={{ color: theme.negative, fontWeight: '700', fontSize: 15 }}
-            >
+            <Ionicons name="trash-outline" size={18} color={theme.negative} style={{ marginRight: 10 }} />
+            <Text style={{ color: theme.negative, fontWeight: '700', fontSize: 14 }}>
               Delete Account
             </Text>
-          </TouchableOpacity>
+          </Pressable>
         </Card>
       </ScrollView>
     </SafeAreaView>
@@ -390,81 +419,95 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 20,
-    paddingTop: 10,
+    paddingTop: 8,
     paddingBottom: 8,
   },
   backBtn: {
     width: 36,
     height: 36,
+    borderRadius: 12,
+    borderWidth: 1,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  backText: {
-    fontSize: 28,
-    fontWeight: '300',
-  },
   headerTitle: {
-    fontWeight: '700',
+    fontWeight: '800',
   },
   scrollContent: {
-    padding: 16,
+    padding: 20,
+    paddingTop: 8,
     paddingBottom: 40,
   },
   userName: {
     fontWeight: '800',
   },
   userEmail: {
-    marginTop: 2,
     fontSize: 13,
+    marginTop: 2,
   },
   sectionHeader: {
-    marginBottom: 6,
-    marginLeft: 2,
+    marginBottom: 8,
+    marginTop: 4,
   },
   sectionTitle: {
     fontWeight: '700',
-    letterSpacing: 0.5,
+    letterSpacing: 0.6,
   },
-  currencyLabel: {
-    fontWeight: '600',
-    marginBottom: 6,
+  themeSelectorRow: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  themeOptionCard: {
+    flex: 1,
+    paddingVertical: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 12,
+    borderWidth: 1,
+  },
+  fieldLabel: {
+    fontWeight: '700',
+    letterSpacing: 0.6,
+    marginBottom: 8,
+    marginTop: 4,
   },
   currencyRow: {
     flexDirection: 'row',
     gap: 8,
+    marginBottom: 8,
   },
-  currencyChip: {
+  currChip: {
     flex: 1,
-    paddingVertical: 8,
-    borderWidth: 1,
+    paddingVertical: 10,
     alignItems: 'center',
     justifyContent: 'center',
+    borderRadius: 10,
+    borderWidth: 1,
   },
-  themeRow: {
+  switchRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
-  },
-  settingRow: {
-    flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingVertical: 4,
+    paddingVertical: 6,
   },
   settingLabel: {
-    fontWeight: '600',
-  },
-  settingSub: {
-    marginTop: 2,
+    fontWeight: '700',
+    fontSize: 14,
   },
   divider: {
     height: 1,
-    marginVertical: 12,
+    marginVertical: 10,
   },
-  logoutBtn: {
-    paddingVertical: 6,
+  showcaseRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 4,
   },
-  deleteBtn: {
-    paddingVertical: 6,
+  actionItemRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 10,
+    paddingHorizontal: 8,
   },
 });

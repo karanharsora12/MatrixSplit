@@ -54,7 +54,6 @@ const expenseIcons: Record<string, keyof typeof Ionicons.glyphMap> = {
 export default function DashboardScreen() {
   const router = useRouter();
   const { theme, typography, spacing, borderRadius, isDark } = useWatermelonTheme();
-  const { toggleTheme } = useThemeStore();
   const user = useAuthStore((s) => s.user);
 
   const {
@@ -117,40 +116,19 @@ export default function DashboardScreen() {
           </View>
         </Pressable>
 
-        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-          <Pressable
-            onPress={toggleTheme}
-            style={({ pressed }) => [
-              styles.settingsIconBtn,
-              {
-                backgroundColor: theme.card,
-                borderColor: theme.border,
-                marginRight: 8,
-                opacity: pressed ? 0.7 : 1,
-              },
-            ]}
-          >
-            <Ionicons
-              name={isDark ? 'sunny' : 'moon'}
-              size={18}
-              color={isDark ? '#F59E0B' : theme.text}
-            />
-          </Pressable>
-
-          <Pressable
-            onPress={() => router.push('/settings')}
-            style={({ pressed }) => [
-              styles.settingsIconBtn,
-              {
-                backgroundColor: theme.card,
-                borderColor: theme.border,
-                opacity: pressed ? 0.7 : 1,
-              },
-            ]}
-          >
-            <Ionicons name="settings-outline" size={20} color={theme.text} />
-          </Pressable>
-        </View>
+        <Pressable
+          onPress={() => router.push('/settings')}
+          style={({ pressed }) => [
+            styles.settingsIconBtn,
+            {
+              backgroundColor: theme.card,
+              borderColor: theme.border,
+              opacity: pressed ? 0.7 : 1,
+            },
+          ]}
+        >
+          <Ionicons name="settings-outline" size={20} color={theme.text} />
+        </Pressable>
       </View>
 
       <ScrollView

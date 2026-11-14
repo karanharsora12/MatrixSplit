@@ -3,16 +3,13 @@ import {
   View,
   Text,
   StyleSheet,
-  TouchableOpacity,
-  Dimensions,
+  Pressable,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { Button } from '@/components';
 import { useWatermelonTheme } from '@/theme';
-
-const { width } = Dimensions.get('window');
 
 const slides: {
   icon: keyof typeof Ionicons.glyphMap;
@@ -31,21 +28,21 @@ const slides: {
     icon: 'git-network-outline',
     title: 'Smart Debt Simplification',
     subtitle:
-      'MatrixSplit runs graph optimization algorithms to minimize the number of repayments across group members.',
+      'MatrixSplit runs min-cash-flow graph algorithms to reduce 10+ member transactions to minimal repayments.',
     tag: 'MIN-CASH FLOW',
   },
   {
     icon: 'flash-outline',
     title: 'Instant Multi-Rail Settlements',
     subtitle:
-      'Record settlements via UPI, Bank Transfer, PayPal, or Cash with payment proof and instant receipt verification.',
+      'Record settlements via UPI, Bank Transfer, PayPal, or Cash with payment proof and instant balance verification.',
     tag: 'INSTANT SETTLEMENTS',
   },
 ];
 
 export default function OnboardingScreen() {
   const router = useRouter();
-  const { theme, typography, spacing, borderRadius } = useWatermelonTheme();
+  const { theme, typography, spacing, borderRadius, isDark } = useWatermelonTheme();
   const [currentSlide, setCurrentSlide] = useState(0);
 
   const handleNext = () => {
@@ -64,21 +61,26 @@ export default function OnboardingScreen() {
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]} edges={['top', 'bottom', 'left', 'right']}>
-      {/* Top Header / Skip */}
+      {/* Top Header */}
       <View style={styles.topBar}>
         <View style={styles.brandRow}>
-          <Ionicons name="flash" size={20} color={theme.primary} style={{ marginRight: 6 }} />
+          <View style={[styles.miniLogo, { backgroundColor: theme.primary }]}>
+            <Ionicons name="flash" size={14} color="#FFFFFF" />
+          </View>
           <Text
             style={[
               styles.brandText,
-              { color: theme.text, fontSize: typography.fontSize.lg },
+              { color: theme.text, fontSize: typography.fontSize.base },
             ]}
           >
             MatrixSplit
           </Text>
         </View>
 
-        <TouchableOpacity onPress={handleSkip} style={styles.skipBtn}>
+        <Pressable
+          onPress={handleSkip}
+          style={({ pressed }) => [styles.skipBtn, { opacity: pressed ? 0.6 : 1 }]}
+        >
           <Text
             style={[
               styles.skipText,
@@ -87,7 +89,7 @@ export default function OnboardingScreen() {
           >
             Skip
           </Text>
-        </TouchableOpacity>
+        </Pressable>
       </View>
 
       {/* Main Slide Card */}
@@ -96,12 +98,12 @@ export default function OnboardingScreen() {
           style={[
             styles.iconCircle,
             {
-              backgroundColor: theme.primaryLight,
+              backgroundColor: isDark ? 'rgba(16,185,129,0.15)' : '#D1FAE5',
               borderRadius: borderRadius.full,
             },
           ]}
         >
-          <Ionicons name={slide.icon} size={48} color={theme.primary} />
+          <Ionicons name={slide.icon} size={54} color={theme.primary} />
         </View>
 
         <View
@@ -150,7 +152,7 @@ export default function OnboardingScreen() {
                 styles.dot,
                 {
                   backgroundColor:
-                    idx === currentSlide ? theme.primary : theme.divider,
+                    idx === currentSlide ? theme.primary : theme.border,
                   width: idx === currentSlide ? 24 : 8,
                 },
               ]}
@@ -161,8 +163,8 @@ export default function OnboardingScreen() {
         <Button
           label={currentSlide === slides.length - 1 ? 'Get Started' : 'Next ›'}
           size="lg"
+          variant="primary"
           onPress={handleNext}
-          style={{ width: '100%', marginTop: spacing.md }}
         />
       </View>
     </SafeAreaView>
@@ -176,77 +178,90 @@ const styles = StyleSheet.create({
   },
   topBar: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 24,
-    paddingVertical: 16,
+    justifyContent: 'space-between',
+    paddingHorizontal: 20,
+    paddingTop: 8,
+    paddingBottom: 8,
   },
   brandRow: {
     flexDirection: 'row',
     alignItems: 'center',
   },
+  miniLogo: {
+    width: 26,
+    height: 26,
+    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 8,
+  },
   brandText: {
     fontWeight: '800',
-    letterSpacing: -0.5,
+    letterSpacing: -0.3,
+  },
+  themeToggleBtn: {
+    width: 34,
+    height: 34,
+    borderRadius: 10,
+    borderWidth: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   skipBtn: {
-    padding: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
   },
   skipText: {
     fontWeight: '600',
   },
   slideContainer: {
     alignItems: 'center',
-    paddingHorizontal: 32,
-    flex: 1,
-    justifyContent: 'center',
+    paddingHorizontal: 24,
+    marginTop: -20,
   },
   iconCircle: {
-    width: 120,
-    height: 120,
+    width: 110,
+    height: 110,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 24,
-  },
-  icon: {
-    fontSize: 56,
+    marginBottom: 20,
   },
   tagBadge: {
     paddingHorizontal: 12,
-    paddingVertical: 4,
+    paddingVertical: 5,
     borderRadius: 20,
     borderWidth: 1,
     marginBottom: 16,
   },
   tagText: {
-    fontWeight: '800',
-    letterSpacing: 1,
+    fontWeight: '700',
+    letterSpacing: 0.6,
   },
   title: {
     fontWeight: '800',
     textAlign: 'center',
-    letterSpacing: -0.5,
     marginBottom: 12,
-    lineHeight: 36,
+    letterSpacing: -0.5,
   },
   subtitle: {
     textAlign: 'center',
     lineHeight: 24,
-    paddingHorizontal: 8,
+    maxWidth: 320,
   },
   bottomBar: {
-    paddingHorizontal: 24,
-    paddingBottom: 28,
-    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingBottom: 24,
   },
   dotsRow: {
     flexDirection: 'row',
+    justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: 24,
+    gap: 6,
   },
   dot: {
     height: 8,
     borderRadius: 4,
-    marginHorizontal: 4,
   },
 });

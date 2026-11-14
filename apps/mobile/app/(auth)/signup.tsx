@@ -3,7 +3,7 @@ import {
   View,
   Text,
   StyleSheet,
-  TouchableOpacity,
+  Pressable,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
@@ -18,14 +18,22 @@ import { apiClient, API_BASE_URL } from '../../src/services/api';
 import { useAuthStore } from '../../src/stores/authStore';
 import { CurrencyCode } from '@matrixsplit/shared';
 
+const currencyData: { code: CurrencyCode; symbol: string; name: string }[] = [
+  { code: 'INR', symbol: '₹', name: 'Indian Rupee' },
+  { code: 'USD', symbol: '$', name: 'US Dollar' },
+  { code: 'EUR', symbol: '€', name: 'Euro' },
+  { code: 'GBP', symbol: '£', name: 'British Pound' },
+];
+
 export default function SignupScreen() {
   const router = useRouter();
-  const { theme, typography, spacing, borderRadius } = useWatermelonTheme();
+  const { theme, typography, spacing, borderRadius, isDark } = useWatermelonTheme();
   const setAuth = useAuthStore((s) => s.setAuth);
 
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [defaultCurrency, setDefaultCurrency] = useState<CurrencyCode>('INR');
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -58,39 +66,63 @@ export default function SignupScreen() {
       router.replace('/(tabs)');
     } catch (err: any) {
       const serverMsg = err.response?.data?.message;
-      const netMsg = err.message === 'Network Error' || !err.response
-        ? `Cannot reach backend at ${API_BASE_URL}.\nMake sure the NestJS backend is running.`
-        : err.message;
+      const netMsg =
+        err.message === 'Network Error' || !err.response
+          ? `Cannot reach backend at ${API_BASE_URL}.\nMake sure the NestJS backend is running.`
+          : err.message;
       Alert.alert('Sign Up Error', serverMsg || netMsg || 'Failed to sign up.');
     } finally {
       setLoading(false);
     }
   };
 
-  const currencyOptions: CurrencyCode[] = ['INR', 'USD', 'EUR', 'GBP'];
-
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]} edges={['top', 'bottom', 'left', 'right']}>
+      {/* Top Bar */}
+      <View style={styles.topBar}>
+        <Pressable
+          onPress={() => {
+            if (router.canGoBack()) {
+              router.back();
+            } else {
+              router.replace('/(auth)/welcome');
+            }
+          }}
+          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+          style={({ pressed }) => [
+            styles.iconButton,
+            {
+              backgroundColor: theme.surface,
+              borderColor: theme.border,
+              opacity: pressed ? 0.7 : 1,
+            },
+          ]}
+        >
+          <Ionicons name="chevron-back" size={20} color={theme.text} />
+        </Pressable>
+
+        <View style={{ width: 38 }} />
+      </View>
+
       <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         style={{ flex: 1 }}
       >
-        <ScrollView contentContainerStyle={styles.scrollContent}>
-          <TouchableOpacity
-            onPress={() => {
-              if (router.canGoBack()) {
-                router.back();
-              } else {
-                router.replace('/(auth)/welcome');
-              }
-            }}
-            style={[styles.backButton, { flexDirection: 'row', alignItems: 'center' }]}
-          >
-            <Ionicons name="chevron-back" size={22} color={theme.text} />
-            <Text style={[styles.backText, { color: theme.text, marginLeft: 2 }]}>Back</Text>
-          </TouchableOpacity>
-
+        <ScrollView
+          contentContainerStyle={styles.scrollContent}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+        >
+          {/* Header */}
           <View style={styles.header}>
+            <View
+              style={[
+                styles.brandIcon,
+                { backgroundColor: theme.primary, borderRadius: borderRadius.lg },
+              ]}
+            >
+              <Ionicons name="person-add-outline" size={24} color="#FFFFFF" />
+            </View>
             <Text
               style={[
                 styles.title,
@@ -102,20 +134,31 @@ export default function SignupScreen() {
             <Text
               style={[
                 styles.subtitle,
-                { color: theme.textMuted, fontSize: typography.fontSize.base },
+                { color: theme.textMuted, fontSize: typography.fontSize.sm },
               ]}
             >
-              Start tracking and splitting expenses cleanly
+              Join MatrixSplit to manage shared bills with friends & groups
             </Text>
           </View>
 
-          <View style={styles.form}>
+          {/* Form Card */}
+          <View
+            style={[
+              styles.formCard,
+              {
+                backgroundColor: theme.card,
+                borderColor: theme.border,
+                borderRadius: borderRadius.xl,
+              },
+            ]}
+          >
             <Input
               label="Full Name"
               placeholder="e.g. Alice Johnson"
               value={fullName}
               onChangeText={setFullName}
               error={errors.fullName}
+              leftIcon={<Ionicons name="person-outline" size={18} color={theme.textMuted} />}
             />
 
             <Input
@@ -126,6 +169,7 @@ export default function SignupScreen() {
               keyboardType="email-address"
               autoCapitalize="none"
               error={errors.email}
+              leftIcon={<Ionicons name="mail-outline" size={18} color={theme.textMuted} />}
             />
 
             <Input
@@ -133,70 +177,93 @@ export default function SignupScreen() {
               placeholder="••••••••"
               value={password}
               onChangeText={setPassword}
-              secureTextEntry
+              secureTextEntry={!showPassword}
               error={errors.password}
+              leftIcon={<Ionicons name="lock-closed-outline" size={18} color={theme.textMuted} />}
+              rightIcon={
+                <Ionicons
+                  name={showPassword ? 'eye-off-outline' : 'eye-outline'}
+                  size={18}
+                  color={theme.textMuted}
+                />
+              }
+              onRightIconPress={() => setShowPassword(!showPassword)}
             />
 
             {/* Default Currency Selection */}
             <Text
               style={[
                 styles.currencyLabel,
-                { color: theme.text, fontSize: typography.fontSize.sm },
+                { color: theme.text, fontSize: typography.fontSize.xs },
               ]}
             >
-              Default Currency
+              DEFAULT CURRENCY
             </Text>
             <View style={styles.currencyRow}>
-              {currencyOptions.map((curr) => {
-                const selected = defaultCurrency === curr;
+              {currencyData.map((curr) => {
+                const selected = defaultCurrency === curr.code;
                 return (
-                  <TouchableOpacity
-                    key={curr}
-                    activeOpacity={0.8}
-                    onPress={() => setDefaultCurrency(curr)}
-                    style={[
+                  <Pressable
+                    key={curr.code}
+                    onPress={() => setDefaultCurrency(curr.code)}
+                    style={({ pressed }) => [
                       styles.currencyChip,
                       {
                         backgroundColor: selected
                           ? theme.primary
-                          : theme.card,
-                        borderColor: selected
-                          ? theme.primary
-                          : theme.border,
-                        borderRadius: borderRadius.md,
+                          : theme.surface,
+                        borderColor: selected ? theme.primary : theme.border,
+                        opacity: pressed ? 0.8 : 1,
                       },
                     ]}
                   >
                     <Text
                       style={[
-                        styles.currencyChipText,
+                        styles.currencySymbol,
+                        { color: selected ? '#FFFFFF' : theme.primary },
+                      ]}
+                    >
+                      {curr.symbol}
+                    </Text>
+                    <Text
+                      style={[
+                        styles.currencyCode,
                         {
                           color: selected ? '#FFFFFF' : theme.text,
                           fontWeight: selected ? '700' : '500',
                         },
                       ]}
                     >
-                      {curr}
+                      {curr.code}
                     </Text>
-                  </TouchableOpacity>
+                  </Pressable>
                 );
               })}
             </View>
 
             <Button
-              label="Create Account"
+              label={loading ? 'Creating Account...' : 'Create Account'}
               size="lg"
-              onPress={handleSignup}
+              variant="primary"
               loading={loading}
-              style={{ marginTop: spacing.md }}
+              onPress={handleSignup}
+              style={{ marginTop: 14 }}
             />
           </View>
 
-          <View style={styles.footer}>
-            <Text style={{ color: theme.textMuted }}>Already have an account? </Text>
-            <TouchableOpacity onPress={() => router.push('/(auth)/login')}>
-              <Text style={{ color: theme.primary, fontWeight: '700' }}>Log In</Text>
-            </TouchableOpacity>
+          {/* Footer */}
+          <View style={styles.footerRow}>
+            <Text style={[styles.footerText, { color: theme.textMuted }]}>
+              Already have an account?{' '}
+            </Text>
+            <Pressable
+              onPress={() => router.push('/(auth)/login')}
+              style={({ pressed }) => [{ opacity: pressed ? 0.7 : 1 }]}
+            >
+              <Text style={[styles.signInLink, { color: theme.primary }]}>
+                Sign In
+              </Text>
+            </Pressable>
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
@@ -208,57 +275,92 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  scrollContent: {
-    paddingHorizontal: 24,
-    paddingVertical: 16,
-    flexGrow: 1,
+  topBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
     justifyContent: 'space-between',
+    paddingHorizontal: 20,
+    paddingTop: 8,
+    paddingBottom: 4,
   },
-  backButton: {
-    paddingVertical: 8,
+  iconButton: {
+    width: 38,
+    height: 38,
+    borderRadius: 12,
+    borderWidth: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  backText: {
-    fontSize: 18,
-    fontWeight: '600',
+  scrollContent: {
+    paddingHorizontal: 20,
+    paddingTop: 12,
+    paddingBottom: 32,
   },
   header: {
-    marginTop: 16,
-    marginBottom: 24,
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  brandIcon: {
+    width: 52,
+    height: 52,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 12,
   },
   title: {
     fontWeight: '800',
     letterSpacing: -0.5,
+    textAlign: 'center',
   },
   subtitle: {
+    textAlign: 'center',
     marginTop: 6,
+    maxWidth: 290,
   },
-  form: {
-    flex: 1,
+  formCard: {
+    padding: 20,
+    borderWidth: 1,
+    marginBottom: 20,
   },
   currencyLabel: {
-    fontWeight: '600',
+    fontWeight: '700',
+    letterSpacing: 0.6,
     marginBottom: 8,
     marginTop: 4,
   },
   currencyRow: {
     flexDirection: 'row',
-    marginBottom: 16,
+    justifyContent: 'space-between',
+    marginBottom: 8,
   },
   currencyChip: {
     flex: 1,
+    marginHorizontal: 3,
     paddingVertical: 10,
+    borderRadius: 12,
+    borderWidth: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    marginHorizontal: 4,
-    borderWidth: 1,
   },
-  currencyChipText: {
-    fontSize: 14,
+  currencySymbol: {
+    fontSize: 16,
+    fontWeight: '800',
+    marginBottom: 2,
   },
-  footer: {
+  currencyCode: {
+    fontSize: 12,
+  },
+  footerRow: {
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    paddingVertical: 16,
+    marginTop: 8,
+  },
+  footerText: {
+    fontSize: 14,
+  },
+  signInLink: {
+    fontSize: 14,
+    fontWeight: '700',
   },
 });

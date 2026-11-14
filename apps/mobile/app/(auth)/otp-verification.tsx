@@ -3,7 +3,7 @@ import {
   View,
   Text,
   StyleSheet,
-  TouchableOpacity,
+  Pressable,
   TextInput,
   KeyboardAvoidingView,
   Platform,
@@ -18,7 +18,7 @@ import { useWatermelonTheme } from '@/theme';
 export default function OtpVerificationScreen() {
   const router = useRouter();
   const params = useLocalSearchParams<{ email?: string }>();
-  const { theme, typography, spacing, borderRadius } = useWatermelonTheme();
+  const { theme, typography, spacing, borderRadius, isDark } = useWatermelonTheme();
 
   const [otp, setOtp] = useState(['', '', '', '', '', '']);
   const [timer, setTimer] = useState(30);
@@ -57,7 +57,6 @@ export default function OtpVerificationScreen() {
     }
 
     setLoading(true);
-    // Simulate verification
     setTimeout(() => {
       setLoading(false);
       Alert.alert('Verified', 'Email verified successfully!', [
@@ -73,24 +72,39 @@ export default function OtpVerificationScreen() {
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]} edges={['top', 'bottom', 'left', 'right']}>
+      {/* Top Bar */}
+      <View style={styles.topBar}>
+        <Pressable
+          onPress={() => router.back()}
+          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+          style={({ pressed }) => [
+            styles.iconButton,
+            {
+              backgroundColor: theme.surface,
+              borderColor: theme.border,
+              opacity: pressed ? 0.7 : 1,
+            },
+          ]}
+        >
+          <Ionicons name="chevron-back" size={20} color={theme.text} />
+        </Pressable>
+
+        <View style={{ width: 38 }} />
+      </View>
+
       <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         style={{ flex: 1 }}
       >
         <View style={styles.content}>
-          <TouchableOpacity
-            onPress={() => router.back()}
-            style={[styles.backBtn, { flexDirection: 'row', alignItems: 'center' }]}
-          >
-            <Ionicons name="chevron-back" size={22} color={theme.text} />
-            <Text style={[styles.backText, { color: theme.text, marginLeft: 2 }]}>Back</Text>
-          </TouchableOpacity>
-
           <View style={styles.header}>
             <View
               style={[
                 styles.iconBadge,
-                { backgroundColor: theme.primaryLight, borderRadius: borderRadius.xl },
+                {
+                  backgroundColor: isDark ? 'rgba(16,185,129,0.15)' : '#D1FAE5',
+                  borderRadius: borderRadius.xl,
+                },
               ]}
             >
               <Ionicons name="mail-unread-outline" size={32} color={theme.primary} />
@@ -148,20 +162,24 @@ export default function OtpVerificationScreen() {
                 Resend code in <Text style={{ color: theme.primary, fontWeight: '700' }}>{timer}s</Text>
               </Text>
             ) : (
-              <TouchableOpacity onPress={handleResend}>
+              <Pressable
+                onPress={handleResend}
+                style={({ pressed }) => [{ opacity: pressed ? 0.7 : 1 }]}
+              >
                 <Text style={{ color: theme.primary, fontWeight: '700', fontSize: 14 }}>
                   Resend Verification Code
                 </Text>
-              </TouchableOpacity>
+              </Pressable>
             )}
           </View>
 
           <Button
-            label="Verify & Continue"
+            label={loading ? 'Verifying...' : 'Verify & Continue'}
             size="lg"
-            onPress={handleVerify}
+            variant="primary"
             loading={loading}
-            style={{ marginTop: spacing.xl }}
+            onPress={handleVerify}
+            style={{ width: '100%', marginTop: 24 }}
           />
         </View>
       </KeyboardAvoidingView>
@@ -173,26 +191,34 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
+  topBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 20,
+    paddingTop: 8,
+    paddingBottom: 4,
+  },
+  iconButton: {
+    width: 38,
+    height: 38,
+    borderRadius: 12,
+    borderWidth: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   content: {
     paddingHorizontal: 24,
-    paddingVertical: 16,
-    flex: 1,
-  },
-  backBtn: {
-    paddingVertical: 8,
-  },
-  backText: {
-    fontSize: 18,
-    fontWeight: '600',
+    paddingTop: 24,
+    alignItems: 'center',
   },
   header: {
     alignItems: 'center',
-    marginTop: 20,
     marginBottom: 32,
   },
   iconBadge: {
-    width: 64,
-    height: 64,
+    width: 68,
+    height: 68,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 16,
@@ -200,17 +226,19 @@ const styles = StyleSheet.create({
   title: {
     fontWeight: '800',
     letterSpacing: -0.5,
+    textAlign: 'center',
   },
   subtitle: {
-    marginTop: 8,
     textAlign: 'center',
-    paddingHorizontal: 16,
+    marginTop: 8,
     lineHeight: 20,
+    maxWidth: 280,
   },
   otpRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginVertical: 16,
+    width: '100%',
+    marginBottom: 20,
   },
   otpInput: {
     width: 48,
@@ -221,7 +249,7 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   resendContainer: {
+    marginTop: 10,
     alignItems: 'center',
-    marginTop: 16,
   },
 });

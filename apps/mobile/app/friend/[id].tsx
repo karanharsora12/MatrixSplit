@@ -4,7 +4,7 @@ import {
   Text,
   StyleSheet,
   ScrollView,
-  TouchableOpacity,
+  Pressable,
   Share,
   Alert,
 } from 'react-native';
@@ -30,18 +30,18 @@ import { formatCurrency } from '@matrixsplit/shared';
 export default function FriendDetailScreen() {
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id: string }>();
-  const { theme, typography, spacing, borderRadius } = useWatermelonTheme();
+  const { theme, typography, spacing, borderRadius, isDark } = useWatermelonTheme();
   const user = useAuthStore((s) => s.user);
 
   const { data: friends } = useFriends();
-  const { data: expenses } = useRecentExpenses(20);
-  const { data: settlements } = useRecentSettlements(20);
+  const { data: expenses } = useRecentExpenses(30);
+  const { data: settlements } = useRecentSettlements(30);
 
   const [activeTab, setActiveTab] = useState<'expenses' | 'settlements'>('expenses');
 
   const friend = friends?.find((f: any) => f.id === id);
   const friendName = friend?.fullName || 'Friend';
-  const balanceMinor = friend?.netBalanceMinor || 0;
+  const balanceMinor = friend?.netBalanceMinor || friend?.balanceMinor || 0;
   const currency = friend?.defaultCurrency || user?.defaultCurrency || 'INR';
 
   // Filter shared expenses with this friend
@@ -90,7 +90,7 @@ export default function FriendDetailScreen() {
       params: {
         targetUserId: id,
         targetName: friendName,
-        amountMinor: Math.abs(balanceMinor),
+        amountMinor: Math.abs(balanceMinor).toString(),
       },
     });
   };
@@ -99,13 +99,28 @@ export default function FriendDetailScreen() {
     router.push('/expense/add');
   };
 
+  const isPositive = balanceMinor > 0;
+  const isNegative = balanceMinor < 0;
+
   return (
     <SafeAreaView edges={['top', 'left', 'right']} style={[styles.container, { backgroundColor: theme.background }]}>
       {/* Top Header */}
       <View style={styles.headerBar}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
-          <Ionicons name="chevron-back" size={26} color={theme.text} />
-        </TouchableOpacity>
+        <Pressable
+          onPress={() => router.back()}
+          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+          style={({ pressed }) => [
+            styles.backBtn,
+            {
+              backgroundColor: theme.surface,
+              borderColor: theme.border,
+              opacity: pressed ? 0.7 : 1,
+            },
+          ]}
+        >
+          <Ionicons name="chevron-back" size={20} color={theme.text} />
+        </Pressable>
+
         <Text
           numberOfLines={1}
           style={[
@@ -115,9 +130,21 @@ export default function FriendDetailScreen() {
         >
           {friendName}
         </Text>
-        <TouchableOpacity onPress={handleRemind} style={styles.remindHeaderBtn}>
-          <Ionicons name="notifications-outline" size={20} color={theme.text} />
-        </TouchableOpacity>
+
+        <Pressable
+          onPress={handleRemind}
+          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+          style={({ pressed }) => [
+            styles.backBtn,
+            {
+              backgroundColor: theme.surface,
+              borderColor: theme.border,
+              opacity: pressed ? 0.7 : 1,
+            },
+          ]}
+        >
+          <Ionicons name="notifications-outline" size={18} color={theme.text} />
+        </Pressable>
       </View>
 
       <ScrollView contentContainerStyle={styles.scrollContent}>
@@ -127,7 +154,7 @@ export default function FriendDetailScreen() {
           padding="lg"
           style={{ marginBottom: spacing.md, alignItems: 'center' }}
         >
-          <Avatar name={friendName} size="lg" />
+          <Avatar name={friendName} size="xl" />
           <Text
             style={[
               styles.profileName,
@@ -136,98 +163,78 @@ export default function FriendDetailScreen() {
           >
             {friendName}
           </Text>
-          <Text style={{ color: theme.textMuted, fontSize: 13, marginBottom: 12 }}>
+          <Text style={{ color: theme.textMuted, fontSize: 13, marginBottom: 14 }}>
             {friend?.email || 'Friend on MatrixSplit'}
           </Text>
 
-          {/* Balance status */}
+          {/* Balance Status Banner */}
           <View
             style={[
-              styles.balanceStatusBox,
+              styles.balanceBanner,
               {
-                backgroundColor:
-                  balanceMinor > 0
-                    ? theme.positiveBg
-                    : balanceMinor < 0
-                    ? theme.negativeBg
-                    : theme.neutralBg,
-                borderColor:
-                  balanceMinor > 0
-                    ? theme.positiveBorder
-                    : balanceMinor < 0
-                    ? theme.negativeBorder
-                    : theme.neutralBorder,
+                backgroundColor: isPositive
+                  ? (isDark ? 'rgba(16,185,129,0.12)' : '#ECFDF5')
+                  : isNegative
+                  ? (isDark ? 'rgba(239,68,68,0.12)' : '#FEF2F2')
+                  : theme.surface,
+                borderColor: isPositive
+                  ? theme.primary
+                  : isNegative
+                  ? theme.negative
+                  : theme.border,
               },
             ]}
           >
             <Text
               style={{
-                color:
-                  balanceMinor > 0
-                    ? theme.positive
-                    : balanceMinor < 0
-                    ? theme.negative
-                    : theme.neutral,
+                color: isPositive
+                  ? theme.positive
+                  : isNegative
+                  ? theme.negative
+                  : theme.text,
                 fontWeight: '800',
                 fontSize: 16,
               }}
             >
-              {balanceMinor > 0
+              {isPositive
                 ? `${friendName} owes you ${formatCurrency(balanceMinor, currency)}`
-                : balanceMinor < 0
+                : isNegative
                 ? `You owe ${friendName} ${formatCurrency(Math.abs(balanceMinor), currency)}`
-                : `You and ${friendName} are all settled up`}
+                : `You and ${friendName} are settled up`}
             </Text>
           </View>
 
-          {/* Quick Action Buttons */}
-          <View style={styles.quickActionsRow}>
-            <TouchableOpacity
-              onPress={handleSettleUp}
-              style={[
-                styles.actionBtn,
-                { backgroundColor: theme.primary, borderRadius: borderRadius.md },
-              ]}
-            >
-              <Ionicons name="swap-horizontal" size={16} color="#FFFFFF" style={{ marginRight: 6 }} />
-              <Text style={styles.actionBtnText}>Settle Up</Text>
-            </TouchableOpacity>
+          {/* Quick Action Buttons Grid */}
+          <View style={styles.actionButtonsRow}>
+            {isNegative && (
+              <Button
+                label="Settle Up"
+                variant="primary"
+                size="md"
+                onPress={handleSettleUp}
+                style={{ flex: 1, marginHorizontal: 4 }}
+                icon={<Ionicons name="swap-horizontal" size={16} color="#FFFFFF" />}
+              />
+            )}
 
-            <TouchableOpacity
-              onPress={handleRemind}
-              style={[
-                styles.actionBtn,
-                {
-                  backgroundColor: theme.card,
-                  borderColor: theme.border,
-                  borderWidth: 1,
-                  borderRadius: borderRadius.md,
-                },
-              ]}
-            >
-              <Ionicons name="notifications-outline" size={16} color={theme.text} style={{ marginRight: 6 }} />
-              <Text style={[styles.actionBtnText, { color: theme.text }]}>
-                Remind
-              </Text>
-            </TouchableOpacity>
+            {isPositive && (
+              <Button
+                label="Remind"
+                variant="primary"
+                size="md"
+                onPress={handleRemind}
+                style={{ flex: 1, marginHorizontal: 4 }}
+                icon={<Ionicons name="notifications-outline" size={16} color="#FFFFFF" />}
+              />
+            )}
 
-            <TouchableOpacity
+            <Button
+              label="+ Expense"
+              variant="outline"
+              size="md"
               onPress={handleAddExpense}
-              style={[
-                styles.actionBtn,
-                {
-                  backgroundColor: theme.card,
-                  borderColor: theme.border,
-                  borderWidth: 1,
-                  borderRadius: borderRadius.md,
-                },
-              ]}
-            >
-              <Ionicons name="add" size={18} color={theme.text} style={{ marginRight: 4 }} />
-              <Text style={[styles.actionBtnText, { color: theme.text }]}>
-                Expense
-              </Text>
-            </TouchableOpacity>
+              style={{ flex: 1, marginHorizontal: 4 }}
+            />
           </View>
         </Card>
 
@@ -241,62 +248,58 @@ export default function FriendDetailScreen() {
           ]}
         />
 
-        {/* Expenses List */}
+        {/* Expenses Tab */}
         {activeTab === 'expenses' && (
-          <View style={{ marginTop: spacing.sm }}>
+          <View style={{ marginTop: 10 }}>
             {sharedExpenses.length > 0 ? (
               sharedExpenses.map((exp: any) => (
-                <TouchableOpacity
+                <Pressable
                   key={exp.id}
-                  activeOpacity={0.8}
                   onPress={() => router.push(`/expense/${exp.id}`)}
+                  style={({ pressed }) => [{ opacity: pressed ? 0.85 : 1 }]}
                 >
                   <Card
                     variant="outlined"
                     padding="sm"
                     style={{ marginBottom: spacing.sm }}
                   >
-                    <View style={styles.itemRow}>
-                      <Avatar name={exp.payer?.fullName || 'User'} size="sm" />
+                    <View style={styles.historyRow}>
+                      <View style={[styles.historyIconCircle, { backgroundColor: isDark ? 'rgba(16,185,129,0.15)' : '#D1FAE5' }]}>
+                        <Ionicons name="receipt-outline" size={18} color={theme.primary} />
+                      </View>
                       <View style={{ flex: 1, marginLeft: 10 }}>
-                        <Text style={[styles.itemTitle, { color: theme.text }]}>
+                        <Text style={{ color: theme.text, fontWeight: '700', fontSize: 14 }}>
                           {exp.title}
                         </Text>
-                        <Text style={{ color: theme.textMuted, fontSize: 11 }}>
-                          Paid by {exp.payer?.fullName} •{' '}
+                        <Text style={{ color: theme.textMuted, fontSize: 11, marginTop: 2 }}>
+                          Paid by {exp.payerId === user?.id ? 'You' : friendName} •{' '}
                           {new Date(exp.date).toLocaleDateString()}
                         </Text>
                       </View>
-                      <Text
-                        style={[
-                          styles.itemAmount,
-                          {
-                            color:
-                              exp.payerId === user?.id
-                                ? theme.positive
-                                : theme.negative,
-                          },
-                        ]}
-                      >
+                      <Text style={{ color: theme.text, fontWeight: '800', fontSize: 14 }}>
                         {formatCurrency(exp.totalAmountMinor, exp.currency)}
                       </Text>
                     </View>
                   </Card>
-                </TouchableOpacity>
+                </Pressable>
               ))
             ) : (
-              <Card padding="md" variant="outlined">
-                <Text style={{ color: theme.textMuted, textAlign: 'center' }}>
-                  No shared expenses with {friendName} yet.
+              <Card padding="md" variant="outlined" style={{ alignItems: 'center', paddingVertical: 24 }}>
+                <Ionicons name="receipt-outline" size={36} color={theme.textMuted} style={{ marginBottom: 6 }} />
+                <Text style={{ color: theme.text, fontWeight: '700', fontSize: 14 }}>
+                  No shared expenses yet
+                </Text>
+                <Text style={{ color: theme.textMuted, fontSize: 12, marginTop: 2 }}>
+                  Add a bill or expense between you two to start tracking.
                 </Text>
               </Card>
             )}
           </View>
         )}
 
-        {/* Settlements List */}
+        {/* Settlements Tab */}
         {activeTab === 'settlements' && (
-          <View style={{ marginTop: spacing.sm }}>
+          <View style={{ marginTop: 10 }}>
             {sharedSettlements.length > 0 ? (
               sharedSettlements.map((s: any) => (
                 <Card
@@ -305,41 +308,36 @@ export default function FriendDetailScreen() {
                   padding="sm"
                   style={{ marginBottom: spacing.sm }}
                 >
-                  <View style={styles.itemRow}>
-                    <View
-                      style={[
-                        styles.settleIconCircle,
-                        { backgroundColor: theme.positiveBg },
-                      ]}
-                    >
-                      <Ionicons name="checkmark-done-outline" size={18} color={theme.positive} />
+                  <View style={styles.historyRow}>
+                    <View style={[styles.historyIconCircle, { backgroundColor: isDark ? 'rgba(59,130,246,0.15)' : '#DBEAFE' }]}>
+                      <Ionicons name="checkmark-done" size={18} color="#3B82F6" />
                     </View>
                     <View style={{ flex: 1, marginLeft: 10 }}>
-                      <Text style={[styles.itemTitle, { color: theme.text }]}>
-                        {s.payer?.fullName} paid {s.receiver?.fullName}
+                      <Text style={{ color: theme.text, fontWeight: '700', fontSize: 14 }}>
+                        {s.payerId === user?.id ? 'You paid' : `${friendName} paid`}
                       </Text>
-                      <Text style={{ color: theme.textMuted, fontSize: 11 }}>
+                      <Text style={{ color: theme.textMuted, fontSize: 11, marginTop: 2 }}>
                         Method: {s.paymentMethod.toUpperCase()} •{' '}
                         {new Date(s.createdAt).toLocaleDateString()}
                       </Text>
                     </View>
                     <View style={{ alignItems: 'flex-end' }}>
-                      <Text style={[styles.itemAmount, { color: theme.text }]}>
+                      <Text style={{ color: theme.positive, fontWeight: '800', fontSize: 14 }}>
                         {formatCurrency(s.amountMinor, s.currency)}
                       </Text>
-                      <Badge
-                        label={s.status}
-                        size="sm"
-                        variant={s.status === 'confirmed' ? 'positive' : 'warning'}
-                      />
+                      <Badge label={s.status} size="sm" variant={s.status === 'confirmed' ? 'positive' : 'warning'} />
                     </View>
                   </View>
                 </Card>
               ))
             ) : (
-              <Card padding="md" variant="outlined">
-                <Text style={{ color: theme.textMuted, textAlign: 'center' }}>
-                  No settlements recorded with {friendName} yet.
+              <Card padding="md" variant="outlined" style={{ alignItems: 'center', paddingVertical: 24 }}>
+                <Ionicons name="swap-horizontal-outline" size={36} color={theme.textMuted} style={{ marginBottom: 6 }} />
+                <Text style={{ color: theme.text, fontWeight: '700', fontSize: 14 }}>
+                  No settlements recorded
+                </Text>
+                <Text style={{ color: theme.textMuted, fontSize: 12, marginTop: 2 }}>
+                  Recorded repayments will appear here with confirmation status.
                 </Text>
               </Card>
             )}
@@ -359,76 +357,51 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 20,
-    paddingTop: 10,
+    paddingTop: 8,
     paddingBottom: 8,
   },
   backBtn: {
     width: 36,
     height: 36,
+    borderRadius: 12,
+    borderWidth: 1,
     alignItems: 'center',
     justifyContent: 'center',
   },
   headerTitle: {
-    fontWeight: '700',
-  },
-  remindHeaderBtn: {
-    width: 36,
-    height: 36,
-    alignItems: 'center',
-    justifyContent: 'center',
+    fontWeight: '800',
   },
   scrollContent: {
-    padding: 16,
+    padding: 20,
+    paddingTop: 8,
     paddingBottom: 40,
   },
   profileName: {
     fontWeight: '800',
-    marginTop: 8,
+    marginTop: 12,
   },
-  balanceStatusBox: {
-    paddingVertical: 12,
-    paddingHorizontal: 18,
+  balanceBanner: {
+    paddingVertical: 10,
+    paddingHorizontal: 16,
     borderRadius: 12,
     borderWidth: 1,
     width: '100%',
     alignItems: 'center',
     marginBottom: 16,
   },
-  quickActionsRow: {
+  actionButtonsRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     width: '100%',
   },
-  actionBtn: {
-    flex: 1,
-    marginHorizontal: 4,
-    paddingVertical: 10,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  actionBtnText: {
-    fontWeight: '700',
-    fontSize: 12,
-    color: '#FFFFFF',
-  },
-  itemRow: {
+  historyRow: {
     flexDirection: 'row',
     alignItems: 'center',
   },
-  settleIconCircle: {
-    width: 36,
-    height: 36,
-    borderRadius: 10,
+  historyIconCircle: {
+    width: 38,
+    height: 38,
+    borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  itemTitle: {
-    fontWeight: '700',
-    fontSize: 14,
-  },
-  itemAmount: {
-    fontWeight: '700',
-    fontSize: 14,
   },
 });
