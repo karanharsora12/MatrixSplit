@@ -20,66 +20,72 @@ export const BalanceCard: React.FC<BalanceCardProps> = ({
   activeGroupsCount,
   style,
 }) => {
-  const { theme, borderRadius, typography, spacing, shadows } = useWatermelonTheme();
+  const { theme, isDark } = useWatermelonTheme();
 
   const isPositive = totalBalanceMinor > 0;
   const isNegative = totalBalanceMinor < 0;
 
   const statusColor = isPositive
-    ? theme.positive
+    ? (isDark ? '#34D399' : '#059669')
     : isNegative
-    ? theme.negative
-    : theme.neutral;
+    ? '#F43F5E'
+    : theme.textMuted;
 
   const statusLabel = isPositive
     ? 'Overall, you are owed'
     : isNegative
     ? 'Overall, you owe'
-    : 'All settled up';
+    : 'All accounts settled';
 
   return (
     <View
       style={[
         styles.container,
-        shadows.card,
         {
-          backgroundColor: theme.card,
-          borderRadius: borderRadius.xl,
-          padding: spacing.lg,
-          borderColor: theme.border,
+          backgroundColor: isDark ? '#111827' : '#FFFFFF',
+          borderColor: isDark ? '#1E293B' : '#E2E8F0',
+          shadowColor: '#000000',
+          shadowOffset: { width: 0, height: 2 },
+          shadowOpacity: isDark ? 0.25 : 0.04,
+          shadowRadius: 6,
+          elevation: 2,
         },
         style,
       ]}
-      className="border border-border bg-card rounded-2xl"
     >
-      <View style={styles.topRow} className="flex-row items-center justify-between">
-        <Text
-          style={[
-            styles.label,
-            { color: theme.textMuted, fontSize: typography.fontSize.sm },
-          ]}
-          className="text-xs font-medium text-muted-foreground uppercase tracking-wider"
-        >
-          {statusLabel}
-        </Text>
+      <View style={styles.topRow}>
+        <View style={styles.statusWrap}>
+          <View
+            style={[
+              styles.indicatorDot,
+              { backgroundColor: statusColor },
+            ]}
+          />
+          <Text
+            style={[
+              styles.label,
+              { color: theme.textMuted },
+            ]}
+          >
+            {statusLabel}
+          </Text>
+        </View>
+
         {activeGroupsCount !== undefined && (
           <View
             style={[
               styles.groupBadge,
               {
-                backgroundColor: theme.surface,
-                borderRadius: borderRadius.full,
-                borderColor: theme.border,
+                backgroundColor: isDark ? '#1E293B' : '#F1F5F9',
+                borderColor: isDark ? '#334155' : '#E2E8F0',
               },
             ]}
-            className="border border-border bg-muted/30 px-2.5 py-0.5 rounded-full"
           >
             <Text
               style={[
                 styles.groupBadgeText,
-                { color: theme.textMuted, fontSize: typography.fontSize.xs },
+                { color: theme.textMuted },
               ]}
-              className="text-xs text-muted-foreground font-medium"
             >
               {activeGroupsCount} {activeGroupsCount === 1 ? 'group' : 'groups'}
             </Text>
@@ -92,72 +98,55 @@ export const BalanceCard: React.FC<BalanceCardProps> = ({
           styles.mainBalance,
           {
             color: statusColor,
-            fontSize: typography.fontSize['3xl'],
-            fontWeight: typography.fontWeight.extrabold,
-            marginVertical: spacing.sm,
           },
         ]}
-        className="text-3xl font-extrabold my-2"
       >
+        {isNegative ? '-' : ''}
         {formatCurrency(Math.abs(totalBalanceMinor), currency)}
       </Text>
 
       <View
-        style={[styles.divider, { backgroundColor: theme.divider }]}
-        className="h-px bg-border my-2.5"
+        style={[
+          styles.divider,
+          { backgroundColor: isDark ? '#1E293B' : '#F1F5F9' },
+        ]}
       />
 
-      <View style={styles.subRow} className="flex-row items-center justify-between pt-1">
-        <View style={styles.subCol} className="flex-1">
-          <Text
-            style={[
-              styles.subLabel,
-              { color: theme.textMuted, fontSize: typography.fontSize.xs },
-            ]}
-            className="text-xs text-muted-foreground"
-          >
+      <View style={styles.subRow}>
+        <View style={styles.subCol}>
+          <Text style={[styles.subLabel, { color: theme.textMuted }]}>
             You owe
           </Text>
           <Text
             style={[
               styles.subValue,
               {
-                color: totalYouOweMinor > 0 ? theme.negative : theme.textMuted,
-                fontSize: typography.fontSize.base,
-                fontWeight: typography.fontWeight.bold,
+                color: totalYouOweMinor > 0 ? '#F43F5E' : theme.textMuted,
               },
             ]}
-            className="text-base font-bold text-destructive"
           >
             {formatCurrency(totalYouOweMinor, currency)}
           </Text>
         </View>
 
         <View
-          style={[styles.verticalDivider, { backgroundColor: theme.divider }]}
-          className="w-px h-7 bg-border mx-3"
+          style={[
+            styles.verticalDivider,
+            { backgroundColor: isDark ? '#1E293B' : '#E2E8F0' },
+          ]}
         />
 
-        <View style={styles.subCol} className="flex-1 items-end">
-          <Text
-            style={[
-              styles.subLabel,
-              { color: theme.textMuted, fontSize: typography.fontSize.xs },
-            ]}
-            className="text-xs text-muted-foreground"
-          >
+        <View style={[styles.subCol, { alignItems: 'flex-end' }]}>
+          <Text style={[styles.subLabel, { color: theme.textMuted }]}>
             You are owed
           </Text>
           <Text
             style={[
               styles.subValue,
               {
-                color: totalOwedToYouMinor > 0 ? theme.positive : theme.textMuted,
-                fontSize: typography.fontSize.base,
-                fontWeight: typography.fontWeight.bold,
+                color: totalOwedToYouMinor > 0 ? (isDark ? '#34D399' : '#059669') : theme.textMuted,
               },
             ]}
-            className="text-base font-bold text-primary"
           >
             {formatCurrency(totalOwedToYouMinor, currency)}
           </Text>
@@ -178,28 +167,31 @@ export const BalancePill: React.FC<BalancePillProps> = ({
   currency = 'INR',
   showPrefix = true,
 }) => {
-  const { theme, borderRadius, typography } = useWatermelonTheme();
+  const { isDark } = useWatermelonTheme();
 
   const isPositive = amountMinor > 0;
   const isNegative = amountMinor < 0;
 
   const bg = isPositive
-    ? theme.positiveBg
+    ? (isDark ? 'rgba(16,185,129,0.18)' : '#D1FAE5')
     : isNegative
-    ? theme.negativeBg
-    : theme.neutralBg;
-  const color = isPositive
-    ? theme.positive
-    : isNegative
-    ? theme.negative
-    : theme.neutral;
-  const border = isPositive
-    ? theme.positiveBorder
-    : isNegative
-    ? theme.negativeBorder
-    : theme.neutralBorder;
+    ? (isDark ? 'rgba(244,63,94,0.18)' : '#FFE4E6')
+    : (isDark ? '#1E293B' : '#F1F5F9');
 
-  const prefix = showPrefix ? (isPositive ? '+' : isNegative ? '-' : '') : '';
+  const color = isPositive
+    ? (isDark ? '#34D399' : '#059669')
+    : isNegative
+    ? '#F43F5E'
+    : (isDark ? '#94A3B8' : '#64748B');
+
+  const border = isPositive
+    ? (isDark ? 'rgba(16,185,129,0.3)' : '#A7F3D0')
+    : isNegative
+    ? (isDark ? 'rgba(244,63,94,0.3)' : '#FECDD3')
+    : (isDark ? '#334155' : '#E2E8F0');
+
+  const prefix = isPositive ? '+ ' : isNegative ? '- ' : '';
+  const text = `${showPrefix ? prefix : ''}${formatCurrency(Math.abs(amountMinor), currency)}`;
 
   return (
     <View
@@ -208,77 +200,106 @@ export const BalancePill: React.FC<BalancePillProps> = ({
         {
           backgroundColor: bg,
           borderColor: border,
-          borderRadius: borderRadius.full,
         },
       ]}
-      className="rounded-full px-2.5 py-1 border flex-row items-center justify-center self-start"
     >
       <Text
         style={[
           styles.pillText,
           {
             color,
-            fontSize: typography.fontSize.xs,
           },
         ]}
-        className="text-xs font-semibold"
       >
-        {prefix}
-        {formatCurrency(Math.abs(amountMinor), currency)}
+        {text}
       </Text>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-  pillContainer: {
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderWidth: 1,
-    alignSelf: 'flex-start',
-  },
-  pillText: {
-    fontWeight: '600',
-  },
   container: {
+    borderRadius: 18,
     borderWidth: 1,
+    padding: 18,
   },
   topRow: {
     flexDirection: 'row',
+    alignItems: 'center',
     justifyContent: 'space-between',
+  },
+  statusWrap: {
+    flexDirection: 'row',
     alignItems: 'center',
   },
+  indicatorDot: {
+    width: 7,
+    height: 7,
+    borderRadius: 4,
+    marginRight: 7,
+  },
   label: {
+    fontSize: 13,
     fontWeight: '600',
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
+    letterSpacing: -0.2,
   },
   groupBadge: {
-    paddingHorizontal: 8,
-    paddingVertical: 2,
     borderWidth: 1,
+    paddingHorizontal: 9,
+    paddingVertical: 3,
+    borderRadius: 14,
   },
   groupBadgeText: {
-    fontWeight: '500',
+    fontSize: 11,
+    fontWeight: '600',
   },
-  mainBalance: {},
+  mainBalance: {
+    fontSize: 34,
+    fontWeight: '800',
+    fontVariant: ['tabular-nums'],
+    letterSpacing: -0.8,
+    marginTop: 8,
+    marginBottom: 6,
+  },
   divider: {
     height: 1,
-    marginVertical: 10,
+    marginVertical: 12,
   },
   subRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
+    justifyContent: 'space-between',
   },
-  subCol: {},
-  subLabel: {
-    fontWeight: '500',
-    marginBottom: 2,
+  subCol: {
+    flex: 1,
   },
-  subValue: {},
   verticalDivider: {
     width: 1,
     height: 28,
+    marginHorizontal: 12,
+  },
+  subLabel: {
+    fontSize: 11,
+    fontWeight: '500',
+    marginBottom: 2,
+  },
+  subValue: {
+    fontSize: 15,
+    fontWeight: '700',
+    fontVariant: ['tabular-nums'],
+    letterSpacing: -0.3,
+  },
+  pillContainer: {
+    borderWidth: 1,
+    borderRadius: 20,
+    paddingHorizontal: 9,
+    paddingVertical: 3,
+    alignSelf: 'flex-start',
+  },
+  pillText: {
+    fontSize: 12,
+    fontWeight: '700',
+    fontVariant: ['tabular-nums'],
+    letterSpacing: -0.2,
   },
 });

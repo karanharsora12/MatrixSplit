@@ -100,7 +100,7 @@ export default function OtpVerificationScreen() {
               style={[
                 styles.iconBadge,
                 {
-                  backgroundColor: isDark ? 'rgba(16,185,129,0.15)' : '#D1FAE5',
+                  backgroundColor: isDark ? 'rgba(16,185,129,0.12)' : '#D1FAE5',
                   borderRadius: borderRadius.xl,
                 },
               ]}
@@ -141,6 +141,7 @@ export default function OtpVerificationScreen() {
                     borderColor: digit ? theme.primary : theme.border,
                     color: theme.text,
                     borderRadius: borderRadius.md,
+                    fontVariant: ['tabular-nums'],
                   },
                 ]}
                 keyboardType="number-pad"
@@ -157,7 +158,7 @@ export default function OtpVerificationScreen() {
           <View style={styles.resendContainer}>
             {timer > 0 ? (
               <Text style={{ color: theme.textMuted, fontSize: 13 }}>
-                Resend code in <Text style={{ color: theme.primary, fontWeight: '700' }}>{timer}s</Text>
+                Resend code in <Text style={{ color: theme.primary, fontWeight: '700', fontVariant: ['tabular-nums'] }}>{timer}s</Text>
               </Text>
             ) : (
               <Pressable
@@ -175,9 +176,10 @@ export default function OtpVerificationScreen() {
             label={loading ? 'Verifying...' : 'Verify & Continue'}
             size="lg"
             variant="primary"
+            fullWidth
             loading={loading}
             onPress={handleVerify}
-            style={{ width: '100%', marginTop: 24 }}
+            style={{ marginTop: 24 }}
           />
         </View>
       </KeyboardAvoidingView>
@@ -212,8 +214,8 @@ const styles = StyleSheet.create({
     marginBottom: 32,
   },
   iconBadge: {
-    width: 68,
-    height: 68,
+    width: 64,
+    height: 64,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 16,
@@ -227,7 +229,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginTop: 8,
     lineHeight: 20,
-    maxWidth: 280,
+    maxWidth: 290,
   },
   otpRow: {
     flexDirection: 'row',

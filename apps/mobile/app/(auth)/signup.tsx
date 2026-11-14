@@ -12,17 +12,17 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import { Button, Input } from '@/components';
+import { Button, Input, Card } from '@/components';
 import { useWatermelonTheme } from '@/theme';
 import { apiClient, API_BASE_URL } from '../../src/services/api';
 import { useAuthStore } from '../../src/stores/authStore';
 import { CurrencyCode } from '@matrixsplit/shared';
 
 const currencyData: { code: CurrencyCode; symbol: string; name: string }[] = [
-  { code: 'INR', symbol: '₹', name: 'Indian Rupee' },
-  { code: 'USD', symbol: '$', name: 'US Dollar' },
+  { code: 'INR', symbol: '₹', name: 'Rupee' },
+  { code: 'USD', symbol: '$', name: 'Dollar' },
   { code: 'EUR', symbol: '€', name: 'Euro' },
-  { code: 'GBP', symbol: '£', name: 'British Pound' },
+  { code: 'GBP', symbol: '£', name: 'Pound' },
 ];
 
 export default function SignupScreen() {
@@ -116,7 +116,7 @@ export default function SignupScreen() {
             <View
               style={[
                 styles.brandIcon,
-                { backgroundColor: theme.primary, borderRadius: borderRadius.lg },
+                { backgroundColor: theme.primary, borderRadius: 16 },
               ]}
             >
               <Ionicons name="person-add-outline" size={24} color="#FFFFFF" />
@@ -140,15 +140,10 @@ export default function SignupScreen() {
           </View>
 
           {/* Form Card */}
-          <View
-            style={[
-              styles.formCard,
-              {
-                backgroundColor: theme.card,
-                borderColor: theme.border,
-                borderRadius: borderRadius.xl,
-              },
-            ]}
+          <Card
+            variant="elevated"
+            padding="lg"
+            style={{ marginBottom: 20 }}
           >
             <Input
               label="Full Name"
@@ -192,7 +187,7 @@ export default function SignupScreen() {
             <Text
               style={[
                 styles.currencyLabel,
-                { color: theme.text, fontSize: typography.fontSize.xs },
+                { color: theme.textMuted, fontSize: typography.fontSize.xs },
               ]}
             >
               DEFAULT CURRENCY
@@ -208,17 +203,25 @@ export default function SignupScreen() {
                       styles.currencyChip,
                       {
                         backgroundColor: selected
-                          ? theme.primary
-                          : theme.surface,
-                        borderColor: selected ? theme.primary : theme.border,
+                          ? '#10B981'
+                          : isDark
+                          ? '#1E293B'
+                          : '#F1F5F9',
+                        borderColor: selected
+                          ? '#10B981'
+                          : isDark
+                          ? '#334155'
+                          : '#CBD5E1',
+                        borderWidth: 1.5,
                         opacity: pressed ? 0.8 : 1,
+                        transform: [{ scale: pressed ? 0.96 : 1 }],
                       },
                     ]}
                   >
                     <Text
                       style={[
                         styles.currencySymbol,
-                        { color: selected ? '#FFFFFF' : theme.primary },
+                        { color: selected ? '#FFFFFF' : (isDark ? '#34D399' : '#059669') },
                       ]}
                     >
                       {curr.symbol}
@@ -227,8 +230,8 @@ export default function SignupScreen() {
                       style={[
                         styles.currencyCode,
                         {
-                          color: selected ? '#FFFFFF' : theme.text,
-                          fontWeight: selected ? '700' : '500',
+                          color: selected ? '#FFFFFF' : (isDark ? '#F8FAFC' : '#0F172A'),
+                          fontWeight: '700',
                         },
                       ]}
                     >
@@ -243,11 +246,12 @@ export default function SignupScreen() {
               label={loading ? 'Creating Account...' : 'Create Account'}
               size="lg"
               variant="primary"
+              fullWidth
               loading={loading}
               onPress={handleSignup}
               style={{ marginTop: 14 }}
             />
-          </View>
+          </Card>
 
           {/* Footer */}
           <View style={styles.footerRow}>
@@ -296,8 +300,8 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   brandIcon: {
-    width: 52,
-    height: 52,
+    width: 48,
+    height: 48,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 12,
@@ -311,11 +315,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginTop: 6,
     maxWidth: 290,
-  },
-  formCard: {
-    padding: 20,
-    borderWidth: 1,
-    marginBottom: 20,
+    lineHeight: 19,
   },
   currencyLabel: {
     fontWeight: '700',
@@ -325,17 +325,16 @@ const styles = StyleSheet.create({
   },
   currencyRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 8,
+    gap: 8,
+    marginBottom: 6,
   },
   currencyChip: {
     flex: 1,
-    marginHorizontal: 3,
     paddingVertical: 10,
-    borderRadius: 12,
-    borderWidth: 1,
     alignItems: 'center',
     justifyContent: 'center',
+    borderRadius: 10,
+    borderWidth: 1,
   },
   currencySymbol: {
     fontSize: 16,
@@ -343,7 +342,7 @@ const styles = StyleSheet.create({
     marginBottom: 2,
   },
   currencyCode: {
-    fontSize: 12,
+    fontSize: 11,
   },
   footerRow: {
     flexDirection: 'row',

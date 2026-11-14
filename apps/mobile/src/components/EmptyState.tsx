@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, StyleProp, ViewStyle } from 'react-native';
 import { useWatermelonTheme } from '@/theme/ThemeContext';
-import { Button } from '@/components/ui/button';
+import { Button } from './Button';
 
 export interface EmptyStateProps {
   title: string;
@@ -20,21 +20,23 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
   onAction,
   style,
 }) => {
-  const { theme, borderRadius, typography, spacing } = useWatermelonTheme();
+  const { theme, isDark } = useWatermelonTheme();
 
   return (
-    <View style={[styles.container, style]} className="items-center justify-center py-10 px-6">
+    <View style={[styles.container, style]}>
       {icon && (
         <View
           style={[
             styles.iconWrapper,
             {
-              backgroundColor: theme.primaryLight,
-              borderRadius: borderRadius.full,
-              marginBottom: spacing.base,
+              backgroundColor: isDark
+                ? 'rgba(16,185,129,0.12)'
+                : '#D1FAE5',
+              borderColor: isDark
+                ? 'rgba(16,185,129,0.2)'
+                : '#A7F3D0',
             },
           ]}
-          className="w-16 h-16 rounded-full bg-primary/10 items-center justify-center mb-4"
         >
           {icon}
         </View>
@@ -45,10 +47,8 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
           styles.title,
           {
             color: theme.text,
-            fontSize: typography.fontSize.lg,
           },
         ]}
-        className="text-lg font-bold text-foreground text-center"
       >
         {title}
       </Text>
@@ -58,20 +58,20 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
           styles.description,
           {
             color: theme.textMuted,
-            fontSize: typography.fontSize.sm,
-            marginTop: spacing.xs,
-            marginBottom: spacing.lg,
           },
         ]}
-        className="text-sm text-muted-foreground text-center mt-1.5 mb-6"
       >
         {description}
       </Text>
 
       {actionLabel && onAction && (
-        <Button variant="default" onPress={onAction}>
-          <Text className="text-white font-semibold">{actionLabel}</Text>
-        </Button>
+        <Button
+          label={actionLabel}
+          variant="primary"
+          size="sm"
+          onPress={onAction}
+          style={{ marginTop: 16 }}
+        />
       )}
     </View>
   );
@@ -81,21 +81,29 @@ const styles = StyleSheet.create({
   container: {
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 40,
+    paddingVertical: 36,
     paddingHorizontal: 24,
   },
   iconWrapper: {
-    width: 64,
-    height: 64,
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    borderWidth: 1,
     alignItems: 'center',
     justifyContent: 'center',
+    marginBottom: 14,
   },
   title: {
+    fontSize: 16,
     fontWeight: '700',
     textAlign: 'center',
+    letterSpacing: -0.2,
   },
   description: {
+    fontSize: 13,
     textAlign: 'center',
-    lineHeight: 20,
+    lineHeight: 18,
+    marginTop: 4,
+    maxWidth: 280,
   },
 });

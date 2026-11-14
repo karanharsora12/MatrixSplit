@@ -10,6 +10,7 @@ import {
   ViewStyle,
 } from 'react-native';
 import { useWatermelonTheme } from '@/theme/ThemeContext';
+import { Ionicons } from '@expo/vector-icons';
 
 export interface BottomSheetProps {
   visible: boolean;
@@ -26,13 +27,13 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({
   children,
   contentStyle,
 }) => {
-  const { theme, borderRadius, typography, spacing, shadows } = useWatermelonTheme();
+  const { theme, isDark } = useWatermelonTheme();
 
   return (
     <Modal
       visible={visible}
       transparent
-      animationType="slide"
+      animationType="fade"
       onRequestClose={onClose}
     >
       <TouchableWithoutFeedback onPress={onClose}>
@@ -41,14 +42,14 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({
             <View
               style={[
                 styles.sheetContainer,
-                shadows.floating,
                 {
-                  backgroundColor: theme.card,
-                  borderTopLeftRadius: borderRadius.xl,
-                  borderTopRightRadius: borderRadius.xl,
-                  paddingBottom: spacing['2xl'],
-                  borderTopWidth: 1,
-                  borderTopColor: theme.border,
+                  backgroundColor: isDark ? '#111827' : '#FFFFFF',
+                  borderTopColor: isDark ? '#1E293B' : '#E2E8F0',
+                  shadowColor: '#000',
+                  shadowOffset: { width: 0, height: -4 },
+                  shadowOpacity: isDark ? 0.4 : 0.08,
+                  shadowRadius: 12,
+                  elevation: 10,
                 },
               ]}
             >
@@ -57,8 +58,7 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({
                   style={[
                     styles.handle,
                     {
-                      backgroundColor: theme.border,
-                      borderRadius: borderRadius.full,
+                      backgroundColor: isDark ? '#334155' : '#CBD5E1',
                     },
                   ]}
                 />
@@ -69,9 +69,7 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({
                   style={[
                     styles.header,
                     {
-                      borderBottomColor: theme.divider,
-                      paddingHorizontal: spacing.lg,
-                      paddingBottom: spacing.sm,
+                      borderBottomColor: isDark ? '#1E293B' : '#F1F5F9',
                     },
                   ]}
                 >
@@ -80,8 +78,6 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({
                       styles.title,
                       {
                         color: theme.text,
-                        fontSize: typography.fontSize.lg,
-                        fontWeight: typography.fontWeight.bold,
                       },
                     ]}
                   >
@@ -90,32 +86,20 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({
                   <Pressable
                     onPress={onClose}
                     hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-                    style={({ pressed }) => [{ opacity: pressed ? 0.7 : 1 }]}
+                    style={({ pressed }) => [
+                      styles.closeBtn,
+                      {
+                        backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)',
+                        opacity: pressed ? 0.7 : 1,
+                      },
+                    ]}
                   >
-                    <Text
-                      style={[
-                        styles.closeText,
-                        {
-                          color: theme.textMuted,
-                          fontSize: typography.fontSize.sm,
-                        },
-                      ]}
-                    >
-                      Done
-                    </Text>
+                    <Ionicons name="close" size={18} color={theme.textMuted} />
                   </Pressable>
                 </View>
               )}
 
-              <View
-                style={[
-                  styles.body,
-                  { paddingHorizontal: spacing.lg, paddingTop: spacing.base },
-                  contentStyle,
-                ]}
-              >
-                {children}
-              </View>
+              <View style={[styles.content, contentStyle]}>{children}</View>
             </View>
           </TouchableWithoutFeedback>
         </View>
@@ -127,10 +111,14 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({
 const styles = StyleSheet.create({
   backdrop: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.45)',
+    backgroundColor: 'rgba(0, 0, 0, 0.55)',
     justifyContent: 'flex-end',
   },
   sheetContainer: {
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    borderTopWidth: 1,
+    paddingBottom: 36,
     maxHeight: '85%',
   },
   handleContainer: {
@@ -140,16 +128,30 @@ const styles = StyleSheet.create({
   handle: {
     width: 36,
     height: 4,
+    borderRadius: 2,
   },
   header: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 20,
+    paddingBottom: 12,
     borderBottomWidth: 1,
   },
-  title: {},
-  closeText: {
-    fontWeight: '600',
+  title: {
+    fontSize: 16,
+    fontWeight: '700',
+    letterSpacing: -0.2,
   },
-  body: {},
+  closeBtn: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  content: {
+    paddingHorizontal: 20,
+    paddingTop: 14,
+  },
 });

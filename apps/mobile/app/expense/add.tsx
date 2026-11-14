@@ -565,10 +565,15 @@ export default function AddExpenseScreen() {
               >
                 Choose Group
               </Text>
-              <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={{ paddingVertical: 4, gap: 10 }}
+              >
                 <Pressable
                   onPress={() => setGroupId(null)}
                   style={({ pressed }) => [
+                    styles.chip,
                     {
                       backgroundColor:
                         groupId === null
@@ -579,45 +584,40 @@ export default function AddExpenseScreen() {
                           ? '#1E293B'
                           : '#FFFFFF',
                       borderColor:
-                        groupId === null ? theme.primary : isDark ? '#334155' : '#E2E8F0',
-                      borderWidth: groupId === null ? 1.5 : 1,
-                      borderRadius: 20,
-                      height: 38,
-                      paddingHorizontal: 14,
-                      flexDirection: 'row',
-                      alignItems: 'center',
-                      marginRight: 8,
+                        groupId === null ? '#10B981' : isDark ? '#334155' : '#E2E8F0',
                       opacity: pressed ? 0.8 : 1,
                       transform: [{ scale: pressed ? 0.97 : 1 }],
                     },
                   ]}
                 >
-                  <Ionicons
-                    name="people-outline"
-                    size={16}
-                    color={
-                      groupId === null
-                        ? isDark
-                          ? '#34D399'
-                          : '#059669'
-                        : theme.textMuted
-                    }
-                    style={{ marginRight: 6 }}
-                  />
-                  <Text
-                    style={{
-                      color:
+                  <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                    <Ionicons
+                      name="people-outline"
+                      size={16}
+                      color={
                         groupId === null
                           ? isDark
                             ? '#34D399'
                             : '#059669'
-                          : theme.text,
-                      fontSize: typography.fontSize.xs,
-                      fontWeight: groupId === null ? '700' : '500',
-                    }}
-                  >
-                    Non-group / Direct
-                  </Text>
+                          : theme.textMuted
+                      }
+                      style={{ marginRight: 6 }}
+                    />
+                    <Text
+                      style={{
+                        color:
+                          groupId === null
+                            ? isDark
+                              ? '#34D399'
+                              : '#059669'
+                            : theme.text,
+                        fontSize: typography.fontSize.xs,
+                        fontWeight: groupId === null ? '700' : '500',
+                      }}
+                    >
+                      Non-group / Direct
+                    </Text>
+                  </View>
                 </Pressable>
 
                 {groups.map((g: any) => {
@@ -627,6 +627,7 @@ export default function AddExpenseScreen() {
                       key={g.id}
                       onPress={() => setGroupId(g.id)}
                       style={({ pressed }) => [
+                        styles.chip,
                         {
                           backgroundColor: isSelected
                             ? isDark
@@ -636,21 +637,89 @@ export default function AddExpenseScreen() {
                             ? '#1E293B'
                             : '#FFFFFF',
                           borderColor:
-                            isSelected ? theme.primary : isDark ? '#334155' : '#E2E8F0',
-                          borderWidth: isSelected ? 1.5 : 1,
-                          borderRadius: 20,
-                          height: 38,
-                          paddingHorizontal: 14,
-                          flexDirection: 'row',
-                          alignItems: 'center',
-                          marginRight: 8,
+                            isSelected ? '#10B981' : isDark ? '#334155' : '#E2E8F0',
                           opacity: pressed ? 0.8 : 1,
                           transform: [{ scale: pressed ? 0.97 : 1 }],
                         },
                       ]}
                     >
+                      <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                        <Ionicons
+                          name="folder-outline"
+                          size={16}
+                          color={
+                            isSelected
+                              ? isDark
+                                ? '#34D399'
+                                : '#059669'
+                              : theme.textMuted
+                          }
+                          style={{ marginRight: 6 }}
+                        />
+                        <Text
+                          style={{
+                            color: isSelected
+                              ? isDark
+                                ? '#34D399'
+                                : '#059669'
+                              : theme.text,
+                            fontSize: typography.fontSize.xs,
+                            fontWeight: isSelected ? '700' : '500',
+                          }}
+                        >
+                          {g.name}
+                        </Text>
+                      </View>
+                    </Pressable>
+                  );
+                })}
+              </ScrollView>
+            </View>
+          )}
+
+          {/* Category Selector Chips */}
+          <View style={{ marginVertical: 8 }}>
+            <Text
+              style={{
+                color: theme.text,
+                fontSize: typography.fontSize.sm,
+                fontWeight: '700',
+                marginBottom: 8,
+              }}
+            >
+              Category
+            </Text>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={{ paddingVertical: 4, gap: 10 }}
+            >
+              {categoryOptions.map((opt) => {
+                const isSelected = category === opt.value;
+                return (
+                  <Pressable
+                    key={opt.value}
+                    onPress={() => setCategory(opt.value)}
+                    style={({ pressed }) => [
+                      styles.chip,
+                      {
+                        backgroundColor: isSelected
+                          ? isDark
+                            ? 'rgba(16,185,129,0.22)'
+                            : '#D1FAE5'
+                          : isDark
+                          ? '#1E293B'
+                          : '#FFFFFF',
+                        borderColor:
+                          isSelected ? '#10B981' : isDark ? '#334155' : '#E2E8F0',
+                        opacity: pressed ? 0.8 : 1,
+                        transform: [{ scale: pressed ? 0.97 : 1 }],
+                      },
+                    ]}
+                  >
+                    <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                       <Ionicons
-                        name="folder-outline"
+                        name={opt.icon}
                         size={16}
                         color={
                           isSelected
@@ -672,82 +741,9 @@ export default function AddExpenseScreen() {
                           fontWeight: isSelected ? '700' : '500',
                         }}
                       >
-                        {g.name}
+                        {opt.label}
                       </Text>
-                    </Pressable>
-                  );
-                })}
-              </ScrollView>
-            </View>
-          )}
-
-          {/* Category Selector Chips */}
-          <View style={{ marginVertical: 8 }}>
-            <Text
-              style={{
-                color: theme.text,
-                fontSize: typography.fontSize.sm,
-                fontWeight: '700',
-                marginBottom: 8,
-              }}
-            >
-              Category
-            </Text>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-              {categoryOptions.map((opt) => {
-                const isSelected = category === opt.value;
-                return (
-                  <Pressable
-                    key={opt.value}
-                    onPress={() => setCategory(opt.value)}
-                    style={({ pressed }) => [
-                      {
-                        backgroundColor: isSelected
-                          ? isDark
-                            ? 'rgba(16,185,129,0.22)'
-                            : '#D1FAE5'
-                          : isDark
-                          ? '#1E293B'
-                          : '#FFFFFF',
-                        borderColor:
-                          isSelected ? theme.primary : isDark ? '#334155' : '#E2E8F0',
-                        borderWidth: isSelected ? 1.5 : 1,
-                        borderRadius: 20,
-                        height: 38,
-                        paddingHorizontal: 14,
-                        flexDirection: 'row',
-                        alignItems: 'center',
-                        marginRight: 8,
-                        opacity: pressed ? 0.8 : 1,
-                        transform: [{ scale: pressed ? 0.97 : 1 }],
-                      },
-                    ]}
-                  >
-                    <Ionicons
-                      name={opt.icon}
-                      size={16}
-                      color={
-                        isSelected
-                          ? isDark
-                            ? '#34D399'
-                            : '#059669'
-                          : theme.textMuted
-                      }
-                      style={{ marginRight: 6 }}
-                    />
-                    <Text
-                      style={{
-                        color: isSelected
-                          ? isDark
-                            ? '#34D399'
-                            : '#059669'
-                          : theme.text,
-                        fontSize: typography.fontSize.xs,
-                        fontWeight: isSelected ? '700' : '500',
-                      }}
-                    >
-                      {opt.label}
-                    </Text>
+                    </View>
                   </Pressable>
                 );
               })}
@@ -766,7 +762,11 @@ export default function AddExpenseScreen() {
             >
               Paid By
             </Text>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={{ paddingVertical: 4, gap: 10 }}
+            >
               {participants.map((p) => {
                 const isSelected = payerId === p.userId;
                 return (
@@ -774,6 +774,7 @@ export default function AddExpenseScreen() {
                     key={p.userId}
                     onPress={() => setPayerId(p.userId)}
                     style={({ pressed }) => [
+                      styles.chip,
                       {
                         backgroundColor: isSelected
                           ? isDark
@@ -783,42 +784,37 @@ export default function AddExpenseScreen() {
                           ? '#1E293B'
                           : '#FFFFFF',
                         borderColor:
-                          isSelected ? theme.primary : isDark ? '#334155' : '#E2E8F0',
-                        borderWidth: isSelected ? 1.5 : 1,
-                        borderRadius: 20,
-                        height: 38,
-                        paddingHorizontal: 12,
-                        flexDirection: 'row',
-                        alignItems: 'center',
-                        marginRight: 8,
+                          isSelected ? '#10B981' : isDark ? '#334155' : '#E2E8F0',
                         opacity: pressed ? 0.8 : 1,
                         transform: [{ scale: pressed ? 0.97 : 1 }],
                       },
                     ]}
                   >
-                    <Avatar name={p.fullName} size="sm" />
-                    <Text
-                      style={{
-                        color: isSelected
-                          ? isDark
-                            ? '#34D399'
-                            : '#059669'
-                          : theme.text,
-                        fontSize: typography.fontSize.xs,
-                        fontWeight: isSelected ? '700' : '500',
-                        marginLeft: 8,
-                      }}
-                    >
-                      {p.fullName}
-                    </Text>
-                    {isSelected && (
-                      <Ionicons
-                        name="checkmark-circle"
-                        size={16}
-                        color={isDark ? '#34D399' : '#059669'}
-                        style={{ marginLeft: 6 }}
-                      />
-                    )}
+                    <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                      <Avatar name={p.fullName} size="sm" />
+                      <Text
+                        style={{
+                          color: isSelected
+                            ? isDark
+                              ? '#34D399'
+                              : '#059669'
+                            : theme.text,
+                          fontSize: typography.fontSize.xs,
+                          fontWeight: isSelected ? '700' : '500',
+                          marginLeft: 8,
+                        }}
+                      >
+                        {p.fullName}
+                      </Text>
+                      {isSelected && (
+                        <Ionicons
+                          name="checkmark-circle"
+                          size={16}
+                          color={isDark ? '#34D399' : '#059669'}
+                          style={{ marginLeft: 6 }}
+                        />
+                      )}
+                    </View>
                   </Pressable>
                 );
               })}
@@ -1190,5 +1186,14 @@ const styles = StyleSheet.create({
     padding: 16,
     borderWidth: 1,
     marginBottom: 8,
+  },
+  chip: {
+    height: 38,
+    paddingHorizontal: 14,
+    borderRadius: 19,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1.5,
   },
 });

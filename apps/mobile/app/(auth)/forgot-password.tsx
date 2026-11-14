@@ -12,7 +12,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import { Button, Input } from '@/components';
+import { Button, Input, Card } from '@/components';
 import { useWatermelonTheme } from '@/theme';
 import { apiClient } from '../../src/services/api';
 
@@ -115,7 +115,7 @@ export default function ForgotPasswordScreen() {
             <View
               style={[
                 styles.brandIcon,
-                { backgroundColor: theme.primary, borderRadius: borderRadius.lg },
+                { backgroundColor: theme.primary, borderRadius: 16 },
               ]}
             >
               <Ionicons name="key-outline" size={24} color="#FFFFFF" />
@@ -160,15 +160,10 @@ export default function ForgotPasswordScreen() {
           </View>
 
           {/* Form Card */}
-          <View
-            style={[
-              styles.formCard,
-              {
-                backgroundColor: theme.card,
-                borderColor: theme.border,
-                borderRadius: borderRadius.xl,
-              },
-            ]}
+          <Card
+            variant="elevated"
+            padding="lg"
+            style={{ marginBottom: 20 }}
           >
             {step === 'request_otp' ? (
               <>
@@ -186,6 +181,7 @@ export default function ForgotPasswordScreen() {
                   label={loading ? 'Sending Code...' : 'Send Verification Code'}
                   size="lg"
                   variant="primary"
+                  fullWidth
                   loading={loading}
                   onPress={handleRequestOtp}
                   style={{ marginTop: 10 }}
@@ -224,6 +220,7 @@ export default function ForgotPasswordScreen() {
                   label={loading ? 'Updating Password...' : 'Save New Password'}
                   size="lg"
                   variant="primary"
+                  fullWidth
                   loading={loading}
                   onPress={handleResetPassword}
                   style={{ marginTop: 10 }}
@@ -242,7 +239,7 @@ export default function ForgotPasswordScreen() {
                 </Pressable>
               </>
             )}
-          </View>
+          </Card>
 
           {/* Footer Back to Login */}
           <View style={styles.footerRow}>
@@ -291,8 +288,8 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   brandIcon: {
-    width: 52,
-    height: 52,
+    width: 48,
+    height: 48,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 12,
@@ -306,6 +303,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginTop: 6,
     maxWidth: 290,
+    lineHeight: 19,
   },
   stepIndicator: {
     flexDirection: 'row',
@@ -316,11 +314,6 @@ const styles = StyleSheet.create({
   stepDot: {
     height: 6,
     borderRadius: 3,
-  },
-  formCard: {
-    padding: 20,
-    borderWidth: 1,
-    marginBottom: 20,
   },
   resendBtn: {
     alignItems: 'center',

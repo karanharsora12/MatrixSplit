@@ -21,21 +21,21 @@ const slides: {
     icon: 'receipt-outline',
     title: 'Track Every Shared Expense',
     subtitle:
-      'Keep group trips, flatmates, dinners, and couples on the same page with real-time expense ledgers.',
+      'Keep group trips, flatmates, dinners, and couples on the same page with real-time shared expense ledgers.',
     tag: 'SHARED LEDGERS',
   },
   {
     icon: 'git-network-outline',
     title: 'Smart Debt Simplification',
     subtitle:
-      'MatrixSplit runs min-cash-flow graph algorithms to reduce 10+ member transactions to minimal repayments.',
+      'MatrixSplit runs min-cash-flow graph algorithms to reduce 10+ member debts to minimal direct repayments.',
     tag: 'MIN-CASH FLOW',
   },
   {
     icon: 'flash-outline',
     title: 'Instant Multi-Rail Settlements',
     subtitle:
-      'Record settlements via UPI, Bank Transfer, PayPal, or Cash with payment proof and instant balance verification.',
+      'Record settlements via UPI, Bank Transfer, PayPal, or Cash with payment proof and instant verification.',
     tag: 'INSTANT SETTLEMENTS',
   },
 ];
@@ -98,18 +98,21 @@ export default function OnboardingScreen() {
           style={[
             styles.iconCircle,
             {
-              backgroundColor: isDark ? 'rgba(16,185,129,0.15)' : '#D1FAE5',
+              backgroundColor: isDark ? 'rgba(16,185,129,0.12)' : '#D1FAE5',
               borderRadius: borderRadius.full,
             },
           ]}
         >
-          <Ionicons name={slide.icon} size={54} color={theme.primary} />
+          <Ionicons name={slide.icon} size={50} color={theme.primary} />
         </View>
 
         <View
           style={[
             styles.tagBadge,
-            { backgroundColor: theme.card, borderColor: theme.border },
+            {
+              backgroundColor: isDark ? '#111827' : '#F1F5F9',
+              borderColor: theme.border,
+            },
           ]}
         >
           <Text
@@ -164,6 +167,7 @@ export default function OnboardingScreen() {
           label={currentSlide === slides.length - 1 ? 'Get Started' : 'Next ›'}
           size="lg"
           variant="primary"
+          fullWidth
           onPress={handleNext}
         />
       </View>
@@ -189,8 +193,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   miniLogo: {
-    width: 26,
-    height: 26,
+    width: 28,
+    height: 28,
     borderRadius: 8,
     alignItems: 'center',
     justifyContent: 'center',
@@ -199,14 +203,6 @@ const styles = StyleSheet.create({
   brandText: {
     fontWeight: '800',
     letterSpacing: -0.3,
-  },
-  themeToggleBtn: {
-    width: 34,
-    height: 34,
-    borderRadius: 10,
-    borderWidth: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
   },
   skipBtn: {
     paddingHorizontal: 12,
@@ -217,12 +213,12 @@ const styles = StyleSheet.create({
   },
   slideContainer: {
     alignItems: 'center',
-    paddingHorizontal: 24,
+    paddingHorizontal: 28,
     marginTop: -20,
   },
   iconCircle: {
-    width: 110,
-    height: 110,
+    width: 104,
+    height: 104,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 20,

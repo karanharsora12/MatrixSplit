@@ -10,7 +10,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
-import Ionicons from '@expo/vector-icons/Ionicons';
+import { Ionicons } from '@expo/vector-icons';
 import {
   BalanceCard,
   Card,
@@ -26,8 +26,7 @@ import {
   useMyGroups,
 } from '../../src/hooks/useQueries';
 import { useAuthStore } from '../../src/stores/authStore';
-import { useThemeStore } from '../../src/stores/themeStore';
-import { formatCurrency, ExpenseCategory, GroupCategory } from '@matrixsplit/shared';
+import { formatCurrency } from '@matrixsplit/shared';
 
 const groupIcons: Record<string, keyof typeof Ionicons.glyphMap> = {
   trip: 'airplane-outline',
@@ -53,7 +52,7 @@ const expenseIcons: Record<string, keyof typeof Ionicons.glyphMap> = {
 
 export default function DashboardScreen() {
   const router = useRouter();
-  const { theme, typography, spacing, borderRadius, isDark } = useWatermelonTheme();
+  const { theme, isDark } = useWatermelonTheme();
   const user = useAuthStore((s) => s.user);
 
   const {
@@ -64,7 +63,7 @@ export default function DashboardScreen() {
   } = useBalanceOverview();
 
   const { data: recentExpenses, isLoading: loadingExpenses, refetch: refetchExpenses } =
-    useRecentExpenses(5);
+    useRecentExpenses(6);
   const { data: recentSettlements, refetch: refetchSettlements } =
     useRecentSettlements(3);
   const { data: groups, refetch: refetchGroups } = useMyGroups();
@@ -87,30 +86,27 @@ export default function DashboardScreen() {
     }
   };
 
+  const getGreeting = () => {
+    const hour = new Date().getHours();
+    if (hour < 12) return 'Good morning';
+    if (hour < 18) return 'Good afternoon';
+    return 'Good evening';
+  };
+
   return (
-    <SafeAreaView edges={['top', 'left', 'right']} style={[styles.container, { backgroundColor: theme.background }]}>
+    <SafeAreaView edges={['top', 'left', 'right']} style={[styles.container, { backgroundColor: isDark ? '#090D16' : '#F8FAFC' }]}>
       {/* Top Header */}
-      <View style={styles.topBar}>
+      <View style={[styles.topBar, { borderBottomColor: isDark ? '#1E293B' : '#F1F5F9' }]}>
         <Pressable
           onPress={() => router.push('/settings')}
           style={({ pressed }) => [styles.profileBtn, { opacity: pressed ? 0.8 : 1 }]}
         >
-          <Avatar name={user?.fullName || 'User'} size="sm" />
+          <Avatar name={user?.fullName || 'User'} size="md" />
           <View style={styles.nameContainer}>
-            <Text
-              style={[
-                styles.welcomeText,
-                { color: theme.textMuted, fontSize: typography.fontSize.xs },
-              ]}
-            >
-              Good day,
+            <Text style={[styles.welcomeText, { color: theme.textMuted }]}>
+              {getGreeting()},
             </Text>
-            <Text
-              style={[
-                styles.userName,
-                { color: theme.text, fontSize: typography.fontSize.base },
-              ]}
-            >
+            <Text style={[styles.userName, { color: theme.text }]} numberOfLines={1}>
               {user?.fullName || 'MatrixSplit User'}
             </Text>
           </View>
@@ -118,21 +114,23 @@ export default function DashboardScreen() {
 
         <Pressable
           onPress={() => router.push('/settings')}
+          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
           style={({ pressed }) => [
             styles.settingsIconBtn,
             {
-              backgroundColor: theme.card,
-              borderColor: theme.border,
-              opacity: pressed ? 0.7 : 1,
+              backgroundColor: isDark ? '#111827' : '#FFFFFF',
+              borderColor: isDark ? '#1E293B' : '#E2E8F0',
+              opacity: pressed ? 0.75 : 1,
             },
           ]}
         >
-          <Ionicons name="settings-outline" size={20} color={theme.text} />
+          <Ionicons name="settings-outline" size={19} color={theme.text} />
         </Pressable>
       </View>
 
       <ScrollView
         contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
         refreshControl={
           <RefreshControl
             refreshing={isRefetching}
@@ -158,81 +156,92 @@ export default function DashboardScreen() {
         <View style={styles.actionsGrid}>
           <Pressable
             onPress={() => router.push('/expense/add')}
+            className="flex-1"
             style={({ pressed }) => [
               styles.actionButton,
               {
-                backgroundColor: theme.primary,
-                borderRadius: borderRadius.lg,
-                opacity: pressed ? 0.8 : 1,
+                backgroundColor: pressed ? '#059669' : '#10B981',
+                opacity: pressed ? 0.9 : 1,
+                transform: [{ scale: pressed ? 0.97 : 1 }],
               },
             ]}
           >
-            <Ionicons name="add-circle" size={24} color="#FFFFFF" />
-            <Text style={styles.actionLabel}>Add Expense</Text>
+            <View style={{ alignItems: 'center', justifyContent: 'center' }}>
+              <Ionicons name="add" size={22} color="#FFFFFF" />
+              <Text style={[styles.actionLabel, { color: '#FFFFFF' }]}>Add</Text>
+            </View>
           </Pressable>
 
           <Pressable
             onPress={() => router.push('/settle')}
+            className="flex-1"
             style={({ pressed }) => [
               styles.actionButton,
               {
-                backgroundColor: theme.secondary,
-                borderRadius: borderRadius.lg,
-                opacity: pressed ? 0.8 : 1,
+                backgroundColor: pressed
+                  ? (isDark ? '#1E293B' : '#F1F5F9')
+                  : (isDark ? '#111827' : '#FFFFFF'),
+                borderColor: isDark ? '#1E293B' : '#E2E8F0',
+                borderWidth: 1,
+                opacity: pressed ? 0.9 : 1,
+                transform: [{ scale: pressed ? 0.97 : 1 }],
               },
             ]}
           >
-            <Ionicons name="swap-horizontal" size={22} color="#FFFFFF" />
-            <Text style={styles.actionLabel}>Settle Up</Text>
+            <View style={{ alignItems: 'center', justifyContent: 'center' }}>
+              <Ionicons name="swap-horizontal" size={20} color="#10B981" />
+              <Text style={[styles.actionLabel, { color: theme.text }]}>Settle</Text>
+            </View>
           </Pressable>
 
           <Pressable
             onPress={() => router.push('/(tabs)/groups')}
+            className="flex-1"
             style={({ pressed }) => [
               styles.actionButton,
               {
-                backgroundColor: theme.card,
-                borderColor: theme.border,
+                backgroundColor: pressed
+                  ? (isDark ? '#1E293B' : '#F1F5F9')
+                  : (isDark ? '#111827' : '#FFFFFF'),
+                borderColor: isDark ? '#1E293B' : '#E2E8F0',
                 borderWidth: 1,
-                borderRadius: borderRadius.lg,
-                opacity: pressed ? 0.8 : 1,
+                opacity: pressed ? 0.9 : 1,
+                transform: [{ scale: pressed ? 0.97 : 1 }],
               },
             ]}
           >
-            <Ionicons name="people-outline" size={22} color={theme.text} />
-            <Text style={[styles.actionLabel, { color: theme.text }]}>
-              Create Group
-            </Text>
+            <View style={{ alignItems: 'center', justifyContent: 'center' }}>
+              <Ionicons name="people-outline" size={20} color={theme.text} />
+              <Text style={[styles.actionLabel, { color: theme.text }]}>Groups</Text>
+            </View>
           </Pressable>
 
           <Pressable
             onPress={handleInviteFriend}
+            className="flex-1"
             style={({ pressed }) => [
               styles.actionButton,
               {
-                backgroundColor: theme.card,
-                borderColor: theme.border,
+                backgroundColor: pressed
+                  ? (isDark ? '#1E293B' : '#F1F5F9')
+                  : (isDark ? '#111827' : '#FFFFFF'),
+                borderColor: isDark ? '#1E293B' : '#E2E8F0',
                 borderWidth: 1,
-                borderRadius: borderRadius.lg,
-                opacity: pressed ? 0.8 : 1,
+                opacity: pressed ? 0.9 : 1,
+                transform: [{ scale: pressed ? 0.97 : 1 }],
               },
             ]}
           >
-            <Ionicons name="share-social-outline" size={20} color={theme.text} />
-            <Text style={[styles.actionLabel, { color: theme.text }]}>
-              Invite Friend
-            </Text>
+            <View style={{ alignItems: 'center', justifyContent: 'center' }}>
+              <Ionicons name="share-social-outline" size={19} color={theme.text} />
+              <Text style={[styles.actionLabel, { color: theme.text }]}>Invite</Text>
+            </View>
           </Pressable>
         </View>
 
         {/* Active Groups Horizontal List */}
         <View style={styles.sectionHeader}>
-          <Text
-            style={[
-              styles.sectionTitle,
-              { color: theme.text, fontSize: typography.fontSize.lg },
-            ]}
-          >
+          <Text style={[styles.sectionTitle, { color: theme.text }]}>
             Active Groups
           </Text>
           <Pressable
@@ -240,7 +249,7 @@ export default function DashboardScreen() {
             style={({ pressed }) => [{ opacity: pressed ? 0.7 : 1 }]}
           >
             <Text style={{ color: theme.primary, fontWeight: '700', fontSize: 13 }}>
-              See all ›
+              See all
             </Text>
           </Pressable>
         </View>
@@ -249,7 +258,7 @@ export default function DashboardScreen() {
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
-            style={styles.groupsScroll}
+            contentContainerStyle={styles.groupsScrollContent}
           >
             {groups.map((group: any) => {
               const iconName = groupIcons[group.category] || 'folder-outline';
@@ -260,55 +269,52 @@ export default function DashboardScreen() {
                   style={({ pressed }) => [
                     styles.groupCard,
                     {
-                      backgroundColor: theme.card,
-                      borderColor: theme.border,
-                      borderRadius: borderRadius.lg,
+                      backgroundColor: isDark ? '#111827' : '#FFFFFF',
+                      borderColor: isDark ? '#1E293B' : '#E2E8F0',
                       opacity: pressed ? 0.85 : 1,
+                      transform: [{ scale: pressed ? 0.98 : 1 }],
                     },
                   ]}
                 >
-                  <View style={styles.groupCardTop}>
-                    <View
-                      style={[
-                        styles.groupIconWrapper,
-                        { backgroundColor: theme.primaryLight },
-                      ]}
-                    >
-                      <Ionicons name={iconName} size={18} color={theme.primary} />
+                  <View style={{ width: '100%' }}>
+                    <View style={styles.groupCardTop}>
+                      <View
+                        style={[
+                          styles.groupIconWrapper,
+                          {
+                            backgroundColor: isDark ? 'rgba(16,185,129,0.18)' : '#D1FAE5',
+                          },
+                        ]}
+                      >
+                        <Ionicons name={iconName} size={18} color={theme.primary} />
+                      </View>
+                      <Badge label={group.category} size="sm" variant="info" />
                     </View>
-                    <Badge label={group.category} size="sm" variant="info" />
+                    <Text
+                      numberOfLines={1}
+                      style={[styles.groupName, { color: theme.text }]}
+                    >
+                      {group.name}
+                    </Text>
+                    <Text style={[styles.groupMembersText, { color: theme.textMuted }]}>
+                      {group.membersCount || 1} members
+                    </Text>
                   </View>
-                  <Text
-                    numberOfLines={1}
-                    style={[styles.groupName, { color: theme.text }]}
-                  >
-                    {group.name}
-                  </Text>
-                  <Text
-                    style={[styles.groupMembersText, { color: theme.textMuted }]}
-                  >
-                    {group.membersCount || 1} members
-                  </Text>
                 </Pressable>
               );
             })}
           </ScrollView>
         ) : (
           <Card padding="md" variant="outlined" style={styles.emptyGroupCard}>
-            <Text style={{ color: theme.textMuted, textAlign: 'center' }}>
-              No groups yet. Tap 'Create Group' above to get started!
+            <Text style={{ color: theme.textMuted, textAlign: 'center', fontSize: 13 }}>
+              No groups yet. Tap 'Groups' above to create one!
             </Text>
           </Card>
         )}
 
         {/* Recent Expenses Section */}
         <View style={styles.sectionHeader}>
-          <Text
-            style={[
-              styles.sectionTitle,
-              { color: theme.text, fontSize: typography.fontSize.lg },
-            ]}
-          >
+          <Text style={[styles.sectionTitle, { color: theme.text }]}>
             Recent Expenses
           </Text>
           <Pressable
@@ -330,52 +336,58 @@ export default function DashboardScreen() {
               <Pressable
                 key={exp.id}
                 onPress={() => router.push(`/expense/${exp.id}`)}
-                style={({ pressed }) => [{ opacity: pressed ? 0.85 : 1 }]}
+                className="w-full"
+                style={({ pressed }) => [
+                  styles.expenseListItem,
+                  {
+                    backgroundColor: isDark ? '#111827' : '#FFFFFF',
+                    borderColor: isDark ? '#1E293B' : '#E2E8F0',
+                    opacity: pressed ? 0.85 : 1,
+                    transform: [{ scale: pressed ? 0.99 : 1 }],
+                  },
+                ]}
               >
-                <Card
-                  variant="outlined"
-                  padding="sm"
-                  style={{ marginBottom: spacing.sm }}
-                >
-                  <View style={styles.expenseRow}>
-                    <View
-                      style={[
-                        styles.categoryIconCircle,
-                        { backgroundColor: theme.primaryLight },
-                      ]}
-                    >
-                      <Ionicons name={expIconName} size={18} color={theme.primary} />
-                    </View>
-                    <View style={styles.expenseInfo}>
-                      <Text
-                        numberOfLines={1}
-                        style={[styles.expenseTitle, { color: theme.text }]}
-                      >
-                        {exp.title}
-                      </Text>
-                      <Text
-                        style={[styles.expenseMeta, { color: theme.textMuted }]}
-                      >
-                        Paid by {exp.payer?.fullName || 'Someone'} •{' '}
-                        {new Date(exp.date).toLocaleDateString()}
-                      </Text>
-                    </View>
+                <View style={{ flexDirection: 'row', alignItems: 'center', width: '100%' }}>
+                  <View
+                    style={[
+                      styles.categoryIconCircle,
+                      {
+                        backgroundColor: isDark ? 'rgba(16,185,129,0.15)' : '#D1FAE5',
+                      },
+                    ]}
+                  >
+                    <Ionicons name={expIconName} size={18} color={theme.primary} />
+                  </View>
+                  <View style={styles.expenseInfo}>
                     <Text
-                      style={[
-                        styles.expenseAmount,
-                        { color: theme.text, fontSize: typography.fontSize.base },
-                      ]}
+                      numberOfLines={1}
+                      style={[styles.expenseTitle, { color: theme.text }]}
                     >
-                      {formatCurrency(exp.totalAmountMinor, exp.currency)}
+                      {exp.title}
+                    </Text>
+                    <Text style={[styles.expenseMeta, { color: theme.textMuted }]}>
+                      Paid by {exp.payer?.fullName || 'Someone'} ·{' '}
+                      {new Date(exp.date).toLocaleDateString(undefined, {
+                        month: 'short',
+                        day: 'numeric',
+                      })}
                     </Text>
                   </View>
-                </Card>
+                  <Text
+                    style={[
+                      styles.expenseAmount,
+                      { color: theme.text },
+                    ]}
+                  >
+                    {formatCurrency(exp.totalAmountMinor, exp.currency)}
+                  </Text>
+                </View>
               </Pressable>
             );
           })
         ) : (
           <Card padding="md" variant="outlined">
-            <Text style={{ color: theme.textMuted, textAlign: 'center' }}>
+            <Text style={{ color: theme.textMuted, textAlign: 'center', fontSize: 13 }}>
               No expenses recorded yet. Tap '+ Add' above to record your first expense!
             </Text>
           </Card>
@@ -384,58 +396,56 @@ export default function DashboardScreen() {
         {/* Recent Settlements Section */}
         {recentSettlements && recentSettlements.length > 0 && (
           <>
-            <View style={[styles.sectionHeader, { marginTop: spacing.lg }]}>
-              <Text
-                style={[
-                  styles.sectionTitle,
-                  { color: theme.text, fontSize: typography.fontSize.lg },
-                ]}
-              >
+            <View style={[styles.sectionHeader, { marginTop: 24 }]}>
+              <Text style={[styles.sectionTitle, { color: theme.text }]}>
                 Recent Settlements
               </Text>
             </View>
 
             {recentSettlements.map((s: any) => (
-              <Card
+              <View
                 key={s.id}
-                variant="outlined"
-                padding="sm"
-                style={{ marginBottom: spacing.sm }}
+                style={[
+                  styles.settlementListItem,
+                  {
+                    backgroundColor: isDark ? '#111827' : '#FFFFFF',
+                    borderColor: isDark ? '#1E293B' : '#E2E8F0',
+                  },
+                ]}
               >
-                <View style={styles.settlementRow}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', width: '100%' }}>
                   <View
                     style={[
                       styles.categoryIconCircle,
-                      { backgroundColor: theme.positiveBg },
+                      {
+                        backgroundColor: isDark ? 'rgba(16,185,129,0.18)' : '#D1FAE5',
+                      },
                     ]}
                   >
-                    <Ionicons name="checkmark-done-outline" size={18} color={theme.positive} />
+                    <Ionicons name="checkmark-done" size={18} color={theme.primary} />
                   </View>
-                  <View style={{ flex: 1, marginLeft: 10 }}>
+                  <View style={{ flex: 1, marginLeft: 12 }}>
                     <Text
                       style={[
                         styles.settlementTitle,
-                        { color: theme.text, fontSize: typography.fontSize.sm },
+                        { color: theme.text },
                       ]}
                     >
-                      {s.payer?.fullName} paid {s.receiver?.fullName}
+                      {s.payer?.fullName || 'User'} paid {s.payee?.fullName || 'User'}
                     </Text>
-                    <Text
-                      style={[
-                        styles.settlementMethod,
-                        { color: theme.textMuted, fontSize: typography.fontSize.xs },
-                      ]}
-                    >
-                      Method: {s.paymentMethod.toUpperCase()}
+                    <Text style={[styles.settlementMeta, { color: theme.textMuted }]}>
+                      via {s.paymentMethod?.toUpperCase() || 'DIRECT'} ·{' '}
+                      {new Date(s.settledAt || s.createdAt).toLocaleDateString(undefined, {
+                        month: 'short',
+                        day: 'numeric',
+                      })}
                     </Text>
                   </View>
-                  <Badge
-                    label={s.status}
-                    size="sm"
-                    variant={s.status === 'confirmed' ? 'positive' : 'warning'}
-                  />
+                  <Text style={styles.settlementAmount}>
+                    {formatCurrency(s.amountMinor, s.currency)}
+                  </Text>
                 </View>
-              </Card>
+              </View>
             ))}
           </>
         )}
@@ -452,88 +462,101 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    paddingTop: 8,
-    paddingBottom: 8,
+    paddingHorizontal: 18,
+    paddingTop: 10,
+    paddingBottom: 12,
+    borderBottomWidth: 1,
   },
   profileBtn: {
     flexDirection: 'row',
     alignItems: 'center',
+    flex: 1,
   },
   nameContainer: {
     marginLeft: 10,
+    flex: 1,
   },
   welcomeText: {
+    fontSize: 12,
     fontWeight: '500',
   },
   userName: {
+    fontSize: 16,
     fontWeight: '700',
+    letterSpacing: -0.2,
   },
   settingsIconBtn: {
     width: 38,
     height: 38,
-    borderRadius: 10,
+    borderRadius: 12,
     borderWidth: 1,
     alignItems: 'center',
     justifyContent: 'center',
   },
   scrollContent: {
-    padding: 16,
-    paddingBottom: 32,
+    padding: 18,
+    paddingBottom: 36,
   },
   actionsGrid: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginTop: 16,
-    marginBottom: 20,
+    marginTop: 14,
+    marginBottom: 22,
+    gap: 8,
   },
   actionButton: {
     flex: 1,
-    marginHorizontal: 3,
-    paddingVertical: 12,
+    height: 64,
+    borderRadius: 16,
     alignItems: 'center',
     justifyContent: 'center',
   },
   actionLabel: {
-    color: '#FFFFFF',
-    fontWeight: '600',
-    fontSize: 11,
+    fontWeight: '700',
+    fontSize: 12,
     marginTop: 4,
+    letterSpacing: -0.2,
   },
   sectionHeader: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 10,
+    justifyContent: 'space-between',
+    marginBottom: 12,
+    marginTop: 4,
   },
   sectionTitle: {
-    fontWeight: '700',
+    fontSize: 17,
+    fontWeight: '800',
+    letterSpacing: -0.4,
   },
-  groupsScroll: {
+  groupsScrollContent: {
+    gap: 12,
+    paddingRight: 8,
     marginBottom: 20,
   },
   groupCard: {
-    width: 140,
-    padding: 12,
-    marginRight: 10,
+    width: 148,
+    padding: 14,
+    borderRadius: 16,
     borderWidth: 1,
   },
   groupCardTop: {
     flexDirection: 'row',
+    alignItems: 'center',
     justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: 8,
+    marginBottom: 10,
   },
   groupIconWrapper: {
-    width: 32,
-    height: 32,
-    borderRadius: 8,
+    width: 34,
+    height: 34,
+    borderRadius: 10,
     alignItems: 'center',
     justifyContent: 'center',
   },
   groupName: {
-    fontWeight: '600',
     fontSize: 14,
+    fontWeight: '700',
+    letterSpacing: -0.2,
     marginBottom: 2,
   },
   groupMembersText: {
@@ -542,40 +565,63 @@ const styles = StyleSheet.create({
   emptyGroupCard: {
     marginBottom: 20,
   },
-  expenseRow: {
+  expenseListItem: {
     flexDirection: 'row',
     alignItems: 'center',
+    padding: 12,
+    borderRadius: 14,
+    borderWidth: 1,
+    marginBottom: 8,
   },
   categoryIconCircle: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    width: 38,
+    height: 38,
+    borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: 12,
   },
   expenseInfo: {
     flex: 1,
+    marginLeft: 12,
+    marginRight: 8,
   },
   expenseTitle: {
-    fontWeight: '600',
     fontSize: 14,
+    fontWeight: '600',
+    letterSpacing: -0.2,
+    marginBottom: 2,
   },
   expenseMeta: {
     fontSize: 12,
-    marginTop: 2,
   },
   expenseAmount: {
+    fontSize: 15,
     fontWeight: '700',
+    fontVariant: ['tabular-nums'],
+    letterSpacing: -0.3,
   },
-  settlementRow: {
+  settlementListItem: {
     flexDirection: 'row',
     alignItems: 'center',
+    padding: 12,
+    borderRadius: 14,
+    borderWidth: 1,
+    marginBottom: 8,
   },
   settlementTitle: {
+    fontSize: 13,
     fontWeight: '600',
+    letterSpacing: -0.1,
   },
-  settlementMethod: {
+  settlementMeta: {
+    fontSize: 11,
     marginTop: 2,
+  },
+  settlementAmount: {
+    fontSize: 14,
+    fontWeight: '700',
+    fontVariant: ['tabular-nums'],
+    color: '#10B981',
+    letterSpacing: -0.2,
   },
 });

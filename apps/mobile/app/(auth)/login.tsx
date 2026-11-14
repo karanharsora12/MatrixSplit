@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
 import {
   View,
   Text,
@@ -8,66 +8,72 @@ import {
   Platform,
   ScrollView,
   Alert,
-} from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { Ionicons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
-import { Button, Input } from '@/components';
-import { useWatermelonTheme } from '@/theme';
-import { apiClient, API_BASE_URL } from '../../src/services/api';
-import { useAuthStore } from '../../src/stores/authStore';
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { Ionicons } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
+import { Button, Input, Card } from "@/components";
+import { useWatermelonTheme } from "@/theme";
+import { apiClient, API_BASE_URL } from "../../src/services/api";
+import { useAuthStore } from "../../src/stores/authStore";
 
 export default function LoginScreen() {
   const router = useRouter();
-  const { theme, typography, spacing, isDark, borderRadius } = useWatermelonTheme();
+  const { theme, typography, spacing, isDark, borderRadius } =
+    useWatermelonTheme();
   const setAuth = useAuthStore((s) => s.setAuth);
 
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
+  const [errors, setErrors] = useState<{ email?: string; password?: string }>(
+    {},
+  );
 
   const handleLogin = async () => {
     setErrors({});
     if (!email) {
-      setErrors((prev) => ({ ...prev, email: 'Email is required' }));
+      setErrors((prev) => ({ ...prev, email: "Email is required" }));
       return;
     }
     if (!password) {
-      setErrors((prev) => ({ ...prev, password: 'Password is required' }));
+      setErrors((prev) => ({ ...prev, password: "Password is required" }));
       return;
     }
 
     setLoading(true);
     try {
-      const res = await apiClient.post('/auth/login', {
+      const res = await apiClient.post("/auth/login", {
         email: email.trim(),
         password,
       });
 
       const { user, accessToken, refreshToken } = res.data;
       setAuth(user, accessToken, refreshToken);
-      router.replace('/(tabs)');
+      router.replace("/(tabs)");
     } catch (err: any) {
       const serverMsg = err.response?.data?.message;
       const netMsg =
-        err.message === 'Network Error' || !err.response
+        err.message === "Network Error" || !err.response
           ? `Cannot reach backend at ${API_BASE_URL}.\nMake sure the NestJS backend is running.`
           : err.message;
-      Alert.alert('Login Failed', serverMsg || netMsg || 'Failed to log in.');
+      Alert.alert("Login Failed", serverMsg || netMsg || "Failed to log in.");
     } finally {
       setLoading(false);
     }
   };
 
-  const handleQuickDemo = (userEmail: string, userName: string) => {
+  const handleQuickDemo = (userEmail: string) => {
     setEmail(userEmail);
-    setPassword('Password123!');
+    setPassword("Password123!");
   };
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]} edges={['top', 'bottom', 'left', 'right']}>
+    <SafeAreaView
+      style={[styles.container, { backgroundColor: theme.background }]}
+      edges={["top", "bottom", "left", "right"]}
+    >
       {/* Top Bar with Back */}
       <View style={styles.topBar}>
         <Pressable
@@ -75,7 +81,7 @@ export default function LoginScreen() {
             if (router.canGoBack()) {
               router.back();
             } else {
-              router.replace('/(auth)/welcome');
+              router.replace("/(auth)/welcome");
             }
           }}
           hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
@@ -93,7 +99,7 @@ export default function LoginScreen() {
       </View>
 
       <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
         style={{ flex: 1 }}
       >
         <ScrollView
@@ -106,7 +112,7 @@ export default function LoginScreen() {
             <View
               style={[
                 styles.brandIcon,
-                { backgroundColor: theme.primary, borderRadius: borderRadius.lg },
+                { backgroundColor: theme.primary, borderRadius: 16 },
               ]}
             >
               <Ionicons name="log-in-outline" size={24} color="#FFFFFF" />
@@ -114,7 +120,7 @@ export default function LoginScreen() {
             <Text
               style={[
                 styles.title,
-                { color: theme.text, fontSize: typography.fontSize['3xl'] },
+                { color: theme.text, fontSize: typography.fontSize["3xl"] },
               ]}
             >
               Welcome back
@@ -125,21 +131,12 @@ export default function LoginScreen() {
                 { color: theme.textMuted, fontSize: typography.fontSize.sm },
               ]}
             >
-              Enter your credentials to access your groups and expenses
+              Enter your credentials to access your ledgers and shared balances
             </Text>
           </View>
 
           {/* Form Card */}
-          <View
-            style={[
-              styles.formCard,
-              {
-                backgroundColor: theme.card,
-                borderColor: theme.border,
-                borderRadius: borderRadius.xl,
-              },
-            ]}
-          >
+          <Card variant="elevated" padding="lg" style={{ marginBottom: 20 }}>
             <Input
               label="Email Address"
               placeholder="you@example.com"
@@ -148,7 +145,13 @@ export default function LoginScreen() {
               keyboardType="email-address"
               autoCapitalize="none"
               error={errors.email}
-              leftIcon={<Ionicons name="mail-outline" size={18} color={theme.textMuted} />}
+              leftIcon={
+                <Ionicons
+                  name="mail-outline"
+                  size={18}
+                  color={theme.textMuted}
+                />
+              }
             />
 
             <Input
@@ -158,10 +161,16 @@ export default function LoginScreen() {
               onChangeText={setPassword}
               secureTextEntry={!showPassword}
               error={errors.password}
-              leftIcon={<Ionicons name="lock-closed-outline" size={18} color={theme.textMuted} />}
+              leftIcon={
+                <Ionicons
+                  name="lock-closed-outline"
+                  size={18}
+                  color={theme.textMuted}
+                />
+              }
               rightIcon={
                 <Ionicons
-                  name={showPassword ? 'eye-off-outline' : 'eye-outline'}
+                  name={showPassword ? "eye-off-outline" : "eye-outline"}
                   size={18}
                   color={theme.textMuted}
                 />
@@ -171,7 +180,7 @@ export default function LoginScreen() {
 
             <View style={styles.forgotRow}>
               <Pressable
-                onPress={() => router.push('/(auth)/forgot-password')}
+                onPress={() => router.push("/(auth)/forgot-password")}
                 style={({ pressed }) => [{ opacity: pressed ? 0.7 : 1 }]}
               >
                 <Text style={[styles.forgotText, { color: theme.primary }]}>
@@ -181,72 +190,22 @@ export default function LoginScreen() {
             </View>
 
             <Button
-              label={loading ? 'Signing in...' : 'Sign In'}
+              label={loading ? "Signing in..." : "Sign In"}
               size="lg"
               variant="primary"
+              fullWidth
               loading={loading}
               onPress={handleLogin}
-              style={{ marginTop: 8 }}
+              style={{ marginTop: 4 }}
             />
-          </View>
-
-          {/* Quick Demo Fillers */}
-          <View style={styles.quickFillSection}>
-            <Text style={[styles.quickFillLabel, { color: theme.textMuted }]}>
-              TEST ACCOUNTS (1-TAP AUTOFILL):
-            </Text>
-            <View style={styles.demoChipsRow}>
-              <Pressable
-                onPress={() => handleQuickDemo('alice@matrixsplit.com', 'Alice')}
-                style={({ pressed }) => [
-                  styles.demoPill,
-                  {
-                    backgroundColor: theme.surface,
-                    borderColor: theme.border,
-                    opacity: pressed ? 0.7 : 1,
-                  },
-                ]}
-              >
-                <Text style={[styles.demoPillText, { color: theme.text }]}>Alice (Admin)</Text>
-              </Pressable>
-
-              <Pressable
-                onPress={() => handleQuickDemo('bob@matrixsplit.com', 'Bob')}
-                style={({ pressed }) => [
-                  styles.demoPill,
-                  {
-                    backgroundColor: theme.surface,
-                    borderColor: theme.border,
-                    opacity: pressed ? 0.7 : 1,
-                  },
-                ]}
-              >
-                <Text style={[styles.demoPillText, { color: theme.text }]}>Bob</Text>
-              </Pressable>
-
-              <Pressable
-                onPress={() => handleQuickDemo('charlie@matrixsplit.com', 'Charlie')}
-                style={({ pressed }) => [
-                  styles.demoPill,
-                  {
-                    backgroundColor: theme.surface,
-                    borderColor: theme.border,
-                    opacity: pressed ? 0.7 : 1,
-                  },
-                ]}
-              >
-                <Text style={[styles.demoPillText, { color: theme.text }]}>Charlie</Text>
-              </Pressable>
-            </View>
-          </View>
-
+          </Card>
           {/* Sign Up Redirect */}
           <View style={styles.footerRow}>
             <Text style={[styles.footerText, { color: theme.textMuted }]}>
-              Don't have an account?{' '}
+              Don't have an account?{" "}
             </Text>
             <Pressable
-              onPress={() => router.push('/(auth)/signup')}
+              onPress={() => router.push("/(auth)/signup")}
               style={({ pressed }) => [{ opacity: pressed ? 0.7 : 1 }]}
             >
               <Text style={[styles.signUpLink, { color: theme.primary }]}>
@@ -274,8 +233,8 @@ const styles = StyleSheet.create({
     height: 38,
     borderRadius: 12,
     borderWidth: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
   scrollContent: {
     paddingHorizontal: 20,
@@ -283,70 +242,66 @@ const styles = StyleSheet.create({
     paddingBottom: 32,
   },
   header: {
-    alignItems: 'center',
+    alignItems: "center",
     marginBottom: 20,
   },
   brandIcon: {
-    width: 52,
-    height: 52,
-    alignItems: 'center',
-    justifyContent: 'center',
+    width: 48,
+    height: 48,
+    alignItems: "center",
+    justifyContent: "center",
     marginBottom: 12,
   },
   title: {
-    fontWeight: '800',
+    fontWeight: "800",
     letterSpacing: -0.5,
-    textAlign: 'center',
+    textAlign: "center",
   },
   subtitle: {
-    textAlign: 'center',
+    textAlign: "center",
     marginTop: 6,
-    maxWidth: 280,
-  },
-  formCard: {
-    padding: 20,
-    borderWidth: 1,
-    marginBottom: 20,
+    maxWidth: 290,
+    lineHeight: 19,
   },
   forgotRow: {
-    alignItems: 'flex-end',
+    alignItems: "flex-end",
     marginBottom: 14,
     marginTop: -4,
   },
   forgotText: {
     fontSize: 13,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   quickFillSection: {
     marginBottom: 24,
-    alignItems: 'center',
+    alignItems: "center",
   },
   quickFillLabel: {
     fontSize: 11,
-    fontWeight: '700',
+    fontWeight: "700",
     letterSpacing: 0.6,
     marginBottom: 8,
   },
   demoChipsRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'center',
+    flexDirection: "row",
+    flexWrap: "wrap",
+    justifyContent: "center",
     gap: 8,
   },
   demoPill: {
     paddingHorizontal: 12,
     paddingVertical: 7,
-    borderRadius: 20,
+    borderRadius: 16,
     borderWidth: 1,
   },
   demoPillText: {
     fontSize: 12,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   footerRow: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
     marginTop: 8,
   },
   footerText: {
@@ -354,6 +309,6 @@ const styles = StyleSheet.create({
   },
   signUpLink: {
     fontSize: 14,
-    fontWeight: '700',
+    fontWeight: "700",
   },
 });

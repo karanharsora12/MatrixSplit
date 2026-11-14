@@ -12,7 +12,6 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import {
-  Card,
   Avatar,
   Badge,
   Button,
@@ -42,7 +41,7 @@ const categoryIcons: Record<string, keyof typeof Ionicons.glyphMap> = {
 export default function ExpenseDetailsScreen() {
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id: string }>();
-  const { theme, typography, spacing, borderRadius, isDark } = useWatermelonTheme();
+  const { theme, isDark } = useWatermelonTheme();
   const currentUser = useAuthStore((s) => s.user);
 
   const { data: expense, isLoading } = useExpenseDetails(id!);
@@ -107,18 +106,18 @@ export default function ExpenseDetailsScreen() {
   return (
     <SafeAreaView
       edges={["top", "left", "right"]}
-      style={[styles.container, { backgroundColor: theme.background }]}
+      style={[styles.container, { backgroundColor: isDark ? '#090D16' : '#F8FAFC' }]}
     >
       {/* Top Header */}
-      <View style={styles.headerBar}>
+      <View style={[styles.headerBar, { borderBottomColor: isDark ? '#1E293B' : '#F1F5F9' }]}>
         <Pressable
           onPress={() => router.back()}
           hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
           style={({ pressed }) => [
             styles.backBtn,
             {
-              backgroundColor: theme.surface,
-              borderColor: theme.border,
+              backgroundColor: isDark ? '#111827' : '#FFFFFF',
+              borderColor: isDark ? '#1E293B' : '#E2E8F0',
               opacity: pressed ? 0.7 : 1,
             },
           ]}
@@ -129,7 +128,7 @@ export default function ExpenseDetailsScreen() {
         <Text
           style={[
             styles.headerTitle,
-            { color: theme.text, fontSize: typography.fontSize.base },
+            { color: theme.text },
           ]}
         >
           Expense Receipt
@@ -141,40 +140,52 @@ export default function ExpenseDetailsScreen() {
           style={({ pressed }) => [
             styles.backBtn,
             {
-              backgroundColor: theme.surface,
-              borderColor: theme.border,
+              backgroundColor: isDark ? '#111827' : '#FFFFFF',
+              borderColor: isDark ? '#1E293B' : '#E2E8F0',
               opacity: pressed ? 0.7 : 1,
             },
           ]}
         >
-          <Ionicons name="trash-outline" size={18} color={theme.negative} />
+          <Ionicons name="trash-outline" size={18} color="#F43F5E" />
         </Pressable>
       </View>
 
-      <ScrollView contentContainerStyle={styles.scrollContent}>
+      <ScrollView
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
         {isLoading || !expense ? (
           <SkeletonCard />
         ) : (
           <>
             {/* Hero Receipt Card */}
-            <Card
-              variant="elevated"
-              padding="lg"
-              style={{ marginBottom: spacing.md, alignItems: "center" }}
+            <View
+              style={[
+                styles.receiptCard,
+                {
+                  backgroundColor: isDark ? '#111827' : '#FFFFFF',
+                  borderColor: isDark ? '#1E293B' : '#E2E8F0',
+                  shadowColor: '#000',
+                  shadowOffset: { width: 0, height: 2 },
+                  shadowOpacity: isDark ? 0.25 : 0.04,
+                  shadowRadius: 6,
+                  elevation: 2,
+                },
+              ]}
             >
               <View
                 style={[
                   styles.categoryCircle,
-                  { backgroundColor: isDark ? 'rgba(16,185,129,0.15)' : '#D1FAE5' },
+                  { backgroundColor: isDark ? 'rgba(16,185,129,0.18)' : '#D1FAE5' },
                 ]}
               >
-                <Ionicons name={iconName} size={36} color={theme.primary} />
+                <Ionicons name={iconName} size={32} color={theme.primary} />
               </View>
 
               <Text
                 style={[
                   styles.expenseTitle,
-                  { color: theme.text, fontSize: typography.fontSize.xl },
+                  { color: theme.text },
                 ]}
               >
                 {expense.title}
@@ -183,7 +194,7 @@ export default function ExpenseDetailsScreen() {
               <Text
                 style={[
                   styles.expenseAmountLarge,
-                  { color: theme.text, fontSize: typography.fontSize['4xl'] },
+                  { color: theme.text },
                 ]}
               >
                 {formatCurrency(expense.totalAmountMinor, expense.currency)}
@@ -191,7 +202,7 @@ export default function ExpenseDetailsScreen() {
 
               <View style={styles.metaRow}>
                 <Badge label={expense.category} size="sm" variant="info" />
-                <Text style={{ color: theme.textMuted, marginHorizontal: 8 }}>•</Text>
+                <Text style={{ color: theme.textMuted, marginHorizontal: 8 }}>·</Text>
                 <Text style={{ color: theme.textMuted, fontSize: 12 }}>
                   {new Date(expense.date).toLocaleDateString(undefined, {
                     year: 'numeric',
@@ -202,25 +213,37 @@ export default function ExpenseDetailsScreen() {
               </View>
 
               {expense.notes ? (
-                <View style={[styles.notesBox, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+                <View
+                  style={[
+                    styles.notesBox,
+                    {
+                      backgroundColor: isDark ? '#0F172A' : '#F8FAFC',
+                      borderColor: isDark ? '#1E293B' : '#E2E8F0',
+                    },
+                  ]}
+                >
                   <Ionicons name="document-text-outline" size={16} color={theme.textMuted} style={{ marginRight: 6 }} />
                   <Text style={{ color: theme.text, fontSize: 13, flex: 1 }}>
                     {expense.notes}
                   </Text>
                 </View>
               ) : null}
-            </Card>
+            </View>
 
             {/* Paid By Info Card */}
-            <Card
-              variant="outlined"
-              padding="md"
-              style={{ marginBottom: spacing.md }}
+            <View
+              style={[
+                styles.infoCard,
+                {
+                  backgroundColor: isDark ? '#111827' : '#FFFFFF',
+                  borderColor: isDark ? '#1E293B' : '#E2E8F0',
+                },
+              ]}
             >
               <Text
                 style={[
                   styles.sectionHeaderLabel,
-                  { color: theme.textMuted, fontSize: typography.fontSize.xs },
+                  { color: theme.textMuted },
                 ]}
               >
                 PAID BY
@@ -228,30 +251,34 @@ export default function ExpenseDetailsScreen() {
               <View style={styles.payerRow}>
                 <Avatar name={expense.payer?.fullName || "User"} size="md" />
                 <View style={{ marginLeft: 12, flex: 1 }}>
-                  <Text style={{ color: theme.text, fontWeight: "700", fontSize: 15 }}>
+                  <Text style={{ color: theme.text, fontWeight: "700", fontSize: 14 }}>
                     {expense.payer?.fullName}
                   </Text>
                   <Text style={{ color: theme.textMuted, fontSize: 12 }}>
                     Paid the entire amount upfront
                   </Text>
                 </View>
-                <Text style={{ color: theme.primary, fontWeight: "800", fontSize: 15 }}>
+                <Text style={{ color: isDark ? '#34D399' : '#059669', fontWeight: "800", fontSize: 15, fontVariant: ['tabular-nums'] }}>
                   {formatCurrency(expense.totalAmountMinor, expense.currency)}
                 </Text>
               </View>
-            </Card>
+            </View>
 
             {/* Split Breakdown Table */}
-            <Card
-              variant="outlined"
-              padding="md"
-              style={{ marginBottom: spacing.md }}
+            <View
+              style={[
+                styles.infoCard,
+                {
+                  backgroundColor: isDark ? '#111827' : '#FFFFFF',
+                  borderColor: isDark ? '#1E293B' : '#E2E8F0',
+                },
+              ]}
             >
               <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
                 <Text
                   style={[
                     styles.sectionHeaderLabel,
-                    { color: theme.textMuted, fontSize: typography.fontSize.xs },
+                    { color: theme.textMuted },
                   ]}
                 >
                   SPLIT BREAKDOWN ({expense.participants?.length || 0})
@@ -270,7 +297,7 @@ export default function ExpenseDetailsScreen() {
                     key={p.userId}
                     style={[
                       styles.participantRow,
-                      { borderBottomColor: theme.divider },
+                      { borderBottomColor: isDark ? '#1E293B' : '#F1F5F9' },
                     ]}
                   >
                     <Avatar name={p.user?.fullName || "User"} size="sm" />
@@ -279,7 +306,7 @@ export default function ExpenseDetailsScreen() {
                         style={{
                           color: theme.text,
                           fontWeight: isCurrentUser ? "800" : "600",
-                          fontSize: 14,
+                          fontSize: 13,
                         }}
                       >
                         {p.user?.fullName} {isCurrentUser ? "(You)" : ""}
@@ -290,6 +317,7 @@ export default function ExpenseDetailsScreen() {
                         color: theme.text,
                         fontWeight: "700",
                         fontSize: 14,
+                        fontVariant: ['tabular-nums'],
                       }}
                     >
                       {formatCurrency(p.allocatedAmountMinor, expense.currency)}
@@ -297,18 +325,23 @@ export default function ExpenseDetailsScreen() {
                   </View>
                 );
               })}
-            </Card>
+            </View>
 
             {/* Activity & Comments Section */}
-            <Card
-              variant="outlined"
-              padding="md"
-              style={{ marginBottom: spacing.lg }}
+            <View
+              style={[
+                styles.infoCard,
+                {
+                  backgroundColor: isDark ? '#111827' : '#FFFFFF',
+                  borderColor: isDark ? '#1E293B' : '#E2E8F0',
+                  marginBottom: 24,
+                },
+              ]}
             >
               <Text
                 style={[
                   styles.sectionHeaderLabel,
-                  { color: theme.textMuted, fontSize: typography.fontSize.xs, marginBottom: 10 },
+                  { color: theme.textMuted, marginBottom: 10 },
                 ]}
               >
                 NOTES & COMMENTS ({commentsList.length})
@@ -319,7 +352,10 @@ export default function ExpenseDetailsScreen() {
                   key={c.id}
                   style={[
                     styles.commentBubble,
-                    { backgroundColor: theme.surface, borderColor: theme.border },
+                    {
+                      backgroundColor: isDark ? '#0F172A' : '#F8FAFC',
+                      borderColor: isDark ? '#1E293B' : '#E2E8F0',
+                    },
                   ]}
                 >
                   <View style={{ flexDirection: "row", justifyContent: "space-between", marginBottom: 3 }}>
@@ -330,24 +366,24 @@ export default function ExpenseDetailsScreen() {
                       {c.time}
                     </Text>
                   </View>
-                  <Text style={{ color: theme.text, fontSize: 13 }}>
+                  <Text style={{ color: theme.text, fontSize: 13, lineHeight: 18 }}>
                     {c.text}
                   </Text>
                 </View>
               ))}
 
-              <View style={styles.addCommentRow}>
+              <View style={styles.commentInputRow}>
                 <TextInput
-                  placeholder="Add a comment or receipt note..."
+                  placeholder="Add a comment or note..."
                   placeholderTextColor={theme.textMuted}
                   value={commentText}
                   onChangeText={setCommentText}
                   style={[
                     styles.commentInput,
                     {
-                      backgroundColor: theme.surface,
-                      borderColor: theme.border,
                       color: theme.text,
+                      backgroundColor: isDark ? '#0F172A' : '#F8FAFC',
+                      borderColor: isDark ? '#1E293B' : '#E2E8F0',
                     },
                   ]}
                 />
@@ -356,10 +392,10 @@ export default function ExpenseDetailsScreen() {
                   size="sm"
                   variant="primary"
                   onPress={handleAddComment}
-                  style={{ marginLeft: 8 }}
+                  style={{ height: 40, paddingHorizontal: 14 }}
                 />
               </View>
-            </Card>
+            </View>
           </>
         )}
       </ScrollView>
@@ -375,9 +411,10 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    paddingHorizontal: 20,
-    paddingTop: 8,
-    paddingBottom: 8,
+    paddingHorizontal: 18,
+    paddingTop: 10,
+    paddingBottom: 12,
+    borderBottomWidth: 1,
   },
   backBtn: {
     width: 36,
@@ -388,46 +425,66 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   headerTitle: {
-    fontWeight: "800",
+    fontSize: 16,
+    fontWeight: "700",
+    letterSpacing: -0.2,
   },
   scrollContent: {
+    padding: 18,
+    paddingBottom: 36,
+  },
+  receiptCard: {
+    borderRadius: 18,
+    borderWidth: 1,
     padding: 20,
-    paddingTop: 8,
-    paddingBottom: 40,
+    alignItems: "center",
+    marginBottom: 14,
   },
   categoryCircle: {
-    width: 68,
-    height: 68,
-    borderRadius: 22,
+    width: 58,
+    height: 58,
+    borderRadius: 18,
     alignItems: "center",
     justifyContent: "center",
     marginBottom: 12,
   },
   expenseTitle: {
+    fontSize: 18,
     fontWeight: "800",
-    marginBottom: 6,
     textAlign: "center",
+    letterSpacing: -0.3,
   },
   expenseAmountLarge: {
-    fontWeight: "900",
-    marginBottom: 10,
+    fontSize: 34,
+    fontWeight: "800",
+    fontVariant: ['tabular-nums'],
+    letterSpacing: -0.8,
+    marginVertical: 8,
   },
   metaRow: {
     flexDirection: "row",
     alignItems: "center",
+    marginTop: 2,
   },
   notesBox: {
     flexDirection: "row",
     alignItems: "center",
-    padding: 10,
-    borderRadius: 10,
+    padding: 12,
+    borderRadius: 12,
     borderWidth: 1,
     marginTop: 14,
     width: "100%",
   },
+  infoCard: {
+    borderRadius: 16,
+    borderWidth: 1,
+    padding: 14,
+    marginBottom: 12,
+  },
   sectionHeaderLabel: {
+    fontSize: 11,
     fontWeight: "700",
-    letterSpacing: 0.6,
+    letterSpacing: 0.5,
     marginBottom: 8,
   },
   payerRow: {
@@ -442,19 +499,20 @@ const styles = StyleSheet.create({
   },
   commentBubble: {
     padding: 10,
-    borderRadius: 10,
+    borderRadius: 12,
     borderWidth: 1,
     marginBottom: 8,
   },
-  addCommentRow: {
+  commentInputRow: {
     flexDirection: "row",
     alignItems: "center",
-    marginTop: 8,
+    marginTop: 10,
+    gap: 8,
   },
   commentInput: {
     flex: 1,
     height: 40,
-    borderRadius: 10,
+    borderRadius: 12,
     borderWidth: 1,
     paddingHorizontal: 12,
     fontSize: 13,

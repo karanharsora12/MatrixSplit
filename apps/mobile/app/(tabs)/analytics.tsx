@@ -12,7 +12,6 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import {
   Card,
-  Button,
   SkeletonCard,
   SegmentedControl,
 } from '@/components';
@@ -21,30 +20,20 @@ import { useAnalyticsSummary } from '../../src/hooks/useQueries';
 import { formatCurrency } from '@matrixsplit/shared';
 import { API_BASE_URL } from '../../src/services/api';
 
-const categoryColors: Record<string, string> = {
-  food_and_drink: '#F59E0B',
-  groceries: '#10B981',
-  transport: '#3B82F6',
-  housing: '#8B5CF6',
-  entertainment: '#EC4899',
-  travel: '#06B6D4',
-  utilities: '#F97316',
-  shopping: '#EAB308',
-  health: '#EF4444',
-  general: '#64748B',
-};
-
-const categoryNames: Record<string, string> = {
-  food_and_drink: 'Food & Drink',
-  groceries: 'Groceries',
-  transport: 'Transport',
-  housing: 'Housing & Rent',
-  entertainment: 'Entertainment',
-  travel: 'Travel & Trips',
-  utilities: 'Bills & Utilities',
-  shopping: 'Shopping',
-  health: 'Health & Medical',
-  general: 'General',
+const categoryMeta: Record<
+  string,
+  { label: string; color: string; icon: keyof typeof Ionicons.glyphMap }
+> = {
+  food_and_drink: { label: 'Food & Drink', color: '#F59E0B', icon: 'restaurant-outline' },
+  groceries: { label: 'Groceries', color: '#10B981', icon: 'cart-outline' },
+  transport: { label: 'Transport', color: '#3B82F6', icon: 'car-outline' },
+  housing: { label: 'Housing & Rent', color: '#8B5CF6', icon: 'home-outline' },
+  entertainment: { label: 'Entertainment', color: '#EC4899', icon: 'film-outline' },
+  travel: { label: 'Travel & Trips', color: '#06B6D4', icon: 'airplane-outline' },
+  utilities: { label: 'Bills & Utilities', color: '#F97316', icon: 'flash-outline' },
+  shopping: { label: 'Shopping', color: '#EAB308', icon: 'bag-handle-outline' },
+  health: { label: 'Health & Medical', color: '#EF4444', icon: 'medkit-outline' },
+  general: { label: 'General', color: '#64748B', icon: 'pricetag-outline' },
 };
 
 export default function AnalyticsScreen() {
@@ -55,9 +44,9 @@ export default function AnalyticsScreen() {
   const handleExportCsv = async () => {
     try {
       Alert.alert(
-        'Export Report',
-        `CSV report is ready for download from:\n${API_BASE_URL}/analytics/export/csv`,
-        [{ text: 'Got it' }]
+        'Export Ledger Report',
+        `CSV export generated.\nEndpoint: ${API_BASE_URL}/analytics/export/csv`,
+        [{ text: 'Dismiss' }]
       );
     } catch {
       Alert.alert('Export Failed', 'Could not generate report.');
@@ -66,6 +55,8 @@ export default function AnalyticsScreen() {
 
   const totalSpent = analytics?.totalSpentMinor || 0;
   const currency = analytics?.currency || 'INR';
+  const totalCount = analytics?.totalExpensesCount || 0;
+  const avgExpense = totalCount > 0 ? Math.round(totalSpent / totalCount) : 0;
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]} edges={['top', 'left', 'right']}>
@@ -87,6 +78,7 @@ export default function AnalyticsScreen() {
 
         <Pressable
           onPress={handleExportCsv}
+          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
           style={({ pressed }) => [
             styles.exportBtn,
             {
@@ -109,7 +101,7 @@ export default function AnalyticsScreen() {
       </View>
 
       {/* Period Selector */}
-      <View style={{ paddingHorizontal: 20, paddingTop: 4, paddingBottom: 10 }}>
+      <View style={styles.periodSection}>
         <SegmentedControl
           value={period}
           onChange={(val) => setPeriod(val as any)}
@@ -123,6 +115,7 @@ export default function AnalyticsScreen() {
 
       <ScrollView
         contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
         refreshControl={
           <RefreshControl
             refreshing={isRefetching}
@@ -139,17 +132,12 @@ export default function AnalyticsScreen() {
         ) : (
           <>
             {/* Total Spending Hero Card */}
-            <View
-              style={[
-                styles.heroStatCard,
-                {
-                  backgroundColor: theme.card,
-                  borderColor: theme.border,
-                  borderRadius: borderRadius.xl,
-                },
-              ]}
+            <Card
+              variant="elevated"
+              padding="lg"
+              style={{ marginBottom: 20 }}
             >
-              <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+              <View style={styles.heroTopRow}>
                 <Text
                   style={[
                     styles.statLabel,
@@ -158,7 +146,12 @@ export default function AnalyticsScreen() {
                 >
                   TOTAL EXPENDITURE
                 </Text>
-                <View style={[styles.badgePill, { backgroundColor: isDark ? 'rgba(16,185,129,0.15)' : '#D1FAE5' }]}>
+                <View
+                  style={[
+                    styles.badgePill,
+                    { backgroundColor: isDark ? 'rgba(16,185,129,0.15)' : '#D1FAE5' },
+                  ]}
+                >
                   <Ionicons name="trending-up" size={12} color={theme.primary} style={{ marginRight: 4 }} />
                   <Text style={{ color: theme.primary, fontSize: 11, fontWeight: '700' }}>Active</Text>
                 </View>
@@ -167,30 +160,36 @@ export default function AnalyticsScreen() {
               <Text
                 style={[
                   styles.totalSpentAmount,
-                  { color: theme.text, fontSize: typography.fontSize['3xl'] },
+                  { color: theme.text, fontSize: 34, fontVariant: ['tabular-nums'] },
                 ]}
               >
                 {formatCurrency(totalSpent, currency)}
               </Text>
 
-              <View style={[styles.statDivider, { backgroundColor: theme.divider }]} />
+              <View style={[styles.statDivider, { backgroundColor: isDark ? '#1E293B' : '#E2E8F0' }]} />
 
-              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-                <Text style={{ color: theme.textMuted, fontSize: 12 }}>
-                  Recorded shared expenses:
-                </Text>
-                <Text style={{ color: theme.text, fontWeight: '700', fontSize: 13 }}>
-                  {analytics?.totalExpensesCount || 0} transactions
-                </Text>
+              <View style={styles.statSubRow}>
+                <View>
+                  <Text style={{ color: theme.textMuted, fontSize: 11 }}>Total Transactions</Text>
+                  <Text style={{ color: theme.text, fontWeight: '700', fontSize: 13, marginTop: 2, fontVariant: ['tabular-nums'] }}>
+                    {totalCount} bills
+                  </Text>
+                </View>
+                <View style={{ alignItems: 'flex-end' }}>
+                  <Text style={{ color: theme.textMuted, fontSize: 11 }}>Average / Expense</Text>
+                  <Text style={{ color: theme.text, fontWeight: '700', fontSize: 13, marginTop: 2, fontVariant: ['tabular-nums'] }}>
+                    {formatCurrency(avgExpense, currency)}
+                  </Text>
+                </View>
               </View>
-            </View>
+            </Card>
 
-            {/* Category Breakdown with Visual Bars */}
+            {/* Category Breakdown Header */}
             <View style={styles.sectionHeader}>
               <Text
                 style={[
                   styles.sectionTitle,
-                  { color: theme.text, fontSize: typography.fontSize.lg },
+                  { color: theme.text, fontSize: typography.fontSize.base },
                 ]}
               >
                 Spending by Category
@@ -201,12 +200,15 @@ export default function AnalyticsScreen() {
               <Card
                 variant="outlined"
                 padding="md"
-                style={{ marginBottom: spacing.md }}
+                style={{ marginBottom: 20 }}
               >
                 {analytics.categoryBreakdown.map((cat: any) => {
-                  const color = categoryColors[cat.category] || theme.primary;
+                  const meta = categoryMeta[cat.category] || {
+                    label: cat.category,
+                    color: theme.primary,
+                    icon: 'pricetag-outline',
+                  };
                   const percent = totalSpent > 0 ? Math.round((cat.amountMinor / totalSpent) * 100) : 0;
-                  const catLabel = categoryNames[cat.category] || cat.category;
 
                   return (
                     <View key={cat.category} style={styles.categoryItem}>
@@ -214,17 +216,19 @@ export default function AnalyticsScreen() {
                         <View style={styles.categoryLabelRow}>
                           <View
                             style={[
-                              styles.categoryDot,
-                              { backgroundColor: color },
+                              styles.categoryIconCircle,
+                              { backgroundColor: `${meta.color}20` },
                             ]}
-                          />
+                          >
+                            <Ionicons name={meta.icon} size={14} color={meta.color} />
+                          </View>
                           <Text
                             style={[
                               styles.categoryName,
                               { color: theme.text, fontSize: typography.fontSize.sm },
                             ]}
                           >
-                            {catLabel}
+                            {meta.label}
                           </Text>
                         </View>
 
@@ -232,7 +236,7 @@ export default function AnalyticsScreen() {
                           <Text
                             style={[
                               styles.categoryAmount,
-                              { color: theme.text, fontSize: typography.fontSize.sm },
+                              { color: theme.text, fontSize: typography.fontSize.sm, fontVariant: ['tabular-nums'] },
                             ]}
                           >
                             {formatCurrency(cat.amountMinor, currency)}
@@ -240,7 +244,7 @@ export default function AnalyticsScreen() {
                           <Text
                             style={[
                               styles.categoryPercent,
-                              { color: theme.textMuted, fontSize: typography.fontSize.xs },
+                              { color: theme.textMuted, fontSize: typography.fontSize.xs, fontVariant: ['tabular-nums'] },
                             ]}
                           >
                             ({percent}%)
@@ -252,14 +256,17 @@ export default function AnalyticsScreen() {
                       <View
                         style={[
                           styles.progressBarTrack,
-                          { backgroundColor: theme.divider, borderRadius: borderRadius.full },
+                          {
+                            backgroundColor: isDark ? '#1E293B' : '#F1F5F9',
+                            borderRadius: borderRadius.full,
+                          },
                         ]}
                       >
                         <View
                           style={[
                             styles.progressBarFill,
                             {
-                              backgroundColor: color,
+                              backgroundColor: meta.color,
                               width: `${Math.min(100, Math.max(percent, 4))}%`,
                               borderRadius: borderRadius.full,
                             },
@@ -271,35 +278,35 @@ export default function AnalyticsScreen() {
                 })}
               </Card>
             ) : (
-              <Card padding="md" variant="outlined" style={{ alignItems: 'center', paddingVertical: 28 }}>
-                <Ionicons name="pie-chart-outline" size={40} color={theme.textMuted} style={{ marginBottom: 10 }} />
+              <Card padding="lg" variant="outlined" style={{ alignItems: 'center', paddingVertical: 32, marginBottom: 20 }}>
+                <Ionicons name="pie-chart-outline" size={38} color={theme.textMuted} style={{ marginBottom: 8 }} />
                 <Text style={{ color: theme.text, fontWeight: '700', fontSize: 15, marginBottom: 4 }}>
                   No category data yet
                 </Text>
-                <Text style={{ color: theme.textMuted, fontSize: 12, textAlign: 'center' }}>
-                  Add group expenses to see visual spending breakdowns.
+                <Text style={{ color: theme.textMuted, fontSize: 12, textAlign: 'center', maxWidth: 260 }}>
+                  Add expenses to see real-time visual categorization and spending distribution.
                 </Text>
               </Card>
             )}
 
-            {/* Smart Financial Tips Card */}
+            {/* Smart Financial Optimization Card */}
             <View
               style={[
                 styles.tipCard,
                 {
                   backgroundColor: isDark ? 'rgba(59,130,246,0.1)' : '#EFF6FF',
-                  borderColor: isDark ? '#1E3A8A' : '#BFDBFE',
+                  borderColor: isDark ? 'rgba(59,130,246,0.3)' : '#BFDBFE',
                   borderRadius: borderRadius.lg,
                 },
               ]}
             >
-              <Ionicons name="bulb-outline" size={20} color="#3B82F6" style={{ marginRight: 10 }} />
+              <Ionicons name="sparkles" size={18} color="#3B82F6" style={{ marginRight: 10, marginTop: 2 }} />
               <View style={{ flex: 1 }}>
                 <Text style={{ color: theme.text, fontWeight: '700', fontSize: 13, marginBottom: 2 }}>
-                  Min-Cash Flow Optimization
+                  Min-Cash Flow Graph Optimization
                 </Text>
-                <Text style={{ color: theme.textMuted, fontSize: 12, lineHeight: 17 }}>
-                  MatrixSplit periodically recalculates transitive debts to ensure you settle with the fewest number of transactions.
+                <Text style={{ color: theme.textMuted, fontSize: 12, lineHeight: 18 }}>
+                  MatrixSplit simplifies multi-party debts behind the scenes, eliminating circular repayments so groups settle up in the minimum number of steps.
                 </Text>
               </View>
             </View>
@@ -341,32 +348,20 @@ const styles = StyleSheet.create({
   exportBtnText: {
     fontWeight: '700',
   },
-  periodRow: {
-    flexDirection: 'row',
+  periodSection: {
     paddingHorizontal: 20,
-    paddingBottom: 10,
-    gap: 8,
-  },
-  periodTab: {
-    flex: 1,
-    paddingVertical: 7,
-    borderRadius: 18,
-    borderWidth: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  periodTabText: {
-    fontSize: 12,
+    paddingTop: 4,
+    paddingBottom: 8,
   },
   scrollContent: {
-    padding: 20,
-    paddingTop: 4,
+    paddingHorizontal: 20,
+    paddingTop: 8,
     paddingBottom: 40,
   },
-  heroStatCard: {
-    padding: 18,
-    borderWidth: 1,
-    marginBottom: 20,
+  heroTopRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
   },
   statLabel: {
     fontWeight: '700',
@@ -382,16 +377,23 @@ const styles = StyleSheet.create({
   totalSpentAmount: {
     fontWeight: '800',
     marginVertical: 10,
+    letterSpacing: -0.5,
   },
   statDivider: {
     height: 1,
     marginVertical: 12,
+  },
+  statSubRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
   },
   sectionHeader: {
     marginBottom: 10,
   },
   sectionTitle: {
     fontWeight: '700',
+    letterSpacing: -0.2,
   },
   categoryItem: {
     marginBottom: 16,
@@ -406,10 +408,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
   },
-  categoryDot: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
+  categoryIconCircle: {
+    width: 24,
+    height: 24,
+    borderRadius: 7,
+    alignItems: 'center',
+    justifyContent: 'center',
     marginRight: 8,
   },
   categoryName: {
@@ -422,7 +426,7 @@ const styles = StyleSheet.create({
     marginLeft: 6,
   },
   progressBarTrack: {
-    height: 8,
+    height: 6,
     overflow: 'hidden',
   },
   progressBarFill: {
@@ -433,6 +437,5 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
     padding: 14,
     borderWidth: 1,
-    marginTop: 4,
   },
 });

@@ -147,12 +147,15 @@ export default function FriendDetailScreen() {
         </Pressable>
       </View>
 
-      <ScrollView contentContainerStyle={styles.scrollContent}>
-        {/* Profile & Net Balance Card */}
+      <ScrollView
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Profile & Net Balance Hero Card */}
         <Card
           variant="elevated"
           padding="lg"
-          style={{ marginBottom: spacing.md, alignItems: 'center' }}
+          style={{ marginBottom: 16, alignItems: 'center' }}
         >
           <Avatar name={friendName} size="xl" />
           <Text
@@ -164,7 +167,7 @@ export default function FriendDetailScreen() {
             {friendName}
           </Text>
           <Text style={{ color: theme.textMuted, fontSize: 13, marginBottom: 14 }}>
-            {friend?.email || 'Friend on MatrixSplit'}
+            {friend?.email || 'Connected on MatrixSplit'}
           </Text>
 
           {/* Balance Status Banner */}
@@ -175,8 +178,8 @@ export default function FriendDetailScreen() {
                 backgroundColor: isPositive
                   ? (isDark ? 'rgba(16,185,129,0.12)' : '#ECFDF5')
                   : isNegative
-                  ? (isDark ? 'rgba(239,68,68,0.12)' : '#FEF2F2')
-                  : theme.surface,
+                  ? (isDark ? 'rgba(244,63,94,0.12)' : '#FFF1F2')
+                  : (isDark ? '#1E293B' : '#F1F5F9'),
                 borderColor: isPositive
                   ? theme.primary
                   : isNegative
@@ -185,26 +188,41 @@ export default function FriendDetailScreen() {
               },
             ]}
           >
-            <Text
-              style={{
-                color: isPositive
-                  ? theme.positive
+            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+              <View
+                style={[
+                  styles.statusDot,
+                  {
+                    backgroundColor: isPositive
+                      ? theme.positive
+                      : isNegative
+                      ? theme.negative
+                      : theme.textMuted,
+                  },
+                ]}
+              />
+              <Text
+                style={{
+                  color: isPositive
+                    ? theme.positive
+                    : isNegative
+                    ? theme.negative
+                    : theme.text,
+                  fontWeight: '800',
+                  fontSize: 15,
+                  fontVariant: ['tabular-nums'],
+                }}
+              >
+                {isPositive
+                  ? `${friendName} owes you ${formatCurrency(balanceMinor, currency)}`
                   : isNegative
-                  ? theme.negative
-                  : theme.text,
-                fontWeight: '800',
-                fontSize: 16,
-              }}
-            >
-              {isPositive
-                ? `${friendName} owes you ${formatCurrency(balanceMinor, currency)}`
-                : isNegative
-                ? `You owe ${friendName} ${formatCurrency(Math.abs(balanceMinor), currency)}`
-                : `You and ${friendName} are settled up`}
-            </Text>
+                  ? `You owe ${friendName} ${formatCurrency(Math.abs(balanceMinor), currency)}`
+                  : `You and ${friendName} are all settled up`}
+              </Text>
+            </View>
           </View>
 
-          {/* Quick Action Buttons Grid */}
+          {/* Action Buttons Row */}
           <View style={styles.actionButtonsRow}>
             {isNegative && (
               <Button
@@ -230,10 +248,11 @@ export default function FriendDetailScreen() {
 
             <Button
               label="+ Expense"
-              variant="outline"
+              variant={isNegative || isPositive ? 'outline' : 'primary'}
               size="md"
               onPress={handleAddExpense}
               style={{ flex: 1, marginHorizontal: 4 }}
+              icon={<Ionicons name="receipt-outline" size={16} color={isNegative || isPositive ? theme.text : '#FFFFFF'} />}
             />
           </View>
         </Card>
@@ -243,31 +262,31 @@ export default function FriendDetailScreen() {
           value={activeTab}
           onChange={(val) => setActiveTab(val as any)}
           options={[
-            { value: 'expenses', label: 'Expenses', badge: sharedExpenses.length },
+            { value: 'expenses', label: 'Shared Expenses', badge: sharedExpenses.length },
             { value: 'settlements', label: 'Settlements', badge: sharedSettlements.length },
           ]}
         />
 
         {/* Expenses Tab */}
         {activeTab === 'expenses' && (
-          <View style={{ marginTop: 10 }}>
+          <View style={{ marginTop: 12 }}>
             {sharedExpenses.length > 0 ? (
               sharedExpenses.map((exp: any) => (
                 <Pressable
                   key={exp.id}
                   onPress={() => router.push(`/expense/${exp.id}`)}
-                  style={({ pressed }) => [{ opacity: pressed ? 0.85 : 1 }]}
+                  style={({ pressed }) => [{ opacity: pressed ? 0.88 : 1 }]}
                 >
                   <Card
                     variant="outlined"
-                    padding="sm"
-                    style={{ marginBottom: spacing.sm }}
+                    padding="md"
+                    style={{ marginBottom: 10 }}
                   >
                     <View style={styles.historyRow}>
-                      <View style={[styles.historyIconCircle, { backgroundColor: isDark ? 'rgba(16,185,129,0.15)' : '#D1FAE5' }]}>
+                      <View style={[styles.historyIconCircle, { backgroundColor: isDark ? 'rgba(16,185,129,0.14)' : '#D1FAE5' }]}>
                         <Ionicons name="receipt-outline" size={18} color={theme.primary} />
                       </View>
-                      <View style={{ flex: 1, marginLeft: 10 }}>
+                      <View style={{ flex: 1, marginLeft: 12 }}>
                         <Text style={{ color: theme.text, fontWeight: '700', fontSize: 14 }}>
                           {exp.title}
                         </Text>
@@ -276,22 +295,44 @@ export default function FriendDetailScreen() {
                           {new Date(exp.date).toLocaleDateString()}
                         </Text>
                       </View>
-                      <Text style={{ color: theme.text, fontWeight: '800', fontSize: 14 }}>
-                        {formatCurrency(exp.totalAmountMinor, exp.currency)}
-                      </Text>
+                      <View style={{ alignItems: 'flex-end', marginLeft: 8 }}>
+                        <Text
+                          style={{
+                            color: theme.text,
+                            fontWeight: '800',
+                            fontSize: 14,
+                            fontVariant: ['tabular-nums'],
+                          }}
+                        >
+                          {formatCurrency(exp.totalAmountMinor, exp.currency)}
+                        </Text>
+                        <Ionicons
+                          name="chevron-forward"
+                          size={14}
+                          color={theme.textMuted}
+                          style={{ marginTop: 2 }}
+                        />
+                      </View>
                     </View>
                   </Card>
                 </Pressable>
               ))
             ) : (
-              <Card padding="md" variant="outlined" style={{ alignItems: 'center', paddingVertical: 24 }}>
-                <Ionicons name="receipt-outline" size={36} color={theme.textMuted} style={{ marginBottom: 6 }} />
-                <Text style={{ color: theme.text, fontWeight: '700', fontSize: 14 }}>
+              <Card padding="lg" variant="outlined" style={{ alignItems: 'center', paddingVertical: 28, marginTop: 6 }}>
+                <Ionicons name="receipt-outline" size={36} color={theme.textMuted} style={{ marginBottom: 8 }} />
+                <Text style={{ color: theme.text, fontWeight: '700', fontSize: 15 }}>
                   No shared expenses yet
                 </Text>
-                <Text style={{ color: theme.textMuted, fontSize: 12, marginTop: 2 }}>
-                  Add a bill or expense between you two to start tracking.
+                <Text style={{ color: theme.textMuted, fontSize: 12, marginTop: 4, textAlign: 'center', maxWidth: 260 }}>
+                  Add an expense or bill split between you two to begin tracking balances.
                 </Text>
+                <Button
+                  label="Add Expense"
+                  size="sm"
+                  variant="primary"
+                  onPress={handleAddExpense}
+                  style={{ marginTop: 14 }}
+                />
               </Card>
             )}
           </View>
@@ -299,45 +340,56 @@ export default function FriendDetailScreen() {
 
         {/* Settlements Tab */}
         {activeTab === 'settlements' && (
-          <View style={{ marginTop: 10 }}>
+          <View style={{ marginTop: 12 }}>
             {sharedSettlements.length > 0 ? (
               sharedSettlements.map((s: any) => (
                 <Card
                   key={s.id}
                   variant="outlined"
-                  padding="sm"
-                  style={{ marginBottom: spacing.sm }}
+                  padding="md"
+                  style={{ marginBottom: 10 }}
                 >
                   <View style={styles.historyRow}>
                     <View style={[styles.historyIconCircle, { backgroundColor: isDark ? 'rgba(59,130,246,0.15)' : '#DBEAFE' }]}>
                       <Ionicons name="checkmark-done" size={18} color="#3B82F6" />
                     </View>
-                    <View style={{ flex: 1, marginLeft: 10 }}>
+                    <View style={{ flex: 1, marginLeft: 12 }}>
                       <Text style={{ color: theme.text, fontWeight: '700', fontSize: 14 }}>
                         {s.payerId === user?.id ? 'You paid' : `${friendName} paid`}
                       </Text>
                       <Text style={{ color: theme.textMuted, fontSize: 11, marginTop: 2 }}>
-                        Method: {s.paymentMethod.toUpperCase()} •{' '}
+                        {s.paymentMethod.toUpperCase()} •{' '}
                         {new Date(s.createdAt).toLocaleDateString()}
                       </Text>
                     </View>
-                    <View style={{ alignItems: 'flex-end' }}>
-                      <Text style={{ color: theme.positive, fontWeight: '800', fontSize: 14 }}>
+                    <View style={{ alignItems: 'flex-end', marginLeft: 8 }}>
+                      <Text
+                        style={{
+                          color: theme.positive,
+                          fontWeight: '800',
+                          fontSize: 14,
+                          fontVariant: ['tabular-nums'],
+                        }}
+                      >
                         {formatCurrency(s.amountMinor, s.currency)}
                       </Text>
-                      <Badge label={s.status} size="sm" variant={s.status === 'confirmed' ? 'positive' : 'warning'} />
+                      <Badge
+                        label={s.status}
+                        size="sm"
+                        variant={s.status === 'confirmed' ? 'positive' : 'warning'}
+                      />
                     </View>
                   </View>
                 </Card>
               ))
             ) : (
-              <Card padding="md" variant="outlined" style={{ alignItems: 'center', paddingVertical: 24 }}>
-                <Ionicons name="swap-horizontal-outline" size={36} color={theme.textMuted} style={{ marginBottom: 6 }} />
-                <Text style={{ color: theme.text, fontWeight: '700', fontSize: 14 }}>
+              <Card padding="lg" variant="outlined" style={{ alignItems: 'center', paddingVertical: 28, marginTop: 6 }}>
+                <Ionicons name="swap-horizontal-outline" size={36} color={theme.textMuted} style={{ marginBottom: 8 }} />
+                <Text style={{ color: theme.text, fontWeight: '700', fontSize: 15 }}>
                   No settlements recorded
                 </Text>
-                <Text style={{ color: theme.textMuted, fontSize: 12, marginTop: 2 }}>
-                  Recorded repayments will appear here with confirmation status.
+                <Text style={{ color: theme.textMuted, fontSize: 12, marginTop: 4, textAlign: 'center', maxWidth: 260 }}>
+                  Repayments recorded through UPI, cash or bank transfer will appear here.
                 </Text>
               </Card>
             )}
@@ -361,8 +413,8 @@ const styles = StyleSheet.create({
     paddingBottom: 8,
   },
   backBtn: {
-    width: 36,
-    height: 36,
+    width: 38,
+    height: 38,
     borderRadius: 12,
     borderWidth: 1,
     alignItems: 'center',
@@ -370,24 +422,32 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     fontWeight: '800',
+    letterSpacing: -0.2,
   },
   scrollContent: {
-    padding: 20,
+    paddingHorizontal: 20,
     paddingTop: 8,
     paddingBottom: 40,
   },
   profileName: {
     fontWeight: '800',
     marginTop: 12,
+    letterSpacing: -0.3,
   },
   balanceBanner: {
-    paddingVertical: 10,
+    paddingVertical: 12,
     paddingHorizontal: 16,
-    borderRadius: 12,
+    borderRadius: 14,
     borderWidth: 1,
     width: '100%',
     alignItems: 'center',
     marginBottom: 16,
+  },
+  statusDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    marginRight: 8,
   },
   actionButtonsRow: {
     flexDirection: 'row',

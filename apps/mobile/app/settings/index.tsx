@@ -16,6 +16,7 @@ import {
   Avatar,
   Button,
   Input,
+  Badge,
 } from '@/components';
 import { useWatermelonTheme } from '@/theme';
 import { useAuthStore } from '../../src/stores/authStore';
@@ -56,7 +57,7 @@ export default function SettingsScreen() {
       setUser(res.data);
       Alert.alert('Saved', 'Profile updated successfully!');
     } catch (err: any) {
-      Alert.alert('Error', err.response?.data?.message || 'Failed to update');
+      Alert.alert('Error', err.response?.data?.message || 'Failed to update profile');
     } finally {
       setUpdating(false);
     }
@@ -91,7 +92,7 @@ export default function SettingsScreen() {
               logout();
               router.replace('/(auth)/welcome');
             } catch (err: any) {
-              Alert.alert('Error', err.response?.data?.message || 'Failed to delete');
+              Alert.alert('Error', err.response?.data?.message || 'Failed to delete account');
             }
           },
         },
@@ -124,18 +125,22 @@ export default function SettingsScreen() {
             { color: theme.text, fontSize: typography.fontSize.base },
           ]}
         >
-          Settings & Preferences
+          Settings
         </Text>
 
-        <View style={{ width: 36 }} />
+        <View style={{ width: 38 }} />
       </View>
 
-      <ScrollView contentContainerStyle={styles.scrollContent}>
-        {/* Profile Avatar Card */}
+      <ScrollView
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
+      >
+        {/* Profile Card */}
         <Card
           variant="elevated"
           padding="lg"
-          style={{ alignItems: 'center', marginBottom: spacing.md }}
+          style={{ alignItems: 'center', marginBottom: 20 }}
         >
           <Avatar name={user?.fullName || 'User'} size="xl" />
           <Text
@@ -148,11 +153,12 @@ export default function SettingsScreen() {
               },
             ]}
           >
-            {user?.fullName || 'MatrixSplit User'}
+            {user?.fullName || 'MatrixSplit Member'}
           </Text>
-          <Text style={[styles.userEmail, { color: theme.textMuted }]}>
+          <Text style={[styles.userEmail, { color: theme.textMuted, marginBottom: 8 }]}>
             {user?.email}
           </Text>
+          <Badge label="Verified Account" variant="positive" size="sm" />
         </Card>
 
         {/* Appearance / Theme Options */}
@@ -170,7 +176,7 @@ export default function SettingsScreen() {
         <Card
           variant="outlined"
           padding="md"
-          style={{ marginBottom: spacing.md }}
+          style={{ marginBottom: 20 }}
         >
           <View style={styles.themeSelectorRow}>
             {[
@@ -187,28 +193,32 @@ export default function SettingsScreen() {
                     styles.themeOptionCard,
                     {
                       backgroundColor: isSelected
-                        ? (isDark ? 'rgba(16,185,129,0.18)' : '#D1FAE5')
-                        : theme.surface,
-                      borderColor: isSelected ? theme.primary : theme.border,
+                        ? (isDark ? 'rgba(16,185,129,0.18)' : '#ECFDF5')
+                        : (isDark ? '#1E293B' : '#F1F5F9'),
+                      borderColor: isSelected ? '#10B981' : (isDark ? '#334155' : '#E2E8F0'),
+                      borderWidth: isSelected ? 1.5 : 1,
                       opacity: pressed ? 0.8 : 1,
+                      transform: [{ scale: pressed ? 0.97 : 1 }],
                     },
                   ]}
                 >
-                  <Ionicons
-                    name={t.icon as any}
-                    size={20}
-                    color={isSelected ? theme.primary : theme.textMuted}
-                  />
-                  <Text
-                    style={{
-                      color: isSelected ? theme.primary : theme.text,
-                      fontWeight: isSelected ? '700' : '500',
-                      fontSize: 12,
-                      marginTop: 6,
-                    }}
-                  >
-                    {t.label}
-                  </Text>
+                  <View style={{ alignItems: 'center', justifyContent: 'center' }}>
+                    <Ionicons
+                      name={t.icon as any}
+                      size={20}
+                      color={isSelected ? '#10B981' : theme.textMuted}
+                    />
+                    <Text
+                      style={{
+                        color: isSelected ? '#10B981' : theme.text,
+                        fontWeight: isSelected ? '700' : '600',
+                        fontSize: 12,
+                        marginTop: 6,
+                      }}
+                    >
+                      {t.label}
+                    </Text>
+                  </View>
                 </Pressable>
               );
             })}
@@ -223,14 +233,14 @@ export default function SettingsScreen() {
               { color: theme.textMuted, fontSize: typography.fontSize.xs },
             ]}
           >
-            PERSONAL INFORMATION
+            ACCOUNT PREFERENCES
           </Text>
         </View>
 
         <Card
           variant="outlined"
           padding="md"
-          style={{ marginBottom: spacing.md }}
+          style={{ marginBottom: 20 }}
         >
           <Input
             label="Full Name"
@@ -242,7 +252,7 @@ export default function SettingsScreen() {
           <Text
             style={[
               styles.fieldLabel,
-              { color: theme.text, fontSize: typography.fontSize.xs },
+              { color: theme.textMuted, fontSize: typography.fontSize.xs },
             ]}
           >
             DEFAULT CURRENCY
@@ -259,35 +269,50 @@ export default function SettingsScreen() {
                     styles.currChip,
                     {
                       backgroundColor: isSelected
-                        ? theme.primary
-                        : theme.surface,
+                        ? '#10B981'
+                        : (isDark ? '#1E293B' : '#F1F5F9'),
                       borderColor: isSelected
-                        ? theme.primary
-                        : theme.border,
+                        ? '#10B981'
+                        : (isDark ? '#334155' : '#CBD5E1'),
+                      borderWidth: 1.5,
                       opacity: pressed ? 0.8 : 1,
+                      transform: [{ scale: pressed ? 0.96 : 1 }],
                     },
                   ]}
                 >
-                  <Text
-                    style={{
-                      color: isSelected ? '#FFFFFF' : theme.text,
-                      fontWeight: isSelected ? '700' : '600',
-                      fontSize: 13,
-                    }}
-                  >
-                    {c.symbol} {c.label}
-                  </Text>
+                  <View style={{ alignItems: 'center', justifyContent: 'center' }}>
+                    <Text
+                      style={{
+                        color: isSelected ? '#FFFFFF' : '#10B981',
+                        fontWeight: '800',
+                        fontSize: 16,
+                        marginBottom: 2,
+                      }}
+                    >
+                      {c.symbol}
+                    </Text>
+                    <Text
+                      style={{
+                        color: isSelected ? '#FFFFFF' : theme.text,
+                        fontWeight: '700',
+                        fontSize: 12,
+                      }}
+                    >
+                      {c.label}
+                    </Text>
+                  </View>
                 </Pressable>
               );
             })}
           </View>
 
           <Button
-            label={updating ? 'Saving...' : 'Save Profile Changes'}
+            label={updating ? 'Saving Changes...' : 'Save Profile Changes'}
             onPress={handleUpdateProfile}
             loading={updating}
             variant="primary"
-            style={{ marginTop: 12 }}
+            fullWidth
+            style={{ marginTop: 14 }}
           />
         </Card>
 
@@ -306,15 +331,15 @@ export default function SettingsScreen() {
         <Card
           variant="outlined"
           padding="md"
-          style={{ marginBottom: spacing.md }}
+          style={{ marginBottom: 20 }}
         >
           <View style={styles.switchRow}>
-            <View style={{ flex: 1 }}>
+            <View style={{ flex: 1, marginRight: 12 }}>
               <Text style={[styles.settingLabel, { color: theme.text }]}>
                 Push Notifications
               </Text>
               <Text style={{ color: theme.textMuted, fontSize: 11, marginTop: 2 }}>
-                Instant alerts when you're added to expenses
+                Instant alerts when you are added to an expense or settlement
               </Text>
             </View>
             <Switch
@@ -324,15 +349,15 @@ export default function SettingsScreen() {
             />
           </View>
 
-          <View style={[styles.divider, { backgroundColor: theme.divider }]} />
+          <View style={[styles.divider, { backgroundColor: isDark ? '#1E293B' : '#E2E8F0' }]} />
 
           <View style={styles.switchRow}>
-            <View style={{ flex: 1 }}>
+            <View style={{ flex: 1, marginRight: 12 }}>
               <Text style={[styles.settingLabel, { color: theme.text }]}>
                 Email Summaries
               </Text>
               <Text style={{ color: theme.textMuted, fontSize: 11, marginTop: 2 }}>
-                Weekly balance digests & settlement receipts
+                Weekly balance digests & settlement confirmations
               </Text>
             </View>
             <Switch
@@ -343,11 +368,11 @@ export default function SettingsScreen() {
           </View>
         </Card>
 
-        {/* UI Showcase link */}
+        {/* UI Showcase / Design System Link */}
         <Card
           variant="outlined"
           padding="md"
-          style={{ marginBottom: spacing.md }}
+          style={{ marginBottom: 20 }}
         >
           <Pressable
             onPress={() => router.push('/settings/ui-showcase')}
@@ -357,8 +382,15 @@ export default function SettingsScreen() {
             ]}
           >
             <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-              <Ionicons name="color-palette-outline" size={20} color={theme.primary} style={{ marginRight: 10 }} />
-              <View>
+              <View
+                style={[
+                  styles.showcaseIconWrap,
+                  { backgroundColor: isDark ? 'rgba(16,185,129,0.14)' : '#D1FAE5' },
+                ]}
+              >
+                <Ionicons name="color-palette-outline" size={18} color={theme.primary} />
+              </View>
+              <View style={{ marginLeft: 12 }}>
                 <Text style={{ color: theme.text, fontWeight: '700', fontSize: 14 }}>
                   Design System Showcase
                 </Text>
@@ -367,15 +399,15 @@ export default function SettingsScreen() {
                 </Text>
               </View>
             </View>
-            <Ionicons name="chevron-forward" size={18} color={theme.textMuted} />
+            <Ionicons name="chevron-forward" size={16} color={theme.textMuted} />
           </Pressable>
         </Card>
 
-        {/* Account Actions */}
+        {/* Danger & Session Zone */}
         <Card
           variant="outlined"
           padding="sm"
-          style={{ marginBottom: spacing.xl }}
+          style={{ marginBottom: 40 }}
         >
           <Pressable
             onPress={handleLogout}
@@ -384,13 +416,13 @@ export default function SettingsScreen() {
               { opacity: pressed ? 0.7 : 1 },
             ]}
           >
-            <Ionicons name="log-out-outline" size={18} color={theme.primary} style={{ marginRight: 10 }} />
-            <Text style={{ color: theme.primary, fontWeight: '700', fontSize: 14 }}>
+            <Ionicons name="log-out-outline" size={18} color={theme.text} style={{ marginRight: 10 }} />
+            <Text style={{ color: theme.text, fontWeight: '700', fontSize: 14 }}>
               Log Out of MatrixSplit
             </Text>
           </Pressable>
 
-          <View style={[styles.divider, { backgroundColor: theme.divider }]} />
+          <View style={[styles.divider, { backgroundColor: isDark ? '#1E293B' : '#E2E8F0' }]} />
 
           <Pressable
             onPress={handleDeleteAccount}
@@ -401,7 +433,7 @@ export default function SettingsScreen() {
           >
             <Ionicons name="trash-outline" size={18} color={theme.negative} style={{ marginRight: 10 }} />
             <Text style={{ color: theme.negative, fontWeight: '700', fontSize: 14 }}>
-              Delete Account
+              Delete Account Permanently
             </Text>
           </Pressable>
         </Card>
@@ -423,8 +455,8 @@ const styles = StyleSheet.create({
     paddingBottom: 8,
   },
   backBtn: {
-    width: 36,
-    height: 36,
+    width: 38,
+    height: 38,
     borderRadius: 12,
     borderWidth: 1,
     alignItems: 'center',
@@ -432,14 +464,16 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     fontWeight: '800',
+    letterSpacing: -0.2,
   },
   scrollContent: {
-    padding: 20,
+    paddingHorizontal: 20,
     paddingTop: 8,
     paddingBottom: 40,
   },
   userName: {
     fontWeight: '800',
+    letterSpacing: -0.3,
   },
   userEmail: {
     fontSize: 13,
@@ -469,12 +503,12 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     letterSpacing: 0.6,
     marginBottom: 8,
-    marginTop: 4,
+    marginTop: 6,
   },
   currencyRow: {
     flexDirection: 'row',
     gap: 8,
-    marginBottom: 8,
+    marginBottom: 6,
   },
   currChip: {
     flex: 1,
@@ -488,7 +522,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingVertical: 6,
+    paddingVertical: 4,
   },
   settingLabel: {
     fontWeight: '700',
@@ -503,6 +537,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingVertical: 4,
+  },
+  showcaseIconWrap: {
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   actionItemRow: {
     flexDirection: 'row',

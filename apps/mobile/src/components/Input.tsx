@@ -38,26 +38,29 @@ export const Input: React.FC<InputProps> = ({
   onBlur,
   ...rest
 }) => {
-  const { theme, borderRadius, typography } = useWatermelonTheme();
+  const { theme, isDark } = useWatermelonTheme();
   const [isFocused, setIsFocused] = useState(false);
 
   const borderColor = error
-    ? theme.negative
+    ? '#F43F5E'
     : isFocused
     ? theme.primary
-    : theme.border;
+    : isDark
+    ? '#1E293B'
+    : '#E2E8F0';
+
+  const inputBg = isDark ? '#0F172A' : '#FFFFFF';
 
   return (
-    <View
-      className={cn('mb-3 w-full', className)}
-      style={containerStyle}
-    >
+    <View style={[{ marginBottom: 14, width: '100%' }, containerStyle]}>
       {label && (
         <Text
-          className="mb-1 text-xs font-semibold uppercase tracking-wider"
           style={{
-            color: isFocused ? theme.primary : theme.textMuted,
-            fontSize: typography.fontSize.xs,
+            color: isFocused ? theme.primary : isDark ? '#94A3B8' : '#475569',
+            fontSize: 13,
+            fontWeight: '600',
+            marginBottom: 6,
+            letterSpacing: -0.1,
           }}
         >
           {label}
@@ -66,31 +69,27 @@ export const Input: React.FC<InputProps> = ({
 
       <View
         style={{
-          minHeight: 44,
-          backgroundColor: theme.surface,
+          minHeight: 46,
+          backgroundColor: inputBg,
           borderColor,
           borderWidth: isFocused || error ? 1.5 : 1,
-          borderRadius: borderRadius.md,
+          borderRadius: 12,
           flexDirection: 'row',
           alignItems: 'center',
           paddingHorizontal: 12,
         }}
       >
-        {leftIcon && (
-          <View style={{ marginRight: 8, alignItems: 'center', justifyContent: 'center' }}>
-            {leftIcon}
-          </View>
-        )}
+        {leftIcon && <View style={{ marginRight: 8 }}>{leftIcon}</View>}
 
         <TextInput
-          placeholderTextColor={theme.textMuted}
+          placeholderTextColor={isDark ? '#64748B' : '#94A3B8'}
           style={[
             {
-              color: theme.text,
-              fontSize: typography.fontSize.sm,
-              paddingVertical: 8,
-              paddingHorizontal: 0,
               flex: 1,
+              color: theme.text,
+              fontSize: 14,
+              fontWeight: '500',
+              paddingVertical: 10,
             },
             style,
           ]}
@@ -107,16 +106,9 @@ export const Input: React.FC<InputProps> = ({
 
         {rightIcon && (
           <Pressable
-            disabled={!onRightIconPress}
             onPress={onRightIconPress}
-            style={({ pressed }) => [
-              {
-                marginLeft: 8,
-                alignItems: 'center',
-                justifyContent: 'center',
-                opacity: pressed ? 0.7 : 1,
-              },
-            ]}
+            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            style={{ marginLeft: 6 }}
           >
             {rightIcon}
           </Pressable>
@@ -125,15 +117,24 @@ export const Input: React.FC<InputProps> = ({
 
       {error ? (
         <Text
-          className="mt-1 text-xs"
-          style={{ color: theme.negative, fontSize: typography.fontSize.xs }}
+          style={{
+            color: '#F43F5E',
+            fontSize: 11,
+            fontWeight: '600',
+            marginTop: 4,
+            marginLeft: 2,
+          }}
         >
           {error}
         </Text>
       ) : hint ? (
         <Text
-          className="mt-1 text-xs"
-          style={{ color: theme.textMuted, fontSize: typography.fontSize.xs }}
+          style={{
+            color: theme.textMuted,
+            fontSize: 11,
+            marginTop: 4,
+            marginLeft: 2,
+          }}
         >
           {hint}
         </Text>

@@ -6,7 +6,6 @@ import {
   StyleProp,
   ViewStyle,
   StyleSheet,
-  Platform,
 } from 'react-native';
 import { useWatermelonTheme } from '@/theme';
 
@@ -34,11 +33,12 @@ export function SegmentedControl<T extends string = string>({
 
   return (
     <View
+      className="w-full flex-row items-center"
       style={[
         styles.container,
         {
           backgroundColor: isDark ? '#0D131F' : '#EAEFF5',
-          borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)',
+          borderColor: isDark ? '#1E293B' : '#E2E8F0',
         },
         style,
       ]}
@@ -49,6 +49,7 @@ export function SegmentedControl<T extends string = string>({
           <Pressable
             key={opt.value}
             onPress={() => onChange(opt.value)}
+            className="flex-1 h-full flex-row items-center justify-center"
             accessibilityRole="tab"
             accessibilityState={{ selected: isSelected }}
             style={({ pressed }) => [
@@ -59,7 +60,7 @@ export function SegmentedControl<T extends string = string>({
                     borderWidth: 1,
                     borderColor: isDark
                       ? 'rgba(255,255,255,0.1)'
-                      : 'rgba(0,0,0,0.04)',
+                      : 'rgba(0,0,0,0.06)',
                     shadowColor: '#000',
                     shadowOffset: { width: 0, height: 1.5 },
                     shadowOpacity: isDark ? 0.35 : 0.12,
@@ -76,59 +77,67 @@ export function SegmentedControl<T extends string = string>({
                     borderColor: 'transparent',
                   },
               {
-                transform: [{ scale: pressed && !isSelected ? 0.97 : 1 }],
+                opacity: pressed && !isSelected ? 0.75 : 1,
+                transform: [{ scale: pressed && !isSelected ? 0.98 : 1 }],
               },
             ]}
           >
-            <Text
-              style={{
-                color: isSelected
-                  ? isDark
-                    ? '#F8FAFC'
-                    : '#0F172A'
-                  : isDark
-                  ? '#94A3B8'
-                  : '#64748B',
-                fontSize: 13,
-                fontWeight: isSelected ? '700' : '600',
-                letterSpacing: -0.2,
-                textAlign: 'center',
-              }}
-              numberOfLines={1}
+            <View
+              className="flex-row items-center justify-center"
+              style={styles.innerContent}
             >
-              {opt.label}
-            </Text>
-            {opt.badge !== undefined && (
-              <View
+              <Text
                 style={{
-                  backgroundColor: isSelected
+                  color: isSelected
                     ? isDark
-                      ? 'rgba(16,185,129,0.25)'
-                      : '#D1FAE5'
+                      ? '#F8FAFC'
+                      : '#0F172A'
                     : isDark
-                    ? 'rgba(255,255,255,0.1)'
-                    : 'rgba(0,0,0,0.06)',
-                  borderRadius: 10,
-                  paddingHorizontal: 6,
-                  paddingVertical: 1,
-                  marginLeft: 5,
+                    ? '#94A3B8'
+                    : '#64748B',
+                  fontSize: 12.5,
+                  fontWeight: isSelected ? '700' : '600',
+                  letterSpacing: -0.2,
+                  textAlign: 'center',
                 }}
+                numberOfLines={1}
+                ellipsizeMode="tail"
               >
-                <Text
+                {opt.label}
+              </Text>
+
+              {opt.badge !== undefined && (
+                <View
                   style={{
-                    color: isSelected
-                      ? theme.primary
+                    backgroundColor: isSelected
+                      ? isDark
+                        ? 'rgba(16,185,129,0.22)'
+                        : '#D1FAE5'
                       : isDark
-                      ? '#94A3B8'
-                      : '#64748B',
-                    fontSize: 11,
-                    fontWeight: '700',
+                      ? 'rgba(255,255,255,0.08)'
+                      : 'rgba(0,0,0,0.06)',
+                    borderRadius: 9,
+                    paddingHorizontal: 6,
+                    paddingVertical: 1,
+                    marginLeft: 5,
                   }}
                 >
-                  {opt.badge}
-                </Text>
-              </View>
-            )}
+                  <Text
+                    style={{
+                      color: isSelected
+                        ? '#10B981'
+                        : isDark
+                        ? '#94A3B8'
+                        : '#64748B',
+                      fontSize: 10.5,
+                      fontWeight: '700',
+                    }}
+                  >
+                    {opt.badge}
+                  </Text>
+                </View>
+              )}
+            </View>
           </Pressable>
         );
       })}
@@ -140,18 +149,26 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
     alignItems: 'center',
-    height: 42,
+    width: '100%',
+    height: 44,
     padding: 3,
-    borderRadius: 12,
+    borderRadius: 14,
     borderWidth: 1,
   },
   segment: {
     flex: 1,
+    flexBasis: 0,
+    minWidth: 0,
     height: '100%',
-    borderRadius: 9,
+    borderRadius: 11,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: 4,
+  },
+  innerContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 });

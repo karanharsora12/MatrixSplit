@@ -82,6 +82,20 @@ export const useJoinGroup = () => {
   });
 };
 
+export const useUpdateGroup = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ groupId, dto }: { groupId: string; dto: any }) => {
+      const res = await apiClient.patch(`/groups/${groupId}`, dto);
+      return res.data;
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['groups'] });
+      queryClient.invalidateQueries({ queryKey: ['groups', variables.groupId] });
+    },
+  });
+};
+
 // Expenses Queries & Mutations
 export const useRecentExpenses = (limit = 10) => {
   return useQuery({

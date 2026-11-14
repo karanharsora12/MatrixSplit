@@ -4,7 +4,6 @@ import {
   Text,
   StyleSheet,
   ScrollView,
-  Pressable,
   RefreshControl,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -22,22 +21,22 @@ const activityMeta: Record<
   string,
   { icon: keyof typeof Ionicons.glyphMap; color: string; bg: string }
 > = {
-  expense_created: { icon: 'receipt-outline', color: '#10B981', bg: 'rgba(16,185,129,0.12)' },
-  expense_updated: { icon: 'create-outline', color: '#F59E0B', bg: 'rgba(245,158,11,0.12)' },
-  expense_deleted: { icon: 'trash-outline', color: '#EF4444', bg: 'rgba(239,68,68,0.12)' },
-  settlement_created: { icon: 'swap-horizontal', color: '#3B82F6', bg: 'rgba(59,130,246,0.12)' },
-  settlement_confirmed: { icon: 'checkmark-circle', color: '#10B981', bg: 'rgba(16,185,129,0.12)' },
-  settlement_rejected: { icon: 'close-circle', color: '#EF4444', bg: 'rgba(239,68,68,0.12)' },
-  group_created: { icon: 'people-circle-outline', color: '#8B5CF6', bg: 'rgba(139,92,246,0.12)' },
-  member_joined: { icon: 'person-add-outline', color: '#8B5CF6', bg: 'rgba(139,92,246,0.12)' },
-  member_removed: { icon: 'exit-outline', color: '#64748B', bg: 'rgba(100,116,139,0.12)' },
-  friend_request_sent: { icon: 'mail-outline', color: '#06B6D4', bg: 'rgba(6,182,212,0.12)' },
-  friend_request_accepted: { icon: 'people-outline', color: '#10B981', bg: 'rgba(16,185,129,0.12)' },
+  expense_created: { icon: 'receipt-outline', color: '#10B981', bg: 'rgba(16,185,129,0.14)' },
+  expense_updated: { icon: 'create-outline', color: '#F59E0B', bg: 'rgba(245,158,11,0.14)' },
+  expense_deleted: { icon: 'trash-outline', color: '#EF4444', bg: 'rgba(239,68,68,0.14)' },
+  settlement_created: { icon: 'swap-horizontal', color: '#3B82F6', bg: 'rgba(59,130,246,0.14)' },
+  settlement_confirmed: { icon: 'checkmark-circle', color: '#10B981', bg: 'rgba(16,185,129,0.14)' },
+  settlement_rejected: { icon: 'close-circle', color: '#EF4444', bg: 'rgba(239,68,68,0.14)' },
+  group_created: { icon: 'people-circle-outline', color: '#8B5CF6', bg: 'rgba(139,92,246,0.14)' },
+  member_joined: { icon: 'person-add-outline', color: '#8B5CF6', bg: 'rgba(139,92,246,0.14)' },
+  member_removed: { icon: 'exit-outline', color: '#64748B', bg: 'rgba(100,116,139,0.14)' },
+  friend_request_sent: { icon: 'mail-outline', color: '#06B6D4', bg: 'rgba(6,182,212,0.14)' },
+  friend_request_accepted: { icon: 'people-outline', color: '#10B981', bg: 'rgba(16,185,129,0.14)' },
 };
 
 export default function ActivityScreen() {
   const { theme, typography, spacing, borderRadius, isDark } = useWatermelonTheme();
-  const { data: activities, isLoading, refetch, isRefetching } = useActivities(40);
+  const { data: activities, isLoading, refetch, isRefetching } = useActivities(50);
   const [filterType, setFilterType] = useState<'all' | 'expense' | 'settlement' | 'group'>('all');
 
   const formatTimeAgo = (dateStr: string) => {
@@ -49,7 +48,10 @@ export default function ActivityScreen() {
     if (hours < 24) return `${hours}h ago`;
     const days = Math.floor(hours / 24);
     if (days < 7) return `${days}d ago`;
-    return new Date(dateStr).toLocaleDateString();
+    return new Date(dateStr).toLocaleDateString(undefined, {
+      month: 'short',
+      day: 'numeric',
+    });
   };
 
   const filteredActivities = useMemo(() => {
@@ -63,6 +65,19 @@ export default function ActivityScreen() {
     });
   }, [activities, filterType]);
 
+  const counts = useMemo(() => {
+    if (!activities) return { all: 0, expense: 0, settlement: 0, group: 0 };
+    let expense = 0;
+    let settlement = 0;
+    let group = 0;
+    activities.forEach((act: any) => {
+      if (act.type.startsWith('expense')) expense++;
+      else if (act.type.startsWith('settlement')) settlement++;
+      else if (act.type.startsWith('group') || act.type.startsWith('member')) group++;
+    });
+    return { all: activities.length, expense, settlement, group };
+  }, [activities]);
+
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]} edges={['top', 'left', 'right']}>
       {/* Top Header */}
@@ -74,30 +89,31 @@ export default function ActivityScreen() {
               { color: theme.text, fontSize: typography.fontSize['2xl'] },
             ]}
           >
-            Activity Feed
+            Activity
           </Text>
           <Text style={[styles.headerSubtitle, { color: theme.textMuted }]}>
-            Real-time audit log of expenses and payments
+            Real-time audit log of ledger events & updates
           </Text>
         </View>
       </View>
 
       {/* Filter Tabs */}
-      <View style={{ paddingHorizontal: 20, paddingTop: 4, paddingBottom: 10 }}>
+      <View style={styles.filterSection}>
         <SegmentedControl
           value={filterType}
           onChange={(val) => setFilterType(val as any)}
           options={[
-            { value: 'all', label: 'All' },
-            { value: 'expense', label: 'Expenses' },
-            { value: 'settlement', label: 'Settlements' },
-            { value: 'group', label: 'Groups' },
+            { value: 'all', label: 'All', badge: counts.all },
+            { value: 'expense', label: 'Expenses', badge: counts.expense },
+            { value: 'settlement', label: 'Settlements', badge: counts.settlement },
+            { value: 'group', label: 'Groups', badge: counts.group },
           ]}
         />
       </View>
 
       <ScrollView
         contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
         refreshControl={
           <RefreshControl
             refreshing={isRefetching}
@@ -111,32 +127,33 @@ export default function ActivityScreen() {
             <SkeletonCard />
             <SkeletonCard />
             <SkeletonCard />
+            <SkeletonCard />
           </>
         ) : filteredActivities && filteredActivities.length > 0 ? (
           filteredActivities.map((act: any) => {
             const meta = activityMeta[act.type] || {
               icon: 'flash-outline',
               color: theme.primary,
-              bg: 'rgba(16,185,129,0.12)',
+              bg: 'rgba(16,185,129,0.14)',
             };
 
             return (
               <Card
                 key={act.id}
                 variant="outlined"
-                padding="sm"
-                style={{ marginBottom: spacing.sm }}
+                padding="md"
+                style={{ marginBottom: 10 }}
               >
                 <View style={styles.activityRow}>
                   <View style={styles.actorAvatarContainer}>
-                    <Avatar name={act.actor?.fullName || 'User'} size="sm" />
+                    <Avatar name={act.actor?.fullName || 'User'} size="md" />
                     <View
                       style={[
                         styles.iconBadge,
                         {
                           backgroundColor: meta.bg,
-                          borderColor: theme.surface,
-                          borderWidth: 1.5,
+                          borderColor: isDark ? '#111827' : '#FFFFFF',
+                          borderWidth: 2,
                         },
                       ]}
                     >
@@ -151,20 +168,23 @@ export default function ActivityScreen() {
                         { color: theme.text, fontSize: typography.fontSize.sm },
                       ]}
                     >
-                      <Text style={{ fontWeight: '700' }}>
+                      <Text style={{ fontWeight: '700', color: theme.text }}>
                         {act.actor?.fullName || 'Someone'}{' '}
                       </Text>
                       {act.description}
                     </Text>
 
-                    <Text
-                      style={[
-                        styles.timestamp,
-                        { color: theme.textMuted, fontSize: typography.fontSize.xs },
-                      ]}
-                    >
-                      {formatTimeAgo(act.createdAt)}
-                    </Text>
+                    <View style={styles.timeRow}>
+                      <Ionicons name="time-outline" size={12} color={theme.textMuted} style={{ marginRight: 4 }} />
+                      <Text
+                        style={[
+                          styles.timestamp,
+                          { color: theme.textMuted, fontSize: typography.fontSize.xs },
+                        ]}
+                      >
+                        {formatTimeAgo(act.createdAt)}
+                      </Text>
+                    </View>
                   </View>
                 </View>
               </Card>
@@ -176,17 +196,17 @@ export default function ActivityScreen() {
               style={[
                 styles.emptyIconCircle,
                 {
-                  backgroundColor: isDark ? 'rgba(16,185,129,0.15)' : '#D1FAE5',
+                  backgroundColor: isDark ? 'rgba(16,185,129,0.12)' : '#D1FAE5',
                   borderRadius: borderRadius.full,
                 },
               ]}
             >
-              <Ionicons name="flash-outline" size={44} color={theme.primary} />
+              <Ionicons name="pulse-outline" size={42} color={theme.primary} />
             </View>
             <Text
               style={[
                 styles.emptyTitle,
-                { color: theme.text, fontSize: typography.fontSize.xl },
+                { color: theme.text, fontSize: typography.fontSize.lg },
               ]}
             >
               No activities found
@@ -197,7 +217,7 @@ export default function ActivityScreen() {
                 { color: theme.textMuted, fontSize: typography.fontSize.sm },
               ]}
             >
-              Your shared expenses, payments, and group actions will automatically appear here.
+              Shared bills, settlement records, and group invitations will appear here as they occur.
             </Text>
           </View>
         )}
@@ -225,40 +245,25 @@ const styles = StyleSheet.create({
   },
   filterSection: {
     paddingHorizontal: 20,
+    paddingTop: 4,
     paddingBottom: 8,
   },
-  filterScroll: {
-    flexDirection: 'row',
-  },
-  filterTab: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 12,
-    paddingVertical: 7,
-    borderRadius: 18,
-    borderWidth: 1,
-    marginRight: 8,
-  },
-  filterTabText: {
-    fontSize: 12,
-  },
   scrollContent: {
-    padding: 20,
-    paddingTop: 6,
+    paddingHorizontal: 20,
+    paddingTop: 8,
     paddingBottom: 40,
   },
   activityRow: {
     flexDirection: 'row',
-    alignItems: 'flex-start',
-    paddingVertical: 2,
+    alignItems: 'center',
   },
   actorAvatarContainer: {
     position: 'relative',
   },
   iconBadge: {
     position: 'absolute',
-    bottom: -4,
-    right: -4,
+    bottom: -3,
+    right: -3,
     width: 20,
     height: 20,
     borderRadius: 10,
@@ -268,30 +273,32 @@ const styles = StyleSheet.create({
   activityContent: {
     flex: 1,
     marginLeft: 12,
-    justifyContent: 'center',
   },
   activityText: {
     lineHeight: 19,
   },
-  timestamp: {
+  timeRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
     marginTop: 4,
   },
+  timestamp: {},
   emptyContainer: {
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 48,
+    paddingVertical: 56,
     paddingHorizontal: 24,
   },
   emptyIconCircle: {
-    width: 88,
-    height: 88,
+    width: 80,
+    height: 80,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 16,
   },
   emptyTitle: {
     fontWeight: '800',
-    marginBottom: 8,
+    marginBottom: 6,
   },
   emptyDesc: {
     textAlign: 'center',

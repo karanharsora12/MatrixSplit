@@ -12,7 +12,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import { Button, Input } from '@/components';
+import { Button, Input, Card } from '@/components';
 import { useWatermelonTheme } from '@/theme';
 
 export default function ResetPasswordScreen() {
@@ -85,7 +85,7 @@ export default function ResetPasswordScreen() {
             <View
               style={[
                 styles.brandIcon,
-                { backgroundColor: theme.primary, borderRadius: borderRadius.lg },
+                { backgroundColor: theme.primary, borderRadius: 16 },
               ]}
             >
               <Ionicons name="shield-checkmark-outline" size={24} color="#FFFFFF" />
@@ -108,15 +108,10 @@ export default function ResetPasswordScreen() {
             </Text>
           </View>
 
-          <View
-            style={[
-              styles.formCard,
-              {
-                backgroundColor: theme.card,
-                borderColor: theme.border,
-                borderRadius: borderRadius.xl,
-              },
-            ]}
+          <Card
+            variant="elevated"
+            padding="lg"
+            style={{ marginBottom: 20 }}
           >
             {error ? (
               <View
@@ -174,11 +169,12 @@ export default function ResetPasswordScreen() {
               label={loading ? 'Updating Password...' : 'Save New Password'}
               size="lg"
               variant="primary"
+              fullWidth
               onPress={handleReset}
               loading={loading}
-              style={{ marginTop: 12 }}
+              style={{ marginTop: 10 }}
             />
-          </View>
+          </Card>
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
@@ -212,8 +208,8 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   brandIcon: {
-    width: 52,
-    height: 52,
+    width: 48,
+    height: 48,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 12,
@@ -227,10 +223,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginTop: 6,
     maxWidth: 290,
-  },
-  formCard: {
-    padding: 20,
-    borderWidth: 1,
+    lineHeight: 19,
   },
   errorBox: {
     flexDirection: 'row',
