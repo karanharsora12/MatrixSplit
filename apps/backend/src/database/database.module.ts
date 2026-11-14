@@ -1,4 +1,4 @@
-import { Module, Global, OnModuleInit, Inject } from '@nestjs/common';
+import { Module, Global, Inject, OnApplicationShutdown } from '@nestjs/common';
 import { drizzle } from 'drizzle-orm/pglite';
 import { PGlite } from '@electric-sql/pglite';
 import * as schema from './schema';
@@ -6,22 +6,63 @@ import * as path from 'path';
 import * as fs from 'fs';
 
 export const DRIZZLE = 'DRIZZLE';
+export const PGLITE = 'PGLITE';
 
 @Global()
 @Module({
   providers: [
     {
-      provide: DRIZZLE,
+      provide: PGLITE,
       useFactory: async () => {
-        // Ensure data directory exists
-        const dataDir = path.resolve(process.cwd(), '.matrixsplit-data');
-        if (!fs.existsSync(dataDir)) {
-          fs.mkdirSync(dataDir, { recursive: true });
+        const dataDir = process.env.DATABASE_DIR
+          ? path.resolve(process.env.DATABASE_DIR)
+          : path.resolve(process.cwd(), '.matrixsplit-data');
+
+        const initClient = async (dir: string) => {
+          if (!fs.existsSync(dir)) {
+            fs.mkdirSync(dir, { recursive: true });
+          } else {
+            // Clean up stale lock files if left behind by an ungraceful shutdown/crash
+            const pidFile = path.join(dir, 'postmaster.pid');
+            if (fs.existsSync(pidFile)) {
+              try {
+                fs.unlinkSync(pidFile);
+              } catch (err) {
+                console.warn('Could not remove stale postmaster.pid:', err);
+              }
+            }
+          }
+
+          const c = new PGlite(dir);
+          await c.waitReady;
+          return c;
+        };
+
+        try {
+          return await initClient(dataDir);
+        } catch (error) {
+          console.error(
+            'PGlite failed to initialize with existing data directory (likely ungraceful shutdown/corruption):',
+            error,
+          );
+          const backupDir = `${dataDir}-corrupted-${Date.now()}`;
+          console.warn(`Backing up corrupted data directory to ${backupDir} and creating a fresh database...`);
+          try {
+            if (fs.existsSync(dataDir)) {
+              fs.renameSync(dataDir, backupDir);
+            }
+            return await initClient(dataDir);
+          } catch (recoveryErr) {
+            console.error('Failed to create new PGlite database:', recoveryErr);
+            throw error;
+          }
         }
-
-        const client = new PGlite(dataDir);
-        await client.waitReady;
-
+      },
+    },
+    {
+      provide: DRIZZLE,
+      inject: [PGLITE],
+      useFactory: async (client: PGlite) => {
         const db = drizzle(client, { schema });
 
         // Initialize schema tables if they do not exist
@@ -183,6 +224,19 @@ export const DRIZZLE = 'DRIZZLE';
       },
     },
   ],
-  exports: [DRIZZLE],
+  exports: [DRIZZLE, PGLITE],
 })
-export class DatabaseModule {}
+export class DatabaseModule implements OnApplicationShutdown {
+  constructor(@Inject(PGLITE) private readonly client: PGlite) {}
+
+  async onApplicationShutdown(signal?: string) {
+    if (this.client && !this.client.closed) {
+      console.log(`Closing PGlite database cleanly (${signal || 'shutdown'})...`);
+      try {
+        await this.client.close();
+      } catch (err) {
+        console.error('Error closing PGlite client:', err);
+      }
+    }
+  }
+}
