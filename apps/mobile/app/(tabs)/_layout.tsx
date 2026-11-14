@@ -1,9 +1,10 @@
 import React from 'react';
-import { Tabs } from 'expo-router';
+import { Tabs, Redirect } from 'expo-router';
 import { Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useWatermelonTheme } from '@/theme';
+import { useAuthStore } from '../../src/stores/authStore';
 
 function TabIcon({
   name,
@@ -42,6 +43,11 @@ function TabIcon({
 export default function TabsLayout() {
   const { theme } = useWatermelonTheme();
   const insets = useSafeAreaInsets();
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+
+  if (!isAuthenticated) {
+    return <Redirect href="/(auth)/welcome" />;
+  }
 
   return (
     <Tabs

@@ -2,12 +2,12 @@ import React from 'react';
 import {
   View,
   Text,
-  TouchableOpacity,
+  Pressable,
   StyleProp,
   ViewStyle,
+  StyleSheet,
 } from 'react-native';
 import { useWatermelonTheme } from '@/theme';
-import { cn } from '@/lib/utils';
 
 export interface SegmentOption<T extends string = string> {
   value: T;
@@ -28,22 +28,17 @@ export function SegmentedControl<T extends string = string>({
   value,
   onChange,
   style,
-  className,
 }: SegmentedControlProps<T>) {
-  const { theme, borderRadius, typography, shadows } = useWatermelonTheme();
+  const { theme, borderRadius, typography, isDark } = useWatermelonTheme();
 
   return (
     <View
-      className={cn(
-        'flex-row items-center rounded-xl border border-border bg-muted/40 p-1',
-        className
-      )}
       style={[
+        styles.container,
         {
-          backgroundColor: theme.surface,
+          backgroundColor: isDark ? '#111827' : '#F1F5F9',
           borderColor: theme.border,
           borderRadius: borderRadius.lg,
-          padding: 4,
         },
         style,
       ]}
@@ -51,52 +46,51 @@ export function SegmentedControl<T extends string = string>({
       {options.map((opt) => {
         const isSelected = opt.value === value;
         return (
-          <TouchableOpacity
+          <Pressable
             key={opt.value}
-            activeOpacity={0.8}
             onPress={() => onChange(opt.value)}
-            className={cn(
-              'flex-1 flex-row items-center justify-center py-2 px-3 rounded-lg',
-              isSelected ? 'bg-card shadow-sm' : 'bg-transparent'
-            )}
-            style={[
+            style={({ pressed }) => [
+              styles.segment,
               {
                 borderRadius: borderRadius.md,
-                backgroundColor: isSelected ? theme.card : 'transparent',
-                ...(isSelected ? shadows.subtle : {}),
+                backgroundColor: isSelected
+                  ? theme.card
+                  : pressed
+                  ? isDark
+                    ? 'rgba(255,255,255,0.04)'
+                    : 'rgba(0,0,0,0.03)'
+                  : 'transparent',
+                borderWidth: isSelected ? 1 : 0,
+                borderColor: isSelected ? theme.border : 'transparent',
               },
             ]}
           >
             <Text
-              className={cn(
-                'text-center text-sm font-medium',
-                isSelected ? 'font-semibold text-primary' : 'text-muted-foreground'
-              )}
-              style={[
-                {
-                  color: isSelected ? theme.primary : theme.textMuted,
-                  fontSize: typography.fontSize.sm,
-                  fontWeight: isSelected ? '700' : '500',
-                },
-              ]}
+              style={{
+                color: isSelected ? theme.primary : theme.textMuted,
+                fontSize: typography.fontSize.xs,
+                fontWeight: isSelected ? '700' : '600',
+              }}
+              numberOfLines={1}
             >
               {opt.label}
             </Text>
             {opt.badge !== undefined && (
               <View
-                className="ml-1.5 rounded-full px-1.5 py-0.5"
-                style={[
-                  {
-                    backgroundColor: isSelected
-                      ? theme.primaryLight
-                      : theme.neutralBg,
-                  },
-                ]}
+                style={{
+                  backgroundColor: isSelected
+                    ? (isDark ? 'rgba(16,185,129,0.2)' : '#D1FAE5')
+                    : (isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)'),
+                  borderRadius: borderRadius.full,
+                  paddingHorizontal: 6,
+                  paddingVertical: 1,
+                  marginLeft: 6,
+                }}
               >
                 <Text
                   style={{
                     color: isSelected ? theme.primary : theme.textMuted,
-                    fontSize: typography.fontSize.xs,
+                    fontSize: 10,
                     fontWeight: '700',
                   }}
                 >
@@ -104,9 +98,26 @@ export function SegmentedControl<T extends string = string>({
                 </Text>
               </View>
             )}
-          </TouchableOpacity>
+          </Pressable>
         );
       })}
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 3,
+    borderWidth: 1,
+  },
+  segment: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 8,
+    paddingHorizontal: 6,
+  },
+});

@@ -180,7 +180,7 @@ export default function DashboardScreen() {
 
           <TouchableOpacity
             activeOpacity={0.8}
-            onPress={() => router.push('/groups')}
+            onPress={() => router.push('/(tabs)/groups')}
             style={[
               styles.actionButton,
               {
@@ -227,7 +227,7 @@ export default function DashboardScreen() {
           >
             Active Groups
           </Text>
-          <TouchableOpacity onPress={() => router.push('/groups')}>
+          <TouchableOpacity onPress={() => router.push('/(tabs)/groups')}>
             <Text style={{ color: theme.primary, fontWeight: '700', fontSize: 13 }}>
               See all ›
             </Text>
