@@ -218,25 +218,27 @@ export default function SignupScreen() {
                       },
                     ]}
                   >
-                    <Text
-                      style={[
-                        styles.currencySymbol,
-                        { color: selected ? '#FFFFFF' : (isDark ? '#34D399' : '#059669') },
-                      ]}
-                    >
-                      {curr.symbol}
-                    </Text>
-                    <Text
-                      style={[
-                        styles.currencyCode,
-                        {
-                          color: selected ? '#FFFFFF' : (isDark ? '#F8FAFC' : '#0F172A'),
-                          fontWeight: '700',
-                        },
-                      ]}
-                    >
-                      {curr.code}
-                    </Text>
+                    <View style={{ alignItems: 'center', justifyContent: 'center' }}>
+                      <Text
+                        style={[
+                          styles.currencySymbol,
+                          { color: selected ? '#FFFFFF' : (isDark ? '#34D399' : '#059669') },
+                        ]}
+                      >
+                        {curr.symbol}
+                      </Text>
+                      <Text
+                        style={[
+                          styles.currencyCode,
+                          {
+                            color: selected ? '#FFFFFF' : (isDark ? '#F8FAFC' : '#0F172A'),
+                            fontWeight: '700',
+                          },
+                        ]}
+                      >
+                        {curr.code}
+                      </Text>
+                    </View>
                   </Pressable>
                 );
               })}
