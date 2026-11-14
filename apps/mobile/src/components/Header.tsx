@@ -2,7 +2,7 @@ import React from 'react';
 import {
   View,
   Text,
-  TouchableOpacity,
+  Pressable,
   StyleProp,
   ViewStyle,
 } from 'react-native';
@@ -46,11 +46,15 @@ export const Header: React.FC<HeaderProps> = ({
     >
       <View className="flex-1 flex-row items-center">
         {onBack && (
-          <TouchableOpacity
-            activeOpacity={0.7}
+          <Pressable
             onPress={onBack}
-            className="mr-3 h-[38px] w-[38px] items-center justify-center rounded-full bg-secondary"
-            style={{ backgroundColor: theme.surface }}
+            className="mr-3 h-[38px] w-[38px] items-center justify-center rounded-full"
+            style={({ pressed }) => [
+              {
+                backgroundColor: theme.surface,
+                opacity: pressed ? 0.7 : 1,
+              },
+            ]}
           >
             <Text
               className="text-foreground"
@@ -62,7 +66,7 @@ export const Header: React.FC<HeaderProps> = ({
             >
               ‹
             </Text>
-          </TouchableOpacity>
+          </Pressable>
         )}
 
         <View className="flex-1">

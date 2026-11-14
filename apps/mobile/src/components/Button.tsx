@@ -1,6 +1,6 @@
 import React from 'react';
 import {
-  TouchableOpacity,
+  Pressable,
   Text,
   ActivityIndicator,
   ViewStyle,
@@ -102,7 +102,6 @@ export const Button: React.FC<ButtonProps> = ({
     borderColor: disabled ? 'transparent' : borderColor,
     paddingVertical,
     paddingHorizontal,
-    opacity: disabled ? 0.6 : 1,
   };
 
   const labelStyle: TextStyle = {
@@ -118,12 +117,15 @@ export const Button: React.FC<ButtonProps> = ({
   );
 
   return (
-    <TouchableOpacity
-      activeOpacity={0.8}
+    <Pressable
       onPress={onPress}
       disabled={disabled || loading}
       className={tailwindClasses}
-      style={[containerStyle, style]}
+      style={({ pressed }) => [
+        containerStyle,
+        { opacity: disabled ? 0.6 : pressed ? 0.8 : 1 },
+        style,
+      ]}
       {...rest}
     >
       {loading ? (
@@ -137,6 +139,6 @@ export const Button: React.FC<ButtonProps> = ({
           {icon && iconPosition === 'right' && <View className="ml-2">{icon}</View>}
         </View>
       )}
-    </TouchableOpacity>
+    </Pressable>
   );
 };

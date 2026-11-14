@@ -4,7 +4,7 @@ import {
   Text,
   StyleSheet,
   ScrollView,
-  TouchableOpacity,
+  Pressable,
   TextInput,
   KeyboardAvoidingView,
   Platform,
@@ -26,6 +26,7 @@ import {
   useFriends,
 } from '../../src/hooks/useQueries';
 import { useAuthStore } from '../../src/stores/authStore';
+import { useThemeStore } from '../../src/stores/themeStore';
 import {
   ExpenseCategory,
   SplitType,
@@ -60,6 +61,7 @@ export default function AddExpenseScreen() {
   }>();
   const preselectedGroupId = params?.preselectedGroupId;
   const { theme, typography, spacing, borderRadius, isDark } = useWatermelonTheme();
+  const { toggleTheme } = useThemeStore();
   const user = useAuthStore((s) => s.user);
 
   const { data: groups } = useMyGroups();
@@ -349,7 +351,7 @@ export default function AddExpenseScreen() {
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         style={{ flex: 1 }}
       >
-        {/* Navigation Top Header */}
+        {/* Top Header Bar */}
         <View
           style={[
             styles.headerBar,
@@ -359,7 +361,7 @@ export default function AddExpenseScreen() {
             },
           ]}
         >
-          <TouchableOpacity
+          <Pressable
             onPress={() => {
               if (router.canGoBack()) {
                 router.back();
@@ -368,17 +370,20 @@ export default function AddExpenseScreen() {
               }
             }}
             hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-            style={{
-              backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)',
-              width: 36,
-              height: 36,
-              borderRadius: 18,
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
+            style={({ pressed }) => [
+              {
+                backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)',
+                width: 36,
+                height: 36,
+                borderRadius: 18,
+                alignItems: 'center',
+                justifyContent: 'center',
+                opacity: pressed ? 0.7 : 1,
+              },
+            ]}
           >
             <Ionicons name="close" size={20} color={theme.text} />
-          </TouchableOpacity>
+          </Pressable>
 
           <View style={{ alignItems: 'center' }}>
             <Text
@@ -401,34 +406,63 @@ export default function AddExpenseScreen() {
             </Text>
           </View>
 
-          <TouchableOpacity
-            onPress={handleSave}
-            disabled={createExpenseMutation.isPending || !title.trim() || totalMinor <= 0}
-            style={{
-              backgroundColor: theme.primary,
-              opacity:
-                createExpenseMutation.isPending || !title.trim() || totalMinor <= 0
-                  ? 0.5
-                  : 1,
-              flexDirection: 'row',
-              alignItems: 'center',
-              borderRadius: 20,
-              paddingHorizontal: 14,
-              paddingVertical: 7,
-            }}
-          >
-            <Ionicons name="checkmark" size={16} color="#FFFFFF" />
-            <Text
-              style={{
-                color: '#FFFFFF',
-                fontWeight: '700',
-                fontSize: 12,
-                marginLeft: 4,
-              }}
+          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+            <Pressable
+              onPress={toggleTheme}
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+              style={({ pressed }) => [
+                {
+                  backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)',
+                  width: 36,
+                  height: 36,
+                  borderRadius: 18,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  marginRight: 8,
+                  opacity: pressed ? 0.7 : 1,
+                },
+              ]}
             >
-              Save
-            </Text>
-          </TouchableOpacity>
+              <Ionicons
+                name={isDark ? 'sunny' : 'moon'}
+                size={18}
+                color={isDark ? '#F59E0B' : theme.text}
+              />
+            </Pressable>
+
+            <Pressable
+              onPress={handleSave}
+              disabled={createExpenseMutation.isPending || !title.trim() || totalMinor <= 0}
+              style={({ pressed }) => [
+                {
+                  backgroundColor: theme.primary,
+                  opacity:
+                    createExpenseMutation.isPending || !title.trim() || totalMinor <= 0
+                      ? 0.5
+                      : pressed
+                      ? 0.85
+                      : 1,
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  borderRadius: 20,
+                  paddingHorizontal: 14,
+                  paddingVertical: 7,
+                },
+              ]}
+            >
+              <Ionicons name="checkmark" size={16} color="#FFFFFF" />
+              <Text
+                style={{
+                  color: '#FFFFFF',
+                  fontWeight: '700',
+                  fontSize: 12,
+                  marginLeft: 4,
+                }}
+              >
+                Save
+              </Text>
+            </Pressable>
+          </View>
         </View>
 
         <ScrollView
@@ -559,19 +593,22 @@ export default function AddExpenseScreen() {
                 Choose Group
               </Text>
               <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-                <TouchableOpacity
+                <Pressable
                   onPress={() => setGroupId(null)}
-                  style={{
-                    backgroundColor: groupId === null ? theme.primary : theme.surface,
-                    borderColor: groupId === null ? theme.primary : theme.border,
-                    borderWidth: 1,
-                    borderRadius: borderRadius.md,
-                    paddingHorizontal: 12,
-                    paddingVertical: 8,
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    marginRight: 8,
-                  }}
+                  style={({ pressed }) => [
+                    {
+                      backgroundColor: groupId === null ? theme.primary : theme.surface,
+                      borderColor: groupId === null ? theme.primary : theme.border,
+                      borderWidth: 1,
+                      borderRadius: borderRadius.md,
+                      paddingHorizontal: 12,
+                      paddingVertical: 8,
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      marginRight: 8,
+                      opacity: pressed ? 0.8 : 1,
+                    },
+                  ]}
                 >
                   <Ionicons
                     name="people-outline"
@@ -588,25 +625,28 @@ export default function AddExpenseScreen() {
                   >
                     Non-group / Direct
                   </Text>
-                </TouchableOpacity>
+                </Pressable>
 
                 {groups.map((g: any) => {
                   const isSelected = groupId === g.id;
                   return (
-                    <TouchableOpacity
+                    <Pressable
                       key={g.id}
                       onPress={() => setGroupId(g.id)}
-                      style={{
-                        backgroundColor: isSelected ? theme.primary : theme.surface,
-                        borderColor: isSelected ? theme.primary : theme.border,
-                        borderWidth: 1,
-                        borderRadius: borderRadius.md,
-                        paddingHorizontal: 12,
-                        paddingVertical: 8,
-                        flexDirection: 'row',
-                        alignItems: 'center',
-                        marginRight: 8,
-                      }}
+                      style={({ pressed }) => [
+                        {
+                          backgroundColor: isSelected ? theme.primary : theme.surface,
+                          borderColor: isSelected ? theme.primary : theme.border,
+                          borderWidth: 1,
+                          borderRadius: borderRadius.md,
+                          paddingHorizontal: 12,
+                          paddingVertical: 8,
+                          flexDirection: 'row',
+                          alignItems: 'center',
+                          marginRight: 8,
+                          opacity: pressed ? 0.8 : 1,
+                        },
+                      ]}
                     >
                       <Ionicons
                         name="folder-outline"
@@ -623,7 +663,7 @@ export default function AddExpenseScreen() {
                       >
                         {g.name}
                       </Text>
-                    </TouchableOpacity>
+                    </Pressable>
                   );
                 })}
               </ScrollView>
@@ -646,22 +686,27 @@ export default function AddExpenseScreen() {
               {categoryOptions.map((opt) => {
                 const isSelected = category === opt.value;
                 return (
-                  <TouchableOpacity
+                  <Pressable
                     key={opt.value}
                     onPress={() => setCategory(opt.value)}
-                    style={{
-                      backgroundColor: isSelected
-                        ? (isDark ? 'rgba(16,185,129,0.18)' : '#D1FAE5')
-                        : theme.surface,
-                      borderColor: isSelected ? theme.primary : theme.border,
-                      borderWidth: 1,
-                      borderRadius: borderRadius.md,
-                      paddingHorizontal: 12,
-                      paddingVertical: 8,
-                      flexDirection: 'row',
-                      alignItems: 'center',
-                      marginRight: 8,
-                    }}
+                    style={({ pressed }) => [
+                      {
+                        backgroundColor: isSelected
+                          ? isDark
+                            ? 'rgba(16,185,129,0.2)'
+                            : '#D1FAE5'
+                          : theme.surface,
+                        borderColor: isSelected ? theme.primary : theme.border,
+                        borderWidth: 1,
+                        borderRadius: borderRadius.md,
+                        paddingHorizontal: 12,
+                        paddingVertical: 8,
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                        marginRight: 8,
+                        opacity: pressed ? 0.8 : 1,
+                      },
+                    ]}
                   >
                     <Ionicons
                       name={opt.icon}
@@ -678,7 +723,7 @@ export default function AddExpenseScreen() {
                     >
                       {opt.label}
                     </Text>
-                  </TouchableOpacity>
+                  </Pressable>
                 );
               })}
             </ScrollView>
@@ -700,22 +745,27 @@ export default function AddExpenseScreen() {
               {participants.map((p) => {
                 const isSelected = payerId === p.userId;
                 return (
-                  <TouchableOpacity
+                  <Pressable
                     key={p.userId}
                     onPress={() => setPayerId(p.userId)}
-                    style={{
-                      backgroundColor: isSelected
-                        ? (isDark ? 'rgba(16,185,129,0.18)' : '#D1FAE5')
-                        : theme.surface,
-                      borderColor: isSelected ? theme.primary : theme.border,
-                      borderWidth: 1,
-                      borderRadius: borderRadius.md,
-                      paddingHorizontal: 10,
-                      paddingVertical: 6,
-                      flexDirection: 'row',
-                      alignItems: 'center',
-                      marginRight: 8,
-                    }}
+                    style={({ pressed }) => [
+                      {
+                        backgroundColor: isSelected
+                          ? isDark
+                            ? 'rgba(16,185,129,0.2)'
+                            : '#D1FAE5'
+                          : theme.surface,
+                        borderColor: isSelected ? theme.primary : theme.border,
+                        borderWidth: 1,
+                        borderRadius: borderRadius.md,
+                        paddingHorizontal: 10,
+                        paddingVertical: 6,
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                        marginRight: 8,
+                        opacity: pressed ? 0.8 : 1,
+                      },
+                    ]}
                   >
                     <Avatar name={p.fullName} size="sm" />
                     <Text
@@ -736,7 +786,7 @@ export default function AddExpenseScreen() {
                         style={{ marginLeft: 6 }}
                       />
                     )}
-                  </TouchableOpacity>
+                  </Pressable>
                 );
               })}
             </ScrollView>
@@ -815,13 +865,14 @@ export default function AddExpenseScreen() {
               >
                 Split Between ({selectedParticipants.length} selected)
               </Text>
-              <TouchableOpacity
+              <Pressable
                 onPress={() => {
                   const allSelected = participants.every((p) => p.selected);
                   setParticipants((prev) =>
                     prev.map((p) => ({ ...p, selected: !allSelected }))
                   );
                 }}
+                style={({ pressed }) => [{ opacity: pressed ? 0.7 : 1 }]}
               >
                 <Text
                   style={{
@@ -832,7 +883,7 @@ export default function AddExpenseScreen() {
                 >
                   {participants.every((p) => p.selected) ? 'Deselect all' : 'Select all'}
                 </Text>
-              </TouchableOpacity>
+              </Pressable>
             </View>
 
             {participants.map((p) => {
@@ -845,7 +896,7 @@ export default function AddExpenseScreen() {
                 <View
                   key={p.userId}
                   style={{
-                    backgroundColor: theme.card,
+                    backgroundColor: isDark ? '#161F30' : '#FFFFFF',
                     borderColor: p.selected ? theme.primary : theme.border,
                     borderRadius: borderRadius.lg,
                     borderWidth: 1,
@@ -856,10 +907,16 @@ export default function AddExpenseScreen() {
                     justifyContent: 'space-between',
                   }}
                 >
-                  <TouchableOpacity
+                  <Pressable
                     onPress={() => toggleParticipant(p.userId)}
-                    style={{ flex: 1, flexDirection: 'row', alignItems: 'center' }}
-                    activeOpacity={0.8}
+                    style={({ pressed }) => [
+                      {
+                        flex: 1,
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                        opacity: pressed ? 0.8 : 1,
+                      },
+                    ]}
                   >
                     <View
                       style={{
@@ -903,7 +960,7 @@ export default function AddExpenseScreen() {
                         </Text>
                       )}
                     </View>
-                  </TouchableOpacity>
+                  </Pressable>
 
                   {/* Input field for non-equal splits */}
                   {p.selected && (
@@ -911,7 +968,7 @@ export default function AddExpenseScreen() {
                       {splitType === 'exact' && (
                         <View
                           style={{
-                            backgroundColor: theme.surface,
+                            backgroundColor: isDark ? '#111827' : '#F1F5F9',
                             borderColor: theme.border,
                             borderWidth: 1,
                             borderRadius: 8,
@@ -952,7 +1009,7 @@ export default function AddExpenseScreen() {
                       {splitType === 'percentage' && (
                         <View
                           style={{
-                            backgroundColor: theme.surface,
+                            backgroundColor: isDark ? '#111827' : '#F1F5F9',
                             borderColor: theme.border,
                             borderWidth: 1,
                             borderRadius: 8,
@@ -993,7 +1050,7 @@ export default function AddExpenseScreen() {
                       {splitType === 'shares' && (
                         <View
                           style={{
-                            backgroundColor: theme.surface,
+                            backgroundColor: isDark ? '#111827' : '#F1F5F9',
                             borderColor: theme.border,
                             borderWidth: 1,
                             borderRadius: 8,

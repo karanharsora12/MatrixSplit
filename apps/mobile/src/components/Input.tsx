@@ -7,7 +7,7 @@ import {
   ViewStyle,
   TextStyle,
   StyleProp,
-  TouchableOpacity,
+  Pressable,
 } from 'react-native';
 import { useWatermelonTheme } from '@/theme';
 import { cn } from '@/lib/utils';
@@ -54,7 +54,7 @@ export const Input: React.FC<InputProps> = ({
     >
       {label && (
         <Text
-          className="mb-1 text-xs font-semibold uppercase tracking-wider text-muted-foreground"
+          className="mb-1 text-xs font-semibold uppercase tracking-wider"
           style={{
             color: isFocused ? theme.primary : theme.textMuted,
             fontSize: typography.fontSize.xs,
@@ -65,38 +65,32 @@ export const Input: React.FC<InputProps> = ({
       )}
 
       <View
-        className={cn(
-          'flex-row items-center rounded-xl border bg-card px-3',
-          error
-            ? 'border-destructive'
-            : isFocused
-            ? 'border-primary'
-            : 'border-border'
-        )}
         style={{
-          height: 44,
+          minHeight: 44,
           backgroundColor: theme.surface,
           borderColor,
           borderWidth: isFocused || error ? 1.5 : 1,
           borderRadius: borderRadius.md,
+          flexDirection: 'row',
+          alignItems: 'center',
+          paddingHorizontal: 12,
         }}
       >
         {leftIcon && (
-          <View className="mr-2.5 items-center justify-center">
+          <View style={{ marginRight: 8, alignItems: 'center', justifyContent: 'center' }}>
             {leftIcon}
           </View>
         )}
 
         <TextInput
           placeholderTextColor={theme.textMuted}
-          className="flex-1 text-sm text-foreground"
           style={[
             {
               color: theme.text,
               fontSize: typography.fontSize.sm,
-              paddingVertical: 0,
+              paddingVertical: 8,
               paddingHorizontal: 0,
-              height: '100%',
+              flex: 1,
             },
             style,
           ]}
@@ -112,27 +106,33 @@ export const Input: React.FC<InputProps> = ({
         />
 
         {rightIcon && (
-          <TouchableOpacity
+          <Pressable
             disabled={!onRightIconPress}
             onPress={onRightIconPress}
-            activeOpacity={0.7}
-            className="ml-2 items-center justify-center"
+            style={({ pressed }) => [
+              {
+                marginLeft: 8,
+                alignItems: 'center',
+                justifyContent: 'center',
+                opacity: pressed ? 0.7 : 1,
+              },
+            ]}
           >
             {rightIcon}
-          </TouchableOpacity>
+          </Pressable>
         )}
       </View>
 
       {error ? (
         <Text
-          className="mt-1 text-xs text-destructive"
+          className="mt-1 text-xs"
           style={{ color: theme.negative, fontSize: typography.fontSize.xs }}
         >
           {error}
         </Text>
       ) : hint ? (
         <Text
-          className="mt-1 text-xs text-muted-foreground"
+          className="mt-1 text-xs"
           style={{ color: theme.textMuted, fontSize: typography.fontSize.xs }}
         >
           {hint}

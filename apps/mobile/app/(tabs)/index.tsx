@@ -4,7 +4,7 @@ import {
   Text,
   StyleSheet,
   ScrollView,
-  TouchableOpacity,
+  Pressable,
   RefreshControl,
   Share,
 } from 'react-native';
@@ -26,6 +26,7 @@ import {
   useMyGroups,
 } from '../../src/hooks/useQueries';
 import { useAuthStore } from '../../src/stores/authStore';
+import { useThemeStore } from '../../src/stores/themeStore';
 import { formatCurrency, ExpenseCategory, GroupCategory } from '@matrixsplit/shared';
 
 const groupIcons: Record<string, keyof typeof Ionicons.glyphMap> = {
@@ -52,7 +53,8 @@ const expenseIcons: Record<string, keyof typeof Ionicons.glyphMap> = {
 
 export default function DashboardScreen() {
   const router = useRouter();
-  const { theme, typography, spacing, borderRadius } = useWatermelonTheme();
+  const { theme, typography, spacing, borderRadius, isDark } = useWatermelonTheme();
+  const { toggleTheme } = useThemeStore();
   const user = useAuthStore((s) => s.user);
 
   const {
@@ -90,9 +92,9 @@ export default function DashboardScreen() {
     <SafeAreaView edges={['top', 'left', 'right']} style={[styles.container, { backgroundColor: theme.background }]}>
       {/* Top Header */}
       <View style={styles.topBar}>
-        <TouchableOpacity
+        <Pressable
           onPress={() => router.push('/settings')}
-          style={styles.profileBtn}
+          style={({ pressed }) => [styles.profileBtn, { opacity: pressed ? 0.8 : 1 }]}
         >
           <Avatar name={user?.fullName || 'User'} size="sm" />
           <View style={styles.nameContainer}>
@@ -113,14 +115,42 @@ export default function DashboardScreen() {
               {user?.fullName || 'MatrixSplit User'}
             </Text>
           </View>
-        </TouchableOpacity>
+        </Pressable>
 
-        <TouchableOpacity
-          onPress={() => router.push('/settings')}
-          style={[styles.settingsIconBtn, { backgroundColor: theme.card, borderColor: theme.border }]}
-        >
-          <Ionicons name="settings-outline" size={20} color={theme.text} />
-        </TouchableOpacity>
+        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+          <Pressable
+            onPress={toggleTheme}
+            style={({ pressed }) => [
+              styles.settingsIconBtn,
+              {
+                backgroundColor: theme.card,
+                borderColor: theme.border,
+                marginRight: 8,
+                opacity: pressed ? 0.7 : 1,
+              },
+            ]}
+          >
+            <Ionicons
+              name={isDark ? 'sunny' : 'moon'}
+              size={18}
+              color={isDark ? '#F59E0B' : theme.text}
+            />
+          </Pressable>
+
+          <Pressable
+            onPress={() => router.push('/settings')}
+            style={({ pressed }) => [
+              styles.settingsIconBtn,
+              {
+                backgroundColor: theme.card,
+                borderColor: theme.border,
+                opacity: pressed ? 0.7 : 1,
+              },
+            ]}
+          >
+            <Ionicons name="settings-outline" size={20} color={theme.text} />
+          </Pressable>
+        </View>
       </View>
 
       <ScrollView
@@ -148,46 +178,46 @@ export default function DashboardScreen() {
 
         {/* Quick Action Buttons Grid */}
         <View style={styles.actionsGrid}>
-          <TouchableOpacity
-            activeOpacity={0.8}
+          <Pressable
             onPress={() => router.push('/expense/add')}
-            style={[
+            style={({ pressed }) => [
               styles.actionButton,
               {
                 backgroundColor: theme.primary,
                 borderRadius: borderRadius.lg,
+                opacity: pressed ? 0.8 : 1,
               },
             ]}
           >
             <Ionicons name="add-circle" size={24} color="#FFFFFF" />
             <Text style={styles.actionLabel}>Add Expense</Text>
-          </TouchableOpacity>
+          </Pressable>
 
-          <TouchableOpacity
-            activeOpacity={0.8}
+          <Pressable
             onPress={() => router.push('/settle')}
-            style={[
+            style={({ pressed }) => [
               styles.actionButton,
               {
                 backgroundColor: theme.secondary,
                 borderRadius: borderRadius.lg,
+                opacity: pressed ? 0.8 : 1,
               },
             ]}
           >
             <Ionicons name="swap-horizontal" size={22} color="#FFFFFF" />
             <Text style={styles.actionLabel}>Settle Up</Text>
-          </TouchableOpacity>
+          </Pressable>
 
-          <TouchableOpacity
-            activeOpacity={0.8}
+          <Pressable
             onPress={() => router.push('/(tabs)/groups')}
-            style={[
+            style={({ pressed }) => [
               styles.actionButton,
               {
                 backgroundColor: theme.card,
                 borderColor: theme.border,
                 borderWidth: 1,
                 borderRadius: borderRadius.lg,
+                opacity: pressed ? 0.8 : 1,
               },
             ]}
           >
@@ -195,18 +225,18 @@ export default function DashboardScreen() {
             <Text style={[styles.actionLabel, { color: theme.text }]}>
               Create Group
             </Text>
-          </TouchableOpacity>
+          </Pressable>
 
-          <TouchableOpacity
-            activeOpacity={0.8}
+          <Pressable
             onPress={handleInviteFriend}
-            style={[
+            style={({ pressed }) => [
               styles.actionButton,
               {
                 backgroundColor: theme.card,
                 borderColor: theme.border,
                 borderWidth: 1,
                 borderRadius: borderRadius.lg,
+                opacity: pressed ? 0.8 : 1,
               },
             ]}
           >
@@ -214,7 +244,7 @@ export default function DashboardScreen() {
             <Text style={[styles.actionLabel, { color: theme.text }]}>
               Invite Friend
             </Text>
-          </TouchableOpacity>
+          </Pressable>
         </View>
 
         {/* Active Groups Horizontal List */}
@@ -227,11 +257,14 @@ export default function DashboardScreen() {
           >
             Active Groups
           </Text>
-          <TouchableOpacity onPress={() => router.push('/(tabs)/groups')}>
+          <Pressable
+            onPress={() => router.push('/(tabs)/groups')}
+            style={({ pressed }) => [{ opacity: pressed ? 0.7 : 1 }]}
+          >
             <Text style={{ color: theme.primary, fontWeight: '700', fontSize: 13 }}>
               See all ›
             </Text>
-          </TouchableOpacity>
+          </Pressable>
         </View>
 
         {groups && groups.length > 0 ? (
@@ -243,16 +276,16 @@ export default function DashboardScreen() {
             {groups.map((group: any) => {
               const iconName = groupIcons[group.category] || 'folder-outline';
               return (
-                <TouchableOpacity
+                <Pressable
                   key={group.id}
-                  activeOpacity={0.85}
                   onPress={() => router.push(`/group/${group.id}`)}
-                  style={[
+                  style={({ pressed }) => [
                     styles.groupCard,
                     {
                       backgroundColor: theme.card,
                       borderColor: theme.border,
                       borderRadius: borderRadius.lg,
+                      opacity: pressed ? 0.85 : 1,
                     },
                   ]}
                 >
@@ -278,7 +311,7 @@ export default function DashboardScreen() {
                   >
                     {group.membersCount || 1} members
                   </Text>
-                </TouchableOpacity>
+                </Pressable>
               );
             })}
           </ScrollView>
@@ -300,11 +333,14 @@ export default function DashboardScreen() {
           >
             Recent Expenses
           </Text>
-          <TouchableOpacity onPress={() => router.push('/expense/add')}>
+          <Pressable
+            onPress={() => router.push('/expense/add')}
+            style={({ pressed }) => [{ opacity: pressed ? 0.7 : 1 }]}
+          >
             <Text style={{ color: theme.primary, fontWeight: '700', fontSize: 13 }}>
               + Add
             </Text>
-          </TouchableOpacity>
+          </Pressable>
         </View>
 
         {loadingExpenses ? (
@@ -313,10 +349,10 @@ export default function DashboardScreen() {
           recentExpenses.map((exp: any) => {
             const expIconName = expenseIcons[exp.category] || 'receipt-outline';
             return (
-              <TouchableOpacity
+              <Pressable
                 key={exp.id}
-                activeOpacity={0.8}
                 onPress={() => router.push(`/expense/${exp.id}`)}
+                style={({ pressed }) => [{ opacity: pressed ? 0.85 : 1 }]}
               >
                 <Card
                   variant="outlined"
@@ -356,13 +392,13 @@ export default function DashboardScreen() {
                     </Text>
                   </View>
                 </Card>
-              </TouchableOpacity>
+              </Pressable>
             );
           })
         ) : (
           <Card padding="md" variant="outlined">
             <Text style={{ color: theme.textMuted, textAlign: 'center' }}>
-              No expenses recorded yet.
+              No expenses recorded yet. Tap '+ Add' above to record your first expense!
             </Text>
           </Card>
         )}
@@ -482,21 +518,18 @@ const styles = StyleSheet.create({
   },
   actionLabel: {
     color: '#FFFFFF',
-    fontWeight: '700',
+    fontWeight: '600',
     fontSize: 11,
-    marginTop: 6,
-    textAlign: 'center',
+    marginTop: 4,
   },
   sectionHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: 10,
-    marginTop: 6,
   },
   sectionTitle: {
-    fontWeight: '800',
-    letterSpacing: -0.3,
+    fontWeight: '700',
   },
   groupsScroll: {
     marginBottom: 20,
@@ -504,14 +537,14 @@ const styles = StyleSheet.create({
   groupCard: {
     width: 140,
     padding: 12,
-    borderWidth: 1,
     marginRight: 10,
+    borderWidth: 1,
   },
   groupCardTop: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 10,
+    alignItems: 'flex-start',
+    marginBottom: 8,
   },
   groupIconWrapper: {
     width: 32,
@@ -521,15 +554,15 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   groupName: {
-    fontWeight: '700',
-    fontSize: 13,
+    fontWeight: '600',
+    fontSize: 14,
+    marginBottom: 2,
   },
   groupMembersText: {
-    fontSize: 11,
-    marginTop: 2,
+    fontSize: 12,
   },
   emptyGroupCard: {
-    marginBottom: 16,
+    marginBottom: 20,
   },
   expenseRow: {
     flexDirection: 'row',
@@ -538,16 +571,16 @@ const styles = StyleSheet.create({
   categoryIconCircle: {
     width: 36,
     height: 36,
-    borderRadius: 10,
+    borderRadius: 18,
     alignItems: 'center',
     justifyContent: 'center',
+    marginRight: 12,
   },
   expenseInfo: {
     flex: 1,
-    marginLeft: 12,
   },
   expenseTitle: {
-    fontWeight: '700',
+    fontWeight: '600',
     fontSize: 14,
   },
   expenseMeta: {
@@ -555,14 +588,14 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   expenseAmount: {
-    fontWeight: '800',
+    fontWeight: '700',
   },
   settlementRow: {
     flexDirection: 'row',
     alignItems: 'center',
   },
   settlementTitle: {
-    fontWeight: '700',
+    fontWeight: '600',
   },
   settlementMethod: {
     marginTop: 2,

@@ -9,7 +9,8 @@ import { useAuthStore } from '../src/stores/authStore';
 import { initSocket } from '../src/services/socket';
 import { StatusBar } from 'expo-status-bar';
 import { PortalHost } from '@rn-primitives/portal';
-import { useColorScheme } from 'nativewind';
+import { useColorScheme as useNativeWindColorScheme } from 'nativewind';
+import { useColorScheme as useRNColorScheme } from 'react-native';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -22,9 +23,10 @@ const queryClient = new QueryClient({
 
 export default function RootLayout() {
   const { mode } = useThemeStore();
-  const isDark = mode === 'dark';
+  const systemColorScheme = useRNColorScheme();
+  const isDark = mode === 'system' ? systemColorScheme === 'dark' : mode === 'dark';
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
-  const { setColorScheme } = useColorScheme();
+  const { setColorScheme } = useNativeWindColorScheme();
 
   useEffect(() => {
     setColorScheme(isDark ? 'dark' : 'light');

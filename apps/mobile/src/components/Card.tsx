@@ -1,7 +1,7 @@
 import React from 'react';
 import {
   View,
-  TouchableOpacity,
+  Pressable,
   StyleSheet,
   ViewStyle,
   StyleProp,
@@ -64,15 +64,19 @@ export const Card: React.FC<CardProps> = ({
 
   if (onPress) {
     return (
-      <TouchableOpacity
-        activeOpacity={0.85}
+      <Pressable
         onPress={onPress}
         className={combinedClass}
-        style={[styles.base, cardStyle, style]}
+        style={({ pressed }) => [
+          styles.base,
+          cardStyle,
+          { opacity: pressed ? 0.85 : 1 },
+          style,
+        ]}
         {...rest}
       >
         {children}
-      </TouchableOpacity>
+      </Pressable>
     );
   }
 

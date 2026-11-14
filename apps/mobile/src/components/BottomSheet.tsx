@@ -3,7 +3,7 @@ import {
   Modal,
   View,
   Text,
-  TouchableOpacity,
+  Pressable,
   TouchableWithoutFeedback,
   StyleSheet,
   StyleProp,
@@ -47,11 +47,12 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({
                   borderTopLeftRadius: borderRadius.xl,
                   borderTopRightRadius: borderRadius.xl,
                   paddingBottom: spacing['2xl'],
+                  borderTopWidth: 1,
+                  borderTopColor: theme.border,
                 },
               ]}
-              className="bg-card rounded-t-3xl border-t border-border shadow-2xl"
             >
-              <View style={styles.handleContainer} className="items-center py-2.5">
+              <View style={styles.handleContainer}>
                 <View
                   style={[
                     styles.handle,
@@ -60,7 +61,6 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({
                       borderRadius: borderRadius.full,
                     },
                   ]}
-                  className="w-10 h-1 rounded-full bg-muted-foreground/30"
                 />
               </View>
 
@@ -74,7 +74,6 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({
                       paddingBottom: spacing.sm,
                     },
                   ]}
-                  className="px-6 pb-2 border-b border-border"
                 >
                   <Text
                     style={[
@@ -85,13 +84,13 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({
                         fontWeight: typography.fontWeight.bold,
                       },
                     ]}
-                    className="text-lg font-bold text-foreground"
                   >
                     {title}
                   </Text>
-                  <TouchableOpacity
+                  <Pressable
                     onPress={onClose}
                     hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                    style={({ pressed }) => [{ opacity: pressed ? 0.7 : 1 }]}
                   >
                     <Text
                       style={[
@@ -101,11 +100,10 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({
                           fontSize: typography.fontSize.sm,
                         },
                       ]}
-                      className="text-sm font-medium text-muted-foreground"
                     >
                       Done
                     </Text>
-                  </TouchableOpacity>
+                  </Pressable>
                 </View>
               )}
 
@@ -115,7 +113,6 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({
                   { paddingHorizontal: spacing.lg, paddingTop: spacing.base },
                   contentStyle,
                 ]}
-                className="px-6 pt-4"
               >
                 {children}
               </View>
