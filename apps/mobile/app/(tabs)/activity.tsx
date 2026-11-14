@@ -12,8 +12,8 @@ import {
   Card,
   Avatar,
   SkeletonCard,
-  useWatermelonTheme,
-} from '@matrixsplit/watermelon-ui';
+} from '@/components';
+import { useWatermelonTheme } from '@/theme';
 import { useActivities } from '../../src/hooks/useQueries';
 
 const activityIcons: Record<string, keyof typeof Ionicons.glyphMap> = {

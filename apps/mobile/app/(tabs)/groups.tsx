@@ -18,8 +18,8 @@ import {
   Input,
   BottomSheet,
   SkeletonCard,
-  useWatermelonTheme,
-} from '@matrixsplit/watermelon-ui';
+} from '@/components';
+import { useWatermelonTheme } from '@/theme';
 import { useMyGroups, useCreateGroup, useJoinGroup } from '../../src/hooks/useQueries';
 import { GroupCategory } from '@matrixsplit/shared';
 

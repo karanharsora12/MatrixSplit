@@ -16,8 +16,8 @@ import {
   Avatar,
   Button,
   Input,
-  useWatermelonTheme,
-} from '@matrixsplit/watermelon-ui';
+} from '@/components';
+import { useWatermelonTheme } from '@/theme';
 import { useAuthStore } from '../../src/stores/authStore';
 import { useThemeStore } from '../../src/stores/themeStore';
 import { apiClient } from '../../src/services/api';
@@ -300,6 +300,42 @@ export default function SettingsScreen() {
               thumbColor="#FFFFFF"
             />
           </View>
+        </Card>
+
+        {/* Design System & Components */}
+        <View style={styles.sectionHeader}>
+          <Text
+            style={[
+              styles.sectionTitle,
+              { color: theme.text, fontSize: typography.fontSize.sm },
+            ]}
+          >
+            DESIGN SYSTEM
+          </Text>
+        </View>
+
+        <Card
+          variant="outlined"
+          padding="md"
+          style={{ marginBottom: spacing.base }}
+        >
+          <TouchableOpacity
+            onPress={() => router.push('/settings/ui-showcase')}
+            style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 4 }}
+          >
+            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+              <Ionicons name="sparkles" size={20} color={theme.primary} style={{ marginRight: 10 }} />
+              <View>
+                <Text style={{ color: theme.text, fontWeight: '700', fontSize: 15 }}>
+                  React Native Reusables
+                </Text>
+                <Text style={{ color: theme.textMuted, fontSize: 12, marginTop: 2 }}>
+                  Interactive UI components showcase & tests
+                </Text>
+              </View>
+            </View>
+            <Ionicons name="chevron-forward" size={18} color={theme.textMuted} />
+          </TouchableOpacity>
         </Card>
 
         {/* Account Actions */}

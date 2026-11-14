@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
 import {
   View,
   Text,
@@ -7,36 +7,36 @@ import {
   TouchableOpacity,
   TextInput,
   Alert,
-} from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { useLocalSearchParams, useRouter } from 'expo-router';
-import Ionicons from '@expo/vector-icons/Ionicons';
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { useLocalSearchParams, useRouter } from "expo-router";
+import Ionicons from "@expo/vector-icons/Ionicons";
 import {
   Card,
   Avatar,
   Badge,
   Button,
   SkeletonCard,
-  useWatermelonTheme,
-} from '@matrixsplit/watermelon-ui';
+} from '@/components';
+import { useWatermelonTheme } from '@/theme';
 import {
   useExpenseDetails,
   useDeleteExpense,
-} from '../../src/hooks/useQueries';
-import { useAuthStore } from '../../src/stores/authStore';
-import { formatCurrency, ExpenseCategory } from '@matrixsplit/shared';
+} from "../../src/hooks/useQueries";
+import { useAuthStore } from "../../src/stores/authStore";
+import { formatCurrency, ExpenseCategory } from "@matrixsplit/shared";
 
 const categoryIcons: Record<string, keyof typeof Ionicons.glyphMap> = {
-  food_and_drink: 'restaurant-outline',
-  groceries: 'cart-outline',
-  transport: 'car-outline',
-  housing: 'home-outline',
-  entertainment: 'film-outline',
-  travel: 'airplane-outline',
-  utilities: 'flash-outline',
-  shopping: 'bag-handle-outline',
-  health: 'medkit-outline',
-  general: 'receipt-outline',
+  food_and_drink: "restaurant-outline",
+  groceries: "cart-outline",
+  transport: "car-outline",
+  housing: "home-outline",
+  entertainment: "film-outline",
+  travel: "airplane-outline",
+  utilities: "flash-outline",
+  shopping: "bag-handle-outline",
+  health: "medkit-outline",
+  general: "receipt-outline",
 };
 
 export default function ExpenseDetailsScreen() {
@@ -49,15 +49,15 @@ export default function ExpenseDetailsScreen() {
   const deleteMutation = useDeleteExpense();
 
   // Comments state
-  const [commentText, setCommentText] = useState('');
+  const [commentText, setCommentText] = useState("");
   const [commentsList, setCommentsList] = useState<
     { id: string; author: string; text: string; time: string }[]
   >([
     {
-      id: 'c1',
-      author: 'Alice Johnson',
-      text: 'Thanks for paying up front! Will settle this evening.',
-      time: '2 hours ago',
+      id: "c1",
+      author: "Alice Johnson",
+      text: "Thanks for paying up front! Will settle this evening.",
+      time: "2 hours ago",
     },
   ]);
 
@@ -65,52 +65,60 @@ export default function ExpenseDetailsScreen() {
     if (!commentText.trim()) return;
     const newComment = {
       id: Date.now().toString(),
-      author: currentUser?.fullName || 'You',
+      author: currentUser?.fullName || "You",
       text: commentText.trim(),
-      time: 'Just now',
+      time: "Just now",
     };
     setCommentsList((prev) => [...prev, newComment]);
-    setCommentText('');
+    setCommentText("");
   };
 
   const handleDelete = () => {
     Alert.alert(
-      'Delete Expense',
-      'Are you sure you want to delete this expense? This will recalculate all group and member balances.',
+      "Delete Expense",
+      "Are you sure you want to delete this expense? This will recalculate all group and member balances.",
       [
-        { text: 'Cancel', style: 'cancel' },
+        { text: "Cancel", style: "cancel" },
         {
-          text: 'Delete',
-          style: 'destructive',
+          text: "Delete",
+          style: "destructive",
           onPress: async () => {
             try {
               await deleteMutation.mutateAsync(id!);
-              Alert.alert('Deleted', 'Expense deleted successfully', [
-                { text: 'OK', onPress: () => router.back() },
+              Alert.alert("Deleted", "Expense deleted successfully", [
+                { text: "OK", onPress: () => router.back() },
               ]);
             } catch (err: any) {
-              Alert.alert('Error', err.response?.data?.message || 'Failed to delete');
+              Alert.alert(
+                "Error",
+                err.response?.data?.message || "Failed to delete",
+              );
             }
           },
         },
-      ]
+      ],
     );
   };
 
   const handleDuplicate = () => {
     if (!expense) return;
     router.push({
-      pathname: '/expense/add',
+      pathname: "/expense/add",
       params: {
         preselectedGroupId: expense.groupId,
       },
     });
   };
 
-  const iconName = expense ? categoryIcons[expense.category] || 'receipt-outline' : 'receipt-outline';
+  const iconName = expense
+    ? categoryIcons[expense.category] || "receipt-outline"
+    : "receipt-outline";
 
   return (
-    <SafeAreaView edges={['top', 'left', 'right']} style={[styles.container, { backgroundColor: theme.background }]}>
+    <SafeAreaView
+      edges={["top", "left", "right"]}
+      style={[styles.container, { backgroundColor: theme.background }]}
+    >
       {/* Top Header */}
       <View style={styles.headerBar}>
         <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
@@ -160,7 +168,7 @@ export default function ExpenseDetailsScreen() {
               <Text
                 style={[
                   styles.expenseTitle,
-                  { color: theme.text, fontSize: typography.fontSize['2xl'] },
+                  { color: theme.text, fontSize: typography.fontSize["2xl"] },
                 ]}
               >
                 {expense.title}
@@ -169,7 +177,7 @@ export default function ExpenseDetailsScreen() {
               <Text
                 style={[
                   styles.expenseAmount,
-                  { color: theme.text, fontSize: typography.fontSize['4xl'] },
+                  { color: theme.text, fontSize: typography.fontSize["4xl"] },
                 ]}
               >
                 {formatCurrency(expense.totalAmountMinor, expense.currency)}
@@ -203,7 +211,7 @@ export default function ExpenseDetailsScreen() {
               style={{ marginBottom: spacing.md }}
             >
               <View style={styles.payerRow}>
-                <Avatar name={expense.payer?.fullName || 'User'} size="md" />
+                <Avatar name={expense.payer?.fullName || "User"} size="md" />
                 <View style={{ marginLeft: 12, flex: 1 }}>
                   <Text
                     style={[
@@ -211,11 +219,11 @@ export default function ExpenseDetailsScreen() {
                       { color: theme.text, fontSize: typography.fontSize.base },
                     ]}
                   >
-                    {expense.payer?.fullName}{' '}
-                    {expense.payerId === currentUser?.id ? '(You)' : ''}
+                    {expense.payer?.fullName}{" "}
+                    {expense.payerId === currentUser?.id ? "(You)" : ""}
                   </Text>
                   <Text style={{ color: theme.textMuted, fontSize: 12 }}>
-                    Paid the full amount of{' '}
+                    Paid the full amount of{" "}
                     {formatCurrency(expense.totalAmountMinor, expense.currency)}
                   </Text>
                 </View>
@@ -241,7 +249,7 @@ export default function ExpenseDetailsScreen() {
             >
               {expense.participants?.map((p: any) => (
                 <View key={p.id} style={styles.participantShareRow}>
-                  <Avatar name={p.user?.fullName || 'User'} size="sm" />
+                  <Avatar name={p.user?.fullName || "User"} size="sm" />
                   <View style={{ flex: 1, marginLeft: 10 }}>
                     <Text
                       style={[
@@ -249,12 +257,12 @@ export default function ExpenseDetailsScreen() {
                         { color: theme.text, fontSize: typography.fontSize.sm },
                       ]}
                     >
-                      {p.user?.fullName}{' '}
-                      {p.userId === currentUser?.id ? '(You)' : ''}
+                      {p.user?.fullName}{" "}
+                      {p.userId === currentUser?.id ? "(You)" : ""}
                     </Text>
                     {p.splitValue ? (
                       <Text style={{ color: theme.textMuted, fontSize: 11 }}>
-                        {expense.splitType === 'percentage'
+                        {expense.splitType === "percentage"
                           ? `${p.splitValue}% share`
                           : `${p.splitValue} shares`}
                       </Text>
@@ -289,7 +297,7 @@ export default function ExpenseDetailsScreen() {
                   style={{
                     color: theme.textMuted,
                     fontSize: 11,
-                    fontWeight: '700',
+                    fontWeight: "700",
                     marginBottom: 4,
                   }}
                 >
@@ -311,7 +319,7 @@ export default function ExpenseDetailsScreen() {
                 style={{
                   color: theme.textMuted,
                   fontSize: 11,
-                  fontWeight: '700',
+                  fontWeight: "700",
                   marginBottom: 8,
                 }}
               >
@@ -323,81 +331,16 @@ export default function ExpenseDetailsScreen() {
                   { backgroundColor: theme.surface, borderColor: theme.border },
                 ]}
               >
-                <Ionicons name="receipt-outline" size={32} color={theme.primary} />
-                <Text style={{ color: theme.textMuted, fontSize: 12, marginTop: 4 }}>
+                <Ionicons
+                  name="receipt-outline"
+                  size={32}
+                  color={theme.primary}
+                />
+                <Text
+                  style={{ color: theme.textMuted, fontSize: 12, marginTop: 4 }}
+                >
                   Itemized bill scanned & verified
                 </Text>
-              </View>
-            </Card>
-
-            {/* Comments Feed Section */}
-            <View style={styles.sectionHeader}>
-              <Text
-                style={[
-                  styles.sectionTitle,
-                  { color: theme.text, fontSize: typography.fontSize.sm },
-                ]}
-              >
-                COMMENTS ({commentsList.length})
-              </Text>
-            </View>
-
-            <Card
-              variant="outlined"
-              padding="md"
-              style={{ marginBottom: spacing.md }}
-            >
-              {commentsList.map((c) => (
-                <View
-                  key={c.id}
-                  style={[
-                    styles.commentItem,
-                    { borderBottomColor: theme.divider },
-                  ]}
-                >
-                  <Avatar name={c.author} size="sm" />
-                  <View style={{ flex: 1, marginLeft: 10 }}>
-                    <View style={styles.commentHeader}>
-                      <Text style={[styles.commentAuthor, { color: theme.text }]}>
-                        {c.author}
-                      </Text>
-                      <Text style={{ color: theme.textMuted, fontSize: 11 }}>
-                        {c.time}
-                      </Text>
-                    </View>
-                    <Text style={[styles.commentText, { color: theme.text }]}>
-                      {c.text}
-                    </Text>
-                  </View>
-                </View>
-              ))}
-
-              {/* Add Comment Input */}
-              <View style={styles.addCommentRow}>
-                <TextInput
-                  placeholder="Write a comment..."
-                  placeholderTextColor={theme.textMuted}
-                  value={commentText}
-                  onChangeText={setCommentText}
-                  style={[
-                    styles.commentInput,
-                    {
-                      backgroundColor: theme.background,
-                      color: theme.text,
-                      borderColor: theme.border,
-                      borderRadius: borderRadius.md,
-                    },
-                  ]}
-                />
-                <TouchableOpacity
-                  onPress={handleAddComment}
-                  style={[
-                    styles.sendCommentBtn,
-                    { backgroundColor: theme.primary, borderRadius: borderRadius.md },
-                  ]}
-                >
-                  <Ionicons name="send" size={16} color="#FFFFFF" />
-                </TouchableOpacity>
               </View>
             </Card>
 
@@ -431,9 +374,9 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   headerBar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     paddingHorizontal: 20,
     paddingTop: 10,
     paddingBottom: 8,
@@ -441,93 +384,93 @@ const styles = StyleSheet.create({
   backBtn: {
     width: 36,
     height: 36,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
   headerTitle: {
-    fontWeight: '700',
+    fontWeight: "700",
   },
   scrollContent: {
     padding: 16,
     paddingBottom: 40,
   },
   cardHeaderRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     marginBottom: 10,
   },
   categoryBadgeRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
   },
   catIconCircle: {
     width: 28,
     height: 28,
     borderRadius: 7,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     marginRight: 6,
   },
   expenseTitle: {
-    fontWeight: '800',
+    fontWeight: "800",
     letterSpacing: -0.3,
   },
   expenseAmount: {
-    fontWeight: '800',
+    fontWeight: "800",
     letterSpacing: -0.5,
     marginVertical: 6,
   },
   expenseDate: {
-    fontWeight: '500',
+    fontWeight: "500",
   },
   sectionHeader: {
     marginBottom: 6,
     marginLeft: 2,
   },
   sectionTitle: {
-    fontWeight: '700',
+    fontWeight: "700",
     letterSpacing: 0.5,
   },
   payerRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     paddingVertical: 4,
   },
   payerName: {
-    fontWeight: '700',
+    fontWeight: "700",
   },
   participantShareRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     paddingVertical: 8,
   },
   participantName: {
-    fontWeight: '600',
+    fontWeight: "600",
   },
   participantShareAmount: {
-    fontWeight: '700',
+    fontWeight: "700",
   },
   receiptBox: {
     padding: 16,
     borderRadius: 8,
     borderWidth: 1,
-    borderStyle: 'dashed',
-    alignItems: 'center',
-    justifyContent: 'center',
+    borderStyle: "dashed",
+    alignItems: "center",
+    justifyContent: "center",
   },
   commentItem: {
-    flexDirection: 'row',
+    flexDirection: "row",
     paddingVertical: 10,
     borderBottomWidth: 1,
   },
   commentHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    justifyContent: "space-between",
     marginBottom: 4,
   },
   commentAuthor: {
-    fontWeight: '700',
+    fontWeight: "700",
     fontSize: 13,
   },
   commentText: {
@@ -535,9 +478,9 @@ const styles = StyleSheet.create({
     lineHeight: 18,
   },
   addCommentRow: {
-    flexDirection: 'row',
+    flexDirection: "row",
     marginTop: 12,
-    alignItems: 'center',
+    alignItems: "center",
   },
   commentInput: {
     flex: 1,
@@ -549,8 +492,8 @@ const styles = StyleSheet.create({
   sendCommentBtn: {
     width: 42,
     height: 42,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     marginLeft: 8,
   },
   actionsContainer: {

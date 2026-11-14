@@ -17,8 +17,8 @@ import {
   Badge,
   Button,
   SegmentedControl,
-  useWatermelonTheme,
-} from '@matrixsplit/watermelon-ui';
+} from '@/components';
+import { useWatermelonTheme } from '@/theme';
 import {
   useFriends,
   useRecentExpenses,

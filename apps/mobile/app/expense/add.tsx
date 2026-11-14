@@ -18,8 +18,8 @@ import {
   SegmentedControl,
   Avatar,
   Badge,
-  useWatermelonTheme,
-} from '@matrixsplit/watermelon-ui';
+} from '@/components';
+import { useWatermelonTheme } from '@/theme';
 import {
   useMyGroups,
   useFriends,

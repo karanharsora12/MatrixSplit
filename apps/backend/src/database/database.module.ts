@@ -1,72 +1,115 @@
 import { Module, Global, Inject, OnApplicationShutdown } from '@nestjs/common';
-import { drizzle } from 'drizzle-orm/pglite';
-import { PGlite } from '@electric-sql/pglite';
+import { drizzle } from 'drizzle-orm/node-postgres';
+import { Pool, Client } from 'pg';
 import * as schema from './schema';
-import * as path from 'path';
-import * as fs from 'fs';
 
 export const DRIZZLE = 'DRIZZLE';
-export const PGLITE = 'PGLITE';
+export const PG_POOL = 'PG_POOL';
+
+function getDbConfig() {
+  const host = process.env.DB_HOST || process.env.PGHOST || 'localhost';
+  const port = parseInt(process.env.DB_PORT || process.env.PGPORT || '5432', 10);
+  const user = process.env.DB_USER || process.env.PGUSER || 'postgres';
+  const password = process.env.DB_PASSWORD || process.env.PGPASSWORD || 'Karan@123';
+  const database = process.env.DB_NAME || process.env.PGDATABASE || 'matrixsplit';
+  const connectionString = process.env.DATABASE_URL;
+
+  return { host, port, user, password, database, connectionString };
+}
+
+async function ensureDatabaseExists() {
+  const config = getDbConfig();
+
+  // If using an external cloud connection string, skip local database creation
+  if (
+    config.connectionString &&
+    !config.connectionString.includes('localhost') &&
+    !config.connectionString.includes('127.0.0.1')
+  ) {
+    return;
+  }
+
+  // Connect to default 'postgres' database to check/create target database
+  const client = new Client({
+    host: config.host,
+    port: config.port,
+    user: config.user,
+    password: config.password,
+    database: 'postgres',
+  });
+
+  try {
+    await client.connect();
+    const checkRes = await client.query(
+      'SELECT 1 FROM pg_database WHERE datname = $1',
+      [config.database],
+    );
+
+    if (checkRes.rowCount === 0) {
+      console.log(`[Database] Database "${config.database}" not found. Creating it...`);
+      const safeDbName = config.database.replace(/"/g, '""');
+      await client.query(`CREATE DATABASE "${safeDbName}"`);
+      console.log(`[Database] Database "${config.database}" created successfully.`);
+    }
+  } catch (err: any) {
+    console.warn(
+      `[Database] Note: Could not auto-check/create database "${config.database}" (will attempt direct connection): ${err.message}`,
+    );
+  } finally {
+    try {
+      await client.end();
+    } catch {}
+  }
+}
 
 @Global()
 @Module({
   providers: [
     {
-      provide: PGLITE,
+      provide: PG_POOL,
       useFactory: async () => {
-        const dataDir = process.env.DATABASE_DIR
-          ? path.resolve(process.env.DATABASE_DIR)
-          : path.resolve(process.cwd(), '.matrixsplit-data');
+        const config = getDbConfig();
+        await ensureDatabaseExists();
 
-        const initClient = async (dir: string) => {
-          if (!fs.existsSync(dir)) {
-            fs.mkdirSync(dir, { recursive: true });
-          } else {
-            // Clean up stale lock files if left behind by an ungraceful shutdown/crash
-            const pidFile = path.join(dir, 'postmaster.pid');
-            if (fs.existsSync(pidFile)) {
-              try {
-                fs.unlinkSync(pidFile);
-              } catch (err) {
-                console.warn('Could not remove stale postmaster.pid:', err);
-              }
-            }
-          }
-
-          const c = new PGlite(dir);
-          await c.waitReady;
-          return c;
-        };
+        const pool = config.connectionString
+          ? new Pool({ connectionString: config.connectionString })
+          : new Pool({
+              host: config.host,
+              port: config.port,
+              user: config.user,
+              password: config.password,
+              database: config.database,
+            });
 
         try {
-          return await initClient(dataDir);
-        } catch (error) {
-          console.error(
-            'PGlite failed to initialize with existing data directory (likely ungraceful shutdown/corruption):',
-            error,
+          await pool.query('SELECT 1');
+          console.log(
+            `🚀 Connected to PostgreSQL database "${config.database}" at ${config.host}:${config.port}`,
           );
-          const backupDir = `${dataDir}-corrupted-${Date.now()}`;
-          console.warn(`Backing up corrupted data directory to ${backupDir} and creating a fresh database...`);
-          try {
-            if (fs.existsSync(dataDir)) {
-              fs.renameSync(dataDir, backupDir);
-            }
-            return await initClient(dataDir);
-          } catch (recoveryErr) {
-            console.error('Failed to create new PGlite database:', recoveryErr);
-            throw error;
-          }
+        } catch (err: any) {
+          console.error(
+            `❌ Failed to connect to PostgreSQL at ${config.host}:${config.port}:`,
+            err.message,
+          );
+          throw err;
         }
+
+        return pool;
       },
     },
     {
       provide: DRIZZLE,
-      inject: [PGLITE],
-      useFactory: async (client: PGlite) => {
-        const db = drizzle(client, { schema });
+      inject: [PG_POOL],
+      useFactory: async (pool: Pool) => {
+        const db = drizzle(pool, { schema });
+
+        // Ensure UUID generation function is available
+        try {
+          await pool.query(`CREATE EXTENSION IF NOT EXISTS pgcrypto;`);
+        } catch {}
 
         // Initialize schema tables if they do not exist
-        await client.exec(`
+        await pool.query(`
           CREATE TABLE IF NOT EXISTS users (
             id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
             email VARCHAR(255) NOT NULL UNIQUE,
@@ -224,18 +267,18 @@ export const PGLITE = 'PGLITE';
       },
     },
   ],
-  exports: [DRIZZLE, PGLITE],
+  exports: [DRIZZLE, PG_POOL],
 })
 export class DatabaseModule implements OnApplicationShutdown {
-  constructor(@Inject(PGLITE) private readonly client: PGlite) {}
+  constructor(@Inject(PG_POOL) private readonly pool: Pool) {}
 
   async onApplicationShutdown(signal?: string) {
-    if (this.client && !this.client.closed) {
-      console.log(`Closing PGlite database cleanly (${signal || 'shutdown'})...`);
+    if (this.pool) {
+      console.log(`Closing PostgreSQL pool cleanly (${signal || 'shutdown'})...`);
       try {
-        await this.client.close();
-      } catch (err) {
-        console.error('Error closing PGlite client:', err);
+        await this.pool.end();
+      } catch (err: any) {
+        console.error('Error closing PostgreSQL pool:', err);
       }
     }
   }

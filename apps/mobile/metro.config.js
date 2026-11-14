@@ -1,4 +1,5 @@
 const { getDefaultConfig } = require('expo/metro-config');
+const { withNativeWind } = require('nativewind/metro');
 const path = require('path');
 
 // Find the project and workspace root
@@ -19,4 +20,8 @@ config.resolver.nodeModulesPaths = [
 // 3. Ensure symlinks/workspaces resolve correctly
 config.resolver.disableHierarchicalLookup = false;
 
-module.exports = config;
+module.exports = withNativeWind(config, {
+  input: path.resolve(projectRoot, 'global.css'),
+  configPath: path.resolve(projectRoot, 'tailwind.config.js'),
+  inlineRem: 16,
+});

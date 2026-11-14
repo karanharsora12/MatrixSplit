@@ -13,8 +13,12 @@
     "start:mobile": "npm --workspace=apps/mobile start"
   },
   "devDependencies": {
+    "@types/react": "~18.2.79",
     "metro": "^0.80.12",
     "metro-config": "^0.80.12",
     "typescript": "^5.4.5"
+  },
+  "dependencies": {
+    "react-native-svg": "15.2.0"
   }
 }

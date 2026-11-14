@@ -17,8 +17,8 @@ import {
   Avatar,
   Badge,
   SkeletonCard,
-  useWatermelonTheme,
-} from '@matrixsplit/watermelon-ui';
+} from '@/components';
+import { useWatermelonTheme } from '@/theme';
 import {
   useBalanceOverview,
   useRecentExpenses,

@@ -12,7 +12,8 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import { Button, Input, useWatermelonTheme } from '@matrixsplit/watermelon-ui';
+import { Button, Input } from '@/components';
+import { useWatermelonTheme } from '@/theme';
 
 export default function ResetPasswordScreen() {
   const router = useRouter();

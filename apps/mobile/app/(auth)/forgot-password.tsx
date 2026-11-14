@@ -12,11 +12,8 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import {
-  Button,
-  Input,
-  useWatermelonTheme,
-} from '@matrixsplit/watermelon-ui';
+import { Button, Input } from '@/components';
+import { useWatermelonTheme } from '@/theme';
 import { apiClient } from '../../src/services/api';
 
 export default function ForgotPasswordScreen() {
@@ -83,7 +80,13 @@ export default function ForgotPasswordScreen() {
       >
         <ScrollView contentContainerStyle={styles.scrollContent}>
           <TouchableOpacity
-            onPress={() => router.back()}
+            onPress={() => {
+              if (router.canGoBack()) {
+                router.back();
+              } else {
+                router.replace('/(auth)/login');
+              }
+            }}
             style={[styles.backButton, { flexDirection: 'row', alignItems: 'center' }]}
           >
             <Ionicons name="chevron-back" size={22} color={theme.text} />

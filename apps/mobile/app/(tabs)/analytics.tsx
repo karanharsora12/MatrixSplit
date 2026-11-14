@@ -14,8 +14,8 @@ import {
   Card,
   Button,
   SkeletonCard,
-  useWatermelonTheme,
-} from '@matrixsplit/watermelon-ui';
+} from '@/components';
+import { useWatermelonTheme } from '@/theme';
 import { useAnalyticsSummary } from '../../src/hooks/useQueries';
 import { formatCurrency } from '@matrixsplit/shared';
 import { API_BASE_URL } from '../../src/services/api';
