@@ -13,6 +13,7 @@ import {
   Card,
   Avatar,
   SkeletonCard,
+  SegmentedControl,
 } from '@/components';
 import { useWatermelonTheme } from '@/theme';
 import { useActivities } from '../../src/hooks/useQueries';
@@ -82,49 +83,17 @@ export default function ActivityScreen() {
       </View>
 
       {/* Filter Tabs */}
-      <View style={styles.filterSection}>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.filterScroll}>
-          {[
-            { id: 'all', label: 'All Activities', icon: 'flash-outline' },
-            { id: 'expense', label: 'Expenses', icon: 'receipt-outline' },
-            { id: 'settlement', label: 'Settlements', icon: 'swap-horizontal-outline' },
-            { id: 'group', label: 'Groups', icon: 'people-outline' },
-          ].map((item) => {
-            const isSelected = filterType === item.id;
-            return (
-              <Pressable
-                key={item.id}
-                onPress={() => setFilterType(item.id as any)}
-                style={({ pressed }) => [
-                  styles.filterTab,
-                  {
-                    backgroundColor: isSelected ? theme.primary : theme.surface,
-                    borderColor: isSelected ? theme.primary : theme.border,
-                    opacity: pressed ? 0.8 : 1,
-                  },
-                ]}
-              >
-                <Ionicons
-                  name={item.icon as any}
-                  size={14}
-                  color={isSelected ? '#FFFFFF' : theme.textMuted}
-                  style={{ marginRight: 5 }}
-                />
-                <Text
-                  style={[
-                    styles.filterTabText,
-                    {
-                      color: isSelected ? '#FFFFFF' : theme.text,
-                      fontWeight: isSelected ? '700' : '500',
-                    },
-                  ]}
-                >
-                  {item.label}
-                </Text>
-              </Pressable>
-            );
-          })}
-        </ScrollView>
+      <View style={{ paddingHorizontal: 20, paddingTop: 4, paddingBottom: 10 }}>
+        <SegmentedControl
+          value={filterType}
+          onChange={(val) => setFilterType(val as any)}
+          options={[
+            { value: 'all', label: 'All' },
+            { value: 'expense', label: 'Expenses' },
+            { value: 'settlement', label: 'Settlements' },
+            { value: 'group', label: 'Groups' },
+          ]}
+        />
       </View>
 
       <ScrollView

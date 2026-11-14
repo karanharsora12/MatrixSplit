@@ -99,8 +99,6 @@ export default function ForgotPasswordScreen() {
         >
           <Ionicons name="chevron-back" size={20} color={theme.text} />
         </Pressable>
-
-        <View style={{ width: 38 }} />
       </View>
 
       <KeyboardAvoidingView
@@ -271,9 +269,6 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   topBar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
     paddingHorizontal: 20,
     paddingTop: 8,
     paddingBottom: 4,

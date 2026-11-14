@@ -21,6 +21,7 @@ import {
   Input,
   BottomSheet,
   SkeletonCard,
+  SegmentedControl,
 } from '@/components';
 import { useWatermelonTheme } from '@/theme';
 import {
@@ -204,43 +205,17 @@ export default function FriendsScreen() {
         </View>
 
         {/* Status Filters */}
-        <View style={styles.filterRow}>
-          {(['all', 'owed', 'owe', 'settled'] as const).map((tab) => {
-            const isSelected = filter === tab;
-            const labels = {
-              all: 'All',
-              owed: 'Owed to you',
-              owe: 'You owe',
-              settled: 'Settled',
-            };
-            return (
-              <Pressable
-                key={tab}
-                onPress={() => setFilter(tab)}
-                style={({ pressed }) => [
-                  styles.filterTab,
-                  {
-                    backgroundColor: isSelected ? theme.primary : theme.surface,
-                    borderColor: isSelected ? theme.primary : theme.border,
-                    opacity: pressed ? 0.8 : 1,
-                  },
-                ]}
-              >
-                <Text
-                  style={[
-                    styles.filterTabText,
-                    {
-                      color: isSelected ? '#FFFFFF' : theme.text,
-                      fontWeight: isSelected ? '700' : '500',
-                    },
-                  ]}
-                >
-                  {labels[tab]}
-                </Text>
-              </Pressable>
-            );
-          })}
-        </View>
+        <SegmentedControl
+          value={filter}
+          onChange={(val) => setFilter(val as any)}
+          options={[
+            { value: 'all', label: 'All' },
+            { value: 'owed', label: 'Owed' },
+            { value: 'owe', label: 'You Owe' },
+            { value: 'settled', label: 'Settled' },
+          ]}
+          style={{ marginTop: 8 }}
+        />
       </View>
 
       <ScrollView

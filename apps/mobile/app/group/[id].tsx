@@ -404,7 +404,7 @@ export default function GroupDetailsScreen() {
           value={activeTab}
           onChange={(val) => setActiveTab(val as any)}
           options={[
-            { value: "expenses", label: `Expenses (${expenses?.length || 0})` },
+            { value: "expenses", label: "Expenses", badge: expenses?.length || 0 },
             { value: "balances", label: "Balances & Settle" },
           ]}
         />

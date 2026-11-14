@@ -570,28 +570,48 @@ export default function AddExpenseScreen() {
                   onPress={() => setGroupId(null)}
                   style={({ pressed }) => [
                     {
-                      backgroundColor: groupId === null ? theme.primary : theme.surface,
-                      borderColor: groupId === null ? theme.primary : theme.border,
-                      borderWidth: 1,
-                      borderRadius: borderRadius.md,
-                      paddingHorizontal: 12,
-                      paddingVertical: 8,
+                      backgroundColor:
+                        groupId === null
+                          ? isDark
+                            ? 'rgba(16,185,129,0.22)'
+                            : '#D1FAE5'
+                          : isDark
+                          ? '#1E293B'
+                          : '#FFFFFF',
+                      borderColor:
+                        groupId === null ? theme.primary : isDark ? '#334155' : '#E2E8F0',
+                      borderWidth: groupId === null ? 1.5 : 1,
+                      borderRadius: 20,
+                      height: 38,
+                      paddingHorizontal: 14,
                       flexDirection: 'row',
                       alignItems: 'center',
                       marginRight: 8,
                       opacity: pressed ? 0.8 : 1,
+                      transform: [{ scale: pressed ? 0.97 : 1 }],
                     },
                   ]}
                 >
                   <Ionicons
                     name="people-outline"
                     size={16}
-                    color={groupId === null ? '#FFFFFF' : theme.textMuted}
+                    color={
+                      groupId === null
+                        ? isDark
+                          ? '#34D399'
+                          : '#059669'
+                        : theme.textMuted
+                    }
                     style={{ marginRight: 6 }}
                   />
                   <Text
                     style={{
-                      color: groupId === null ? '#FFFFFF' : theme.text,
+                      color:
+                        groupId === null
+                          ? isDark
+                            ? '#34D399'
+                            : '#059669'
+                          : theme.text,
                       fontSize: typography.fontSize.xs,
                       fontWeight: groupId === null ? '700' : '500',
                     }}
@@ -608,28 +628,46 @@ export default function AddExpenseScreen() {
                       onPress={() => setGroupId(g.id)}
                       style={({ pressed }) => [
                         {
-                          backgroundColor: isSelected ? theme.primary : theme.surface,
-                          borderColor: isSelected ? theme.primary : theme.border,
-                          borderWidth: 1,
-                          borderRadius: borderRadius.md,
-                          paddingHorizontal: 12,
-                          paddingVertical: 8,
+                          backgroundColor: isSelected
+                            ? isDark
+                              ? 'rgba(16,185,129,0.22)'
+                              : '#D1FAE5'
+                            : isDark
+                            ? '#1E293B'
+                            : '#FFFFFF',
+                          borderColor:
+                            isSelected ? theme.primary : isDark ? '#334155' : '#E2E8F0',
+                          borderWidth: isSelected ? 1.5 : 1,
+                          borderRadius: 20,
+                          height: 38,
+                          paddingHorizontal: 14,
                           flexDirection: 'row',
                           alignItems: 'center',
                           marginRight: 8,
                           opacity: pressed ? 0.8 : 1,
+                          transform: [{ scale: pressed ? 0.97 : 1 }],
                         },
                       ]}
                     >
                       <Ionicons
                         name="folder-outline"
                         size={16}
-                        color={isSelected ? '#FFFFFF' : theme.textMuted}
+                        color={
+                          isSelected
+                            ? isDark
+                              ? '#34D399'
+                              : '#059669'
+                            : theme.textMuted
+                        }
                         style={{ marginRight: 6 }}
                       />
                       <Text
                         style={{
-                          color: isSelected ? '#FFFFFF' : theme.text,
+                          color: isSelected
+                            ? isDark
+                              ? '#34D399'
+                              : '#059669'
+                            : theme.text,
                           fontSize: typography.fontSize.xs,
                           fontWeight: isSelected ? '700' : '500',
                         }}
@@ -666,30 +704,44 @@ export default function AddExpenseScreen() {
                       {
                         backgroundColor: isSelected
                           ? isDark
-                            ? 'rgba(16,185,129,0.2)'
+                            ? 'rgba(16,185,129,0.22)'
                             : '#D1FAE5'
-                          : theme.surface,
-                        borderColor: isSelected ? theme.primary : theme.border,
-                        borderWidth: 1,
-                        borderRadius: borderRadius.md,
-                        paddingHorizontal: 12,
-                        paddingVertical: 8,
+                          : isDark
+                          ? '#1E293B'
+                          : '#FFFFFF',
+                        borderColor:
+                          isSelected ? theme.primary : isDark ? '#334155' : '#E2E8F0',
+                        borderWidth: isSelected ? 1.5 : 1,
+                        borderRadius: 20,
+                        height: 38,
+                        paddingHorizontal: 14,
                         flexDirection: 'row',
                         alignItems: 'center',
                         marginRight: 8,
                         opacity: pressed ? 0.8 : 1,
+                        transform: [{ scale: pressed ? 0.97 : 1 }],
                       },
                     ]}
                   >
                     <Ionicons
                       name={opt.icon}
                       size={16}
-                      color={isSelected ? theme.primary : theme.textMuted}
+                      color={
+                        isSelected
+                          ? isDark
+                            ? '#34D399'
+                            : '#059669'
+                          : theme.textMuted
+                      }
                       style={{ marginRight: 6 }}
                     />
                     <Text
                       style={{
-                        color: isSelected ? theme.primary : theme.text,
+                        color: isSelected
+                          ? isDark
+                            ? '#34D399'
+                            : '#059669'
+                          : theme.text,
                         fontSize: typography.fontSize.xs,
                         fontWeight: isSelected ? '700' : '500',
                       }}
@@ -725,25 +777,33 @@ export default function AddExpenseScreen() {
                       {
                         backgroundColor: isSelected
                           ? isDark
-                            ? 'rgba(16,185,129,0.2)'
+                            ? 'rgba(16,185,129,0.22)'
                             : '#D1FAE5'
-                          : theme.surface,
-                        borderColor: isSelected ? theme.primary : theme.border,
-                        borderWidth: 1,
-                        borderRadius: borderRadius.md,
-                        paddingHorizontal: 10,
-                        paddingVertical: 6,
+                          : isDark
+                          ? '#1E293B'
+                          : '#FFFFFF',
+                        borderColor:
+                          isSelected ? theme.primary : isDark ? '#334155' : '#E2E8F0',
+                        borderWidth: isSelected ? 1.5 : 1,
+                        borderRadius: 20,
+                        height: 38,
+                        paddingHorizontal: 12,
                         flexDirection: 'row',
                         alignItems: 'center',
                         marginRight: 8,
                         opacity: pressed ? 0.8 : 1,
+                        transform: [{ scale: pressed ? 0.97 : 1 }],
                       },
                     ]}
                   >
                     <Avatar name={p.fullName} size="sm" />
                     <Text
                       style={{
-                        color: isSelected ? theme.primary : theme.text,
+                        color: isSelected
+                          ? isDark
+                            ? '#34D399'
+                            : '#059669'
+                          : theme.text,
                         fontSize: typography.fontSize.xs,
                         fontWeight: isSelected ? '700' : '500',
                         marginLeft: 8,
@@ -755,7 +815,7 @@ export default function AddExpenseScreen() {
                       <Ionicons
                         name="checkmark-circle"
                         size={16}
-                        color={theme.primary}
+                        color={isDark ? '#34D399' : '#059669'}
                         style={{ marginLeft: 6 }}
                       />
                     )}
@@ -781,10 +841,10 @@ export default function AddExpenseScreen() {
               value={splitType}
               onChange={(val) => setSplitType(val as SplitType)}
               options={[
-                { value: 'equal', label: 'Equal (=)' },
-                { value: 'exact', label: 'Exact ($)' },
-                { value: 'percentage', label: 'Percent (%)' },
-                { value: 'shares', label: 'Shares (x)' },
+                { value: 'equal', label: 'Equal' },
+                { value: 'exact', label: 'Exact' },
+                { value: 'percentage', label: 'Percent' },
+                { value: 'shares', label: 'Shares' },
               ]}
             />
 
@@ -869,10 +929,16 @@ export default function AddExpenseScreen() {
                 <View
                   key={p.userId}
                   style={{
-                    backgroundColor: isDark ? '#161F30' : '#FFFFFF',
-                    borderColor: p.selected ? theme.primary : theme.border,
-                    borderRadius: borderRadius.lg,
-                    borderWidth: 1,
+                    backgroundColor: p.selected
+                      ? isDark
+                        ? 'rgba(16,185,129,0.08)'
+                        : 'rgba(16,185,129,0.04)'
+                      : isDark
+                      ? '#161F30'
+                      : '#FFFFFF',
+                    borderColor: p.selected ? theme.primary : isDark ? '#1E293B' : '#E2E8F0',
+                    borderRadius: 14,
+                    borderWidth: p.selected ? 1.5 : 1,
                     padding: 12,
                     marginBottom: 8,
                     flexDirection: 'row',
@@ -887,17 +953,17 @@ export default function AddExpenseScreen() {
                         flex: 1,
                         flexDirection: 'row',
                         alignItems: 'center',
-                        opacity: pressed ? 0.8 : 1,
+                        opacity: pressed ? 0.75 : 1,
                       },
                     ]}
                   >
                     <View
                       style={{
-                        borderColor: p.selected ? theme.primary : theme.border,
+                        borderColor: p.selected ? theme.primary : isDark ? '#475569' : '#CBD5E1',
                         backgroundColor: p.selected ? theme.primary : 'transparent',
-                        width: 20,
-                        height: 20,
-                        borderRadius: 5,
+                        width: 22,
+                        height: 22,
+                        borderRadius: 6,
                         borderWidth: 1.5,
                         alignItems: 'center',
                         justifyContent: 'center',
@@ -905,7 +971,7 @@ export default function AddExpenseScreen() {
                       }}
                     >
                       {p.selected && (
-                        <Ionicons name="checkmark" size={13} color="#FFFFFF" />
+                        <Ionicons name="checkmark" size={14} color="#FFFFFF" />
                       )}
                     </View>
                     <Avatar name={p.fullName} size="sm" />

@@ -14,6 +14,7 @@ import {
   Card,
   Button,
   SkeletonCard,
+  SegmentedControl,
 } from '@/components';
 import { useWatermelonTheme } from '@/theme';
 import { useAnalyticsSummary } from '../../src/hooks/useQueries';
@@ -108,40 +109,16 @@ export default function AnalyticsScreen() {
       </View>
 
       {/* Period Selector */}
-      <View style={styles.periodRow}>
-        {[
-          { id: 'month', label: 'This Month' },
-          { id: 'quarter', label: 'Last 3 Months' },
-          { id: 'all', label: 'All Time' },
-        ].map((item) => {
-          const isSelected = period === item.id;
-          return (
-            <Pressable
-              key={item.id}
-              onPress={() => setPeriod(item.id as any)}
-              style={({ pressed }) => [
-                styles.periodTab,
-                {
-                  backgroundColor: isSelected ? theme.primary : theme.surface,
-                  borderColor: isSelected ? theme.primary : theme.border,
-                  opacity: pressed ? 0.8 : 1,
-                },
-              ]}
-            >
-              <Text
-                style={[
-                  styles.periodTabText,
-                  {
-                    color: isSelected ? '#FFFFFF' : theme.text,
-                    fontWeight: isSelected ? '700' : '500',
-                  },
-                ]}
-              >
-                {item.label}
-              </Text>
-            </Pressable>
-          );
-        })}
+      <View style={{ paddingHorizontal: 20, paddingTop: 4, paddingBottom: 10 }}>
+        <SegmentedControl
+          value={period}
+          onChange={(val) => setPeriod(val as any)}
+          options={[
+            { value: 'month', label: 'This Month' },
+            { value: 'quarter', label: 'Last 3 Months' },
+            { value: 'all', label: 'All Time' },
+          ]}
+        />
       </View>
 
       <ScrollView

@@ -68,7 +68,7 @@ export default function LoginScreen() {
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]} edges={['top', 'bottom', 'left', 'right']}>
-      {/* Top Bar with Back and Theme Toggle */}
+      {/* Top Bar with Back */}
       <View style={styles.topBar}>
         <Pressable
           onPress={() => {
@@ -90,8 +90,6 @@ export default function LoginScreen() {
         >
           <Ionicons name="chevron-back" size={20} color={theme.text} />
         </Pressable>
-
-        <View style={{ width: 38 }} />
       </View>
 
       <KeyboardAvoidingView
@@ -267,9 +265,6 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   topBar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
     paddingHorizontal: 20,
     paddingTop: 8,
     paddingBottom: 4,

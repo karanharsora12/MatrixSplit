@@ -243,8 +243,8 @@ export default function FriendDetailScreen() {
           value={activeTab}
           onChange={(val) => setActiveTab(val as any)}
           options={[
-            { value: 'expenses', label: `Shared Expenses (${sharedExpenses.length})` },
-            { value: 'settlements', label: `Settlements (${sharedSettlements.length})` },
+            { value: 'expenses', label: 'Expenses', badge: sharedExpenses.length },
+            { value: 'settlements', label: 'Settlements', badge: sharedSettlements.length },
           ]}
         />
 
