@@ -184,26 +184,28 @@ export default function SettleScreen() {
                   },
                 ]}
               >
-                <Avatar name={params.targetName || 'Friend'} size="sm" />
-                <View style={{ marginLeft: 8 }}>
-                  <Text
-                    style={{
-                      color: selectedFriendId === params.targetUserId ? theme.primary : theme.text,
-                      fontWeight: selectedFriendId === params.targetUserId ? '700' : '600',
-                      fontSize: 13,
-                    }}
-                  >
-                    {params.targetName || 'Friend'}
-                  </Text>
+                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                  <Avatar name={params.targetName || 'Friend'} size="sm" />
+                  <View style={{ marginLeft: 8 }}>
+                    <Text
+                      style={{
+                        color: selectedFriendId === params.targetUserId ? theme.primary : theme.text,
+                        fontWeight: selectedFriendId === params.targetUserId ? '700' : '600',
+                        fontSize: 13,
+                      }}
+                    >
+                      {params.targetName || 'Friend'}
+                    </Text>
+                  </View>
+                  {selectedFriendId === params.targetUserId && (
+                    <Ionicons
+                      name="checkmark-circle"
+                      size={16}
+                      color={theme.primary}
+                      style={{ marginLeft: 6 }}
+                    />
+                  )}
                 </View>
-                {selectedFriendId === params.targetUserId && (
-                  <Ionicons
-                    name="checkmark-circle"
-                    size={16}
-                    color={theme.primary}
-                    style={{ marginLeft: 6 }}
-                  />
-                )}
               </Pressable>
             )}
 
@@ -234,39 +236,41 @@ export default function SettleScreen() {
                       },
                     ]}
                   >
-                    <Avatar name={f.fullName} size="sm" />
-                    <View style={{ marginLeft: 8 }}>
-                      <Text
-                        style={{
-                          color: isSelected ? theme.primary : theme.text,
-                          fontWeight: isSelected ? '700' : '600',
-                          fontSize: 13,
-                        }}
-                      >
-                        {f.fullName}
-                      </Text>
-                      {balanceMinor !== 0 && (
+                    <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                      <Avatar name={f.fullName} size="sm" />
+                      <View style={{ marginLeft: 8 }}>
                         <Text
                           style={{
-                            fontSize: 10,
-                            fontVariant: ['tabular-nums'],
-                            fontWeight: '600',
-                            color: balanceMinor > 0 ? theme.positive : theme.negative,
+                            color: isSelected ? theme.primary : theme.text,
+                            fontWeight: isSelected ? '700' : '600',
+                            fontSize: 13,
                           }}
                         >
-                          {balanceMinor > 0 ? 'owes you' : 'you owe'}{' '}
-                          {formatCurrency(Math.abs(balanceMinor), user?.defaultCurrency || 'INR')}
+                          {f.fullName}
                         </Text>
+                        {balanceMinor !== 0 && (
+                          <Text
+                            style={{
+                              fontSize: 10,
+                              fontVariant: ['tabular-nums'],
+                              fontWeight: '600',
+                              color: balanceMinor > 0 ? theme.positive : theme.negative,
+                            }}
+                          >
+                            {balanceMinor > 0 ? 'owes you' : 'you owe'}{' '}
+                            {formatCurrency(Math.abs(balanceMinor), user?.defaultCurrency || 'INR')}
+                          </Text>
+                        )}
+                      </View>
+                      {isSelected && (
+                        <Ionicons
+                          name="checkmark-circle"
+                          size={16}
+                          color={theme.primary}
+                          style={{ marginLeft: 8 }}
+                        />
                       )}
                     </View>
-                    {isSelected && (
-                      <Ionicons
-                        name="checkmark-circle"
-                        size={16}
-                        color={theme.primary}
-                        style={{ marginLeft: 8 }}
-                      />
-                    )}
                   </Pressable>
                 );
               })

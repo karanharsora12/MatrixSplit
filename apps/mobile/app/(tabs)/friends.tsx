@@ -173,8 +173,10 @@ export default function FriendsScreen() {
               },
             ]}
           >
-            <Ionicons name="qr-code-outline" size={16} color={theme.text} style={{ marginRight: 5 }} />
-            <Text style={{ fontSize: 12, color: theme.text, fontWeight: '700' }}>My ID</Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+              <Ionicons name="qr-code-outline" size={16} color={theme.text} style={{ marginRight: 5 }} />
+              <Text style={{ fontSize: 12, color: theme.text, fontWeight: '700' }}>My ID</Text>
+            </View>
           </Pressable>
 
           <Pressable
@@ -184,8 +186,10 @@ export default function FriendsScreen() {
               { backgroundColor: theme.primary, opacity: pressed ? 0.85 : 1 },
             ]}
           >
-            <Ionicons name="person-add-outline" size={15} color="#FFFFFF" style={{ marginRight: 5 }} />
-            <Text style={styles.addBtnText}>Add</Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+              <Ionicons name="person-add-outline" size={15} color="#FFFFFF" style={{ marginRight: 5 }} />
+              <Text style={styles.addBtnText}>Add</Text>
+            </View>
           </Pressable>
         </View>
       </View>
