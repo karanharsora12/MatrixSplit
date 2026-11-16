@@ -2,22 +2,15 @@ import React, { useState } from 'react';
 import {
   View,
   Text,
-  StyleSheet,
   ScrollView,
   Pressable,
   TextInput,
   Alert,
+  ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import {
-  Button,
-  Input,
-  Avatar,
-  Card,
-  BalancePill,
-} from '@/components';
 import { useWatermelonTheme } from '@/theme';
 import {
   useFriends,
@@ -30,6 +23,7 @@ import {
   formatCurrency,
   SettlementPaymentMethod,
 } from '@matrixsplit/shared';
+import { cn } from '@/lib/utils';
 
 export default function SettleScreen() {
   const router = useRouter();
@@ -40,7 +34,7 @@ export default function SettleScreen() {
     amountMinor?: string;
   }>();
 
-  const { theme, typography, spacing, borderRadius, isDark } = useWatermelonTheme();
+  const { isDark } = useWatermelonTheme();
   const user = useAuthStore((s) => s.user);
   const { data: friends } = useFriends();
   const createSettlementMutation = useCreateSettlement();
@@ -94,7 +88,7 @@ export default function SettleScreen() {
 
       Alert.alert(
         'Settlement Recorded',
-        'Payment has been recorded! It updates mutual balances and is marked as verified or pending confirmation.',
+        'Payment has been recorded! It updates mutual balances and settles shared debts.',
         [{ text: 'Done', onPress: () => router.back() }]
       );
     } catch (err: any) {
@@ -105,60 +99,79 @@ export default function SettleScreen() {
   const selectedFriend = friends?.find((f: any) => f.id === selectedFriendId);
   const targetFriendName = selectedFriend?.fullName || params.targetName;
 
+  const currencySymbol =
+    user?.defaultCurrency === 'USD'
+      ? '$'
+      : user?.defaultCurrency === 'EUR'
+      ? '€'
+      : user?.defaultCurrency === 'GBP'
+      ? '£'
+      : '₹';
+
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]} edges={['top', 'left', 'right']}>
-      {/* Top Navigation Bar */}
-      <View style={styles.headerBar}>
+    <SafeAreaView
+      edges={['top', 'left', 'right']}
+      className={cn('flex-1', isDark ? 'bg-[#090D16]' : 'bg-[#F8FAFC]')}
+    >
+      {/* Top Header Bar */}
+      <View
+        className={cn(
+          'flex-row items-center justify-between px-5 pt-3 pb-3 border-b',
+          isDark ? 'border-[#1E293B] bg-[#090D16]' : 'border-slate-200 bg-white'
+        )}
+      >
         <Pressable
           onPress={() => router.back()}
           hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-          style={({ pressed }) => [
-            styles.cancelBtn,
-            {
-              backgroundColor: theme.surface,
-              borderColor: theme.border,
-              opacity: pressed ? 0.7 : 1,
-            },
-          ]}
+          className={cn(
+            'w-9 h-9 rounded-xl items-center justify-center border active:scale-95',
+            isDark
+              ? 'bg-[#141D2E] border-[#23324D] active:bg-[#1E2A42]'
+              : 'bg-white border-slate-200 active:bg-slate-100'
+          )}
         >
-          <Ionicons name="close" size={20} color={theme.text} />
+          <Ionicons
+            name="chevron-back"
+            size={20}
+            color={isDark ? '#E2E8F0' : '#334155'}
+          />
         </Pressable>
 
-        <View style={{ alignItems: 'center' }}>
+        <View className="items-center">
           <Text
-            style={[
-              styles.headerTitle,
-              { color: theme.text, fontSize: typography.fontSize.base },
-            ]}
+            className={cn(
+              'text-base font-extrabold tracking-tight',
+              isDark ? 'text-white' : 'text-slate-900'
+            )}
           >
             Record Settlement
           </Text>
-          <Text style={{ fontSize: 11, color: theme.textMuted, marginTop: 1 }}>
+          <Text className="text-xs text-slate-400 mt-0.5">
             Log direct payment between friends
           </Text>
         </View>
 
-        <View style={{ width: 38 }} />
+        <View className="w-9 h-9" />
       </View>
 
       <ScrollView
-        contentContainerStyle={styles.scrollContent}
+        contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 16, paddingBottom: 36 }}
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
       >
         {/* Recipient Selector */}
-        <View style={{ marginBottom: 20 }}>
-          <View style={styles.sectionHeaderRow}>
+        <View className="mb-5">
+          <View className="flex-row items-center justify-between mb-2.5">
             <Text
-              style={[
-                styles.sectionLabel,
-                { color: theme.textMuted, fontSize: typography.fontSize.xs },
-              ]}
+              className={cn(
+                'text-xs font-bold tracking-wider uppercase',
+                isDark ? 'text-slate-400' : 'text-slate-500'
+              )}
             >
-              SETTLING WITH
+              Settling With
             </Text>
             {targetFriendName && (
-              <Text style={{ fontSize: 11, color: theme.primary, fontWeight: '600' }}>
+              <Text className="text-xs font-bold text-emerald-500">
                 Selected: {targetFriendName}
               </Text>
             )}
@@ -167,47 +180,46 @@ export default function SettleScreen() {
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
-            contentContainerStyle={{ paddingVertical: 4, paddingRight: 16 }}
+            contentContainerStyle={{ paddingRight: 10 }}
           >
             {/* If param target is present but friend not in list */}
             {params.targetUserId && !friends?.some((f: any) => f.id === params.targetUserId) && (
               <Pressable
                 onPress={() => setSelectedFriendId(params.targetUserId!)}
-                style={({ pressed }) => [
-                  styles.friendChip,
-                  {
-                    backgroundColor: selectedFriendId === params.targetUserId
-                      ? (isDark ? '#1E2A42' : '#ECFDF5')
-                      : (isDark ? '#141D2E' : '#FFFFFF'),
-                    borderColor: selectedFriendId === params.targetUserId ? '#10B981' : (isDark ? '#23324D' : '#E2E8F0'),
-                    borderWidth: selectedFriendId === params.targetUserId ? 2 : 1.5,
-                    marginRight: 10,
-                    opacity: pressed ? 0.8 : 1,
-                  },
-                ]}
+                className={cn(
+                  'h-10 px-3.5 rounded-full flex-row items-center mr-2.5 border active:scale-95',
+                  selectedFriendId === params.targetUserId
+                    ? 'bg-emerald-500 border-emerald-500 shadow-sm'
+                    : isDark
+                    ? 'bg-[#141D2E] border-[#23324D]'
+                    : 'bg-white border-slate-200'
+                )}
               >
-                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                  <Avatar name={params.targetName || 'Friend'} size="sm" />
-                  <View style={{ marginLeft: 8 }}>
-                    <Text
-                      style={{
-                        color: selectedFriendId === params.targetUserId ? '#10B981' : theme.text,
-                        fontWeight: selectedFriendId === params.targetUserId ? '700' : '600',
-                        fontSize: 13,
-                      }}
-                    >
-                      {params.targetName || 'Friend'}
-                    </Text>
-                  </View>
-                  {selectedFriendId === params.targetUserId && (
-                    <Ionicons
-                      name="checkmark-circle"
-                      size={16}
-                      color="#10B981"
-                      style={{ marginLeft: 6 }}
-                    />
-                  )}
+                <View className="w-5 h-5 rounded-full bg-white/20 items-center justify-center mr-2">
+                  <Text className="text-[10px] font-bold text-white">
+                    {(params.targetName || 'F').slice(0, 1)}
+                  </Text>
                 </View>
+                <Text
+                  className={cn(
+                    'text-xs font-bold',
+                    selectedFriendId === params.targetUserId
+                      ? 'text-white'
+                      : isDark
+                      ? 'text-slate-300'
+                      : 'text-slate-700'
+                  )}
+                >
+                  {params.targetName || 'Friend'}
+                </Text>
+                {selectedFriendId === params.targetUserId && (
+                  <Ionicons
+                    name="checkmark-circle"
+                    size={14}
+                    color="#FFFFFF"
+                    style={{ marginLeft: 5 }}
+                  />
+                )}
               </Pressable>
             )}
 
@@ -227,65 +239,88 @@ export default function SettleScreen() {
                         );
                       }
                     }}
-                    style={({ pressed }) => [
-                      styles.friendChip,
-                      {
-                        backgroundColor: isSelected
-                          ? (isDark ? '#1E2A42' : '#ECFDF5')
-                          : (isDark ? '#141D2E' : '#FFFFFF'),
-                        borderColor: isSelected ? '#10B981' : (isDark ? '#23324D' : '#E2E8F0'),
-                        borderWidth: isSelected ? 2 : 1.5,
-                        marginRight: 10,
-                        opacity: pressed ? 0.8 : 1,
-                      },
-                    ]}
+                    className={cn(
+                      'h-10 px-3.5 rounded-full flex-row items-center mr-2.5 border active:scale-95',
+                      isSelected
+                        ? 'bg-emerald-500 border-emerald-500 shadow-sm'
+                        : isDark
+                        ? 'bg-[#141D2E] border-[#23324D]'
+                        : 'bg-white border-slate-200'
+                    )}
                   >
-                    <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                      <Avatar name={f.fullName} size="sm" />
-                      <View style={{ marginLeft: 8 }}>
-                        <Text
-                          style={{
-                            color: isSelected ? '#10B981' : theme.text,
-                            fontWeight: isSelected ? '700' : '600',
-                            fontSize: 13,
-                          }}
-                        >
-                          {f.fullName}
-                        </Text>
-                        {balanceMinor !== 0 && (
-                          <Text
-                            style={{
-                              fontSize: 10,
-                              fontVariant: ['tabular-nums'],
-                              fontWeight: '600',
-                              color: balanceMinor > 0 ? '#10B981' : '#EF4444',
-                            }}
-                          >
-                            {balanceMinor > 0 ? 'owes you' : 'you owe'}{' '}
-                            {formatCurrency(Math.abs(balanceMinor), user?.defaultCurrency || 'INR')}
-                          </Text>
+                    <View
+                      className={cn(
+                        'w-5 h-5 rounded-full items-center justify-center mr-2',
+                        isSelected
+                          ? 'bg-white/20'
+                          : isDark
+                          ? 'bg-[#1E293B]'
+                          : 'bg-slate-200'
+                      )}
+                    >
+                      <Text
+                        className={cn(
+                          'text-[10px] font-bold',
+                          isSelected
+                            ? 'text-white'
+                            : isDark
+                            ? 'text-slate-300'
+                            : 'text-slate-700'
                         )}
-                      </View>
-                      {isSelected && (
-                        <Ionicons
-                          name="checkmark-circle"
-                          size={16}
-                          color="#10B981"
-                          style={{ marginLeft: 8 }}
-                        />
+                      >
+                        {f.fullName.slice(0, 1)}
+                      </Text>
+                    </View>
+                    <View>
+                      <Text
+                        className={cn(
+                          'text-xs font-bold',
+                          isSelected
+                            ? 'text-white'
+                            : isDark
+                            ? 'text-slate-300'
+                            : 'text-slate-700'
+                        )}
+                      >
+                        {f.fullName}
+                      </Text>
+                      {balanceMinor !== 0 && (
+                        <Text
+                          className={cn(
+                            'text-[9px] font-mono font-semibold',
+                            isSelected
+                              ? 'text-emerald-100'
+                              : balanceMinor > 0
+                              ? 'text-emerald-400'
+                              : 'text-rose-400'
+                          )}
+                        >
+                          {balanceMinor > 0 ? 'owes you' : 'you owe'}{' '}
+                          {formatCurrency(Math.abs(balanceMinor), user?.defaultCurrency || 'INR')}
+                        </Text>
                       )}
                     </View>
+                    {isSelected && (
+                      <Ionicons
+                        name="checkmark-circle"
+                        size={14}
+                        color="#FFFFFF"
+                        style={{ marginLeft: 6 }}
+                      />
+                    )}
                   </Pressable>
                 );
               })
             ) : (
               <View
-                style={[
-                  styles.emptyFriendsPill,
-                  { backgroundColor: isDark ? '#141D2E' : theme.surface, borderColor: isDark ? '#23324D' : theme.border },
-                ]}
+                className={cn(
+                  'px-4 py-2.5 rounded-2xl border',
+                  isDark
+                    ? 'bg-[#141D2E] border-[#23324D]'
+                    : 'bg-white border-slate-200'
+                )}
               >
-                <Text style={{ color: theme.textMuted, fontSize: 12 }}>
+                <Text className="text-xs text-slate-400">
                   Add connections in Friends tab to pick recipients
                 </Text>
               </View>
@@ -294,46 +329,59 @@ export default function SettleScreen() {
         </View>
 
         {/* Settlement Amount Card */}
-        <Card
-          variant="elevated"
-          padding="lg"
-          style={{ marginBottom: 20 }}
+        <View
+          className={cn(
+            'p-5 rounded-3xl border mb-5',
+            isDark
+              ? 'bg-[#141D2E] border-[#23324D]'
+              : 'bg-white border-slate-200 shadow-sm shadow-black/5'
+          )}
         >
-          <Text
-            style={[
-              styles.amountLabel,
-              { color: theme.textMuted, fontSize: typography.fontSize.xs },
-            ]}
-          >
-            SETTLEMENT AMOUNT
+          <Text className="text-xs font-bold text-slate-400 tracking-wider mb-1.5 uppercase">
+            Settlement Amount
           </Text>
 
-          <View style={styles.amountInputRow}>
-            <Text style={[styles.currencySymbol, { color: theme.primary }]}>
-              {user?.defaultCurrency === 'USD' ? '$' : user?.defaultCurrency === 'EUR' ? '€' : '₹'}
+          <View className="flex-row items-center my-1">
+            <Text className="text-3xl font-extrabold text-emerald-500 font-mono mr-2">
+              {currencySymbol}
             </Text>
             <TextInput
               placeholder="0.00"
-              placeholderTextColor={theme.textMuted}
+              placeholderTextColor={isDark ? '#475569' : '#94A3B8'}
               value={amountStr}
               onChangeText={setAmountStr}
               keyboardType="decimal-pad"
-              style={[
-                styles.amountInput,
-                { color: theme.text, fontVariant: ['tabular-nums'] },
-              ]}
               autoFocus={!initialAmountStr}
+              className={cn(
+                'text-3xl font-extrabold font-mono flex-1 py-0',
+                isDark ? 'text-white' : 'text-slate-900'
+              )}
             />
           </View>
 
           {/* Settle Full pill if net balance exists */}
           {selectedFriend && (selectedFriend.netBalanceMinor || selectedFriend.balanceMinor) ? (
-            <View style={styles.balanceSuggestionRow}>
-              <View style={styles.balanceInfoWrap}>
-                <Ionicons name="information-circle-outline" size={15} color={theme.textMuted} style={{ marginRight: 4 }} />
-                <Text style={{ color: theme.textMuted, fontSize: 12, fontVariant: ['tabular-nums'] }}>
+            <View
+              className={cn(
+                'flex-row items-center justify-between pt-3 mt-3 border-t',
+                isDark ? 'border-[#23324D]' : 'border-slate-100'
+              )}
+            >
+              <View className="flex-row items-center">
+                <Ionicons
+                  name="information-circle-outline"
+                  size={14}
+                  color="#64748B"
+                  style={{ marginRight: 4 }}
+                />
+                <Text className="text-xs text-slate-400 font-mono">
                   Net balance:{' '}
-                  <Text style={{ fontWeight: '700', color: theme.text }}>
+                  <Text
+                    className={cn(
+                      'font-bold',
+                      isDark ? 'text-white' : 'text-slate-900'
+                    )}
+                  >
                     {formatCurrency(
                       Math.abs(selectedFriend.netBalanceMinor || selectedFriend.balanceMinor),
                       user?.defaultCurrency || 'INR'
@@ -351,93 +399,90 @@ export default function SettleScreen() {
                     ).toString()
                   )
                 }
-                style={({ pressed }) => [
-                  styles.settleFullPill,
-                  {
-                    backgroundColor: isDark ? 'rgba(16,185,129,0.18)' : '#D1FAE5',
-                    borderColor: theme.primary,
-                    opacity: pressed ? 0.7 : 1,
-                  },
-                ]}
+                className="flex-row items-center px-2.5 py-1 rounded-full bg-emerald-500/15 border border-emerald-500/30 active:scale-95"
               >
-                <Ionicons name="sparkles" size={11} color={theme.primary} style={{ marginRight: 4 }} />
-                <Text style={{ color: theme.primary, fontWeight: '700', fontSize: 11 }}>
+                <Ionicons
+                  name="sparkles"
+                  size={11}
+                  color="#10B981"
+                  style={{ marginRight: 3 }}
+                />
+                <Text className="text-[11px] font-bold text-emerald-400">
                   Settle Full
                 </Text>
               </Pressable>
             </View>
           ) : null}
-        </Card>
+        </View>
 
         {/* Payment Method Selector */}
-        <View style={{ marginBottom: 20 }}>
+        <View className="mb-5">
           <Text
-            style={[
-              styles.sectionLabel,
-              { color: theme.textMuted, fontSize: typography.fontSize.xs, marginBottom: 10 },
-            ]}
+            className={cn(
+              'text-xs font-bold tracking-wider mb-2.5 uppercase',
+              isDark ? 'text-slate-400' : 'text-slate-500'
+            )}
           >
-            PAYMENT METHOD
+            Payment Method
           </Text>
 
-          <View style={styles.methodsGrid}>
+          <View className="flex-row flex-wrap gap-2.5">
             {paymentMethods.map((m) => {
               const isSelected = paymentMethod === m.id;
               return (
                 <Pressable
                   key={m.id}
                   onPress={() => setPaymentMethod(m.id)}
-                  style={({ pressed }) => [
-                    styles.methodCard,
-                    {
-                      backgroundColor: isSelected
-                        ? (isDark ? '#1E2A42' : '#ECFDF5')
-                        : (isDark ? '#141D2E' : '#FFFFFF'),
-                      borderColor: isSelected ? '#10B981' : (isDark ? '#23324D' : '#E2E8F0'),
-                      borderWidth: isSelected ? 2 : 1.5,
-                      opacity: pressed ? 0.8 : 1,
-                    },
-                  ]}
+                  className={cn(
+                    'w-[48%] p-3.5 rounded-2xl border active:scale-95',
+                    isSelected
+                      ? isDark
+                        ? 'bg-emerald-500/15 border-emerald-500/50'
+                        : 'bg-emerald-50 border-emerald-500'
+                      : isDark
+                      ? 'bg-[#141D2E] border-[#23324D]'
+                      : 'bg-white border-slate-200 shadow-sm shadow-black/5'
+                  )}
                 >
-                  <View style={styles.methodHeaderRow}>
+                  <View className="flex-row items-center justify-between">
                     <View
-                      style={[
-                        styles.methodIconCircle,
-                        {
-                          backgroundColor: isSelected
-                            ? theme.primary
-                            : (isDark ? '#1E293B' : '#F1F5F9'),
-                        },
-                      ]}
+                      className={cn(
+                        'w-8 h-8 rounded-xl items-center justify-center',
+                        isSelected
+                          ? 'bg-emerald-500'
+                          : isDark
+                          ? 'bg-[#1E293B]'
+                          : 'bg-slate-100'
+                      )}
                     >
                       <Ionicons
                         name={m.icon}
-                        size={18}
-                        color={isSelected ? '#FFFFFF' : theme.text}
+                        size={16}
+                        color={isSelected ? '#FFFFFF' : isDark ? '#E2E8F0' : '#475569'}
                       />
                     </View>
                     {isSelected && (
-                      <Ionicons name="checkmark-circle" size={16} color={theme.primary} />
+                      <Ionicons
+                        name="checkmark-circle"
+                        size={16}
+                        color="#10B981"
+                      />
                     )}
                   </View>
 
                   <Text
-                    style={{
-                      color: isSelected ? theme.primary : theme.text,
-                      fontWeight: '700',
-                      fontSize: 13,
-                      marginTop: 10,
-                    }}
+                    className={cn(
+                      'text-xs font-bold mt-2.5',
+                      isSelected
+                        ? 'text-emerald-500'
+                        : isDark
+                        ? 'text-white'
+                        : 'text-slate-900'
+                    )}
                   >
                     {m.label}
                   </Text>
-                  <Text
-                    style={{
-                      color: theme.textMuted,
-                      fontSize: 11,
-                      marginTop: 2,
-                    }}
-                  >
+                  <Text className="text-[11px] text-slate-400 mt-0.5" numberOfLines={1}>
                     {m.subtitle}
                   </Text>
                 </Pressable>
@@ -447,150 +492,87 @@ export default function SettleScreen() {
         </View>
 
         {/* Notes & Reference */}
-        <Input
-          label="Transaction Reference or Note (Optional)"
-          placeholder="e.g. UPI Ref / GPay Ref #987654"
-          value={notes}
-          onChangeText={setNotes}
-          leftIcon={<Ionicons name="document-text-outline" size={18} color={theme.textMuted} />}
-        />
+        <View className="mb-6">
+          <Text
+            className={cn(
+              'text-xs font-bold tracking-wider mb-2.5 uppercase',
+              isDark ? 'text-slate-400' : 'text-slate-500'
+            )}
+          >
+            Transaction Note / Ref (Optional)
+          </Text>
+          <View
+            className={cn(
+              'flex-row items-center h-12 px-3.5 rounded-2xl border',
+              isDark
+                ? 'bg-[#141D2E] border-[#23324D]'
+                : 'bg-white border-slate-200 shadow-sm shadow-black/5'
+            )}
+          >
+            <Ionicons
+              name="document-text-outline"
+              size={17}
+              color="#64748B"
+              style={{ marginRight: 8 }}
+            />
+            <TextInput
+              placeholder="e.g. UPI Ref / GPay Ref #987654"
+              placeholderTextColor="#64748B"
+              value={notes}
+              onChangeText={setNotes}
+              className={cn(
+                'flex-1 text-sm font-semibold py-0',
+                isDark ? 'text-white' : 'text-slate-900'
+              )}
+            />
+          </View>
+        </View>
 
         {/* Action Button */}
-        <Button
-          label={
-            createSettlementMutation.isPending
-              ? 'Recording Settlement...'
-              : 'Record Payment'
-          }
-          size="lg"
-          variant="primary"
-          fullWidth
-          loading={createSettlementMutation.isPending}
+        <Pressable
           onPress={handleRecordSettlement}
-          icon={<Ionicons name="checkmark-done" size={18} color="#FFFFFF" />}
-          style={{ marginTop: 16 }}
-        />
+          disabled={createSettlementMutation.isPending || !selectedFriendId || !amountStr}
+          className={cn(
+            'h-13 py-3.5 rounded-2xl items-center justify-center flex-row active:scale-[0.98] shadow-md mb-8',
+            createSettlementMutation.isPending || !selectedFriendId || !amountStr
+              ? isDark
+                ? 'bg-[#1A2333] opacity-60'
+                : 'bg-slate-200 opacity-60'
+              : 'bg-emerald-500 active:bg-emerald-600'
+          )}
+        >
+          {createSettlementMutation.isPending ? (
+            <ActivityIndicator size="small" color="#FFFFFF" />
+          ) : (
+            <>
+              <Ionicons
+                name="checkmark-done"
+                size={18}
+                color={
+                  !selectedFriendId || !amountStr
+                    ? isDark
+                      ? '#64748B'
+                      : '#94A3B8'
+                    : '#FFFFFF'
+                }
+                style={{ marginRight: 6 }}
+              />
+              <Text
+                className={cn(
+                  'text-sm font-extrabold',
+                  !selectedFriendId || !amountStr
+                    ? isDark
+                      ? 'text-slate-500'
+                      : 'text-slate-400'
+                    : 'text-white'
+                )}
+              >
+                Record Payment
+              </Text>
+            </>
+          )}
+        </Pressable>
       </ScrollView>
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  headerBar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    paddingTop: 8,
-    paddingBottom: 10,
-  },
-  cancelBtn: {
-    width: 38,
-    height: 38,
-    borderRadius: 12,
-    borderWidth: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  headerTitle: {
-    fontWeight: '800',
-    letterSpacing: -0.2,
-  },
-  scrollContent: {
-    paddingHorizontal: 20,
-    paddingTop: 8,
-    paddingBottom: 40,
-  },
-  sectionHeaderRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  sectionLabel: {
-    fontWeight: '700',
-    letterSpacing: 0.6,
-  },
-  friendChip: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 16,
-    borderWidth: 1,
-  },
-  emptyFriendsPill: {
-    paddingHorizontal: 14,
-    paddingVertical: 10,
-    borderRadius: 14,
-    borderWidth: 1,
-  },
-  amountLabel: {
-    fontWeight: '700',
-    letterSpacing: 0.6,
-    marginBottom: 4,
-  },
-  amountInputRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: 6,
-  },
-  currencySymbol: {
-    fontSize: 34,
-    fontWeight: '800',
-    marginRight: 8,
-  },
-  amountInput: {
-    fontSize: 34,
-    fontWeight: '800',
-    flex: 1,
-    paddingVertical: 0,
-  },
-  balanceSuggestionRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginTop: 14,
-    paddingTop: 12,
-    borderTopWidth: 1,
-    borderTopColor: 'rgba(148, 163, 184, 0.15)',
-  },
-  balanceInfoWrap: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  settleFullPill: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 12,
-    borderWidth: 1,
-  },
-  methodsGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 10,
-  },
-  methodCard: {
-    width: '48.5%',
-    padding: 12,
-    borderRadius: 14,
-    borderWidth: 1,
-  },
-  methodHeaderRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  methodIconCircle: {
-    width: 32,
-    height: 32,
-    borderRadius: 10,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-});
