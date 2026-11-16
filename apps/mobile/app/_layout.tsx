@@ -11,6 +11,7 @@ import { StatusBar } from 'expo-status-bar';
 import { PortalHost } from '@rn-primitives/portal';
 import { useColorScheme as useNativeWindColorScheme } from 'nativewind';
 import { useColorScheme as useRNColorScheme } from 'react-native';
+import { GlobalDialog } from '../src/lib/dialog';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -76,6 +77,7 @@ export default function RootLayout() {
             />
           </Stack>
           <PortalHost />
+          <GlobalDialog />
         </WatermelonThemeProvider>
       </QueryClientProvider>
     </SafeAreaProvider>

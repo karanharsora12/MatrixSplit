@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
 import {
   View,
   Text,
@@ -7,34 +7,34 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
-  Alert,
-} from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { Ionicons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
-import { Button, Input, Card } from '@/components';
-import { useWatermelonTheme } from '@/theme';
-import { apiClient, API_BASE_URL } from '../../src/services/api';
-import { useAuthStore } from '../../src/stores/authStore';
-import { CurrencyCode } from '@matrixsplit/shared';
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { Ionicons } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
+import { Button, Input, Card, dialog } from "@/components";
+import { useWatermelonTheme } from "@/theme";
+import { apiClient, API_BASE_URL } from "../../src/services/api";
+import { useAuthStore } from "../../src/stores/authStore";
+import { CurrencyCode } from "@matrixsplit/shared";
 
 const currencyData: { code: CurrencyCode; symbol: string; name: string }[] = [
-  { code: 'INR', symbol: '₹', name: 'Rupee' },
-  { code: 'USD', symbol: '$', name: 'Dollar' },
-  { code: 'EUR', symbol: '€', name: 'Euro' },
-  { code: 'GBP', symbol: '£', name: 'Pound' },
+  { code: "INR", symbol: "₹", name: "Rupee" },
+  { code: "USD", symbol: "$", name: "Dollar" },
+  { code: "EUR", symbol: "€", name: "Euro" },
+  { code: "GBP", symbol: "£", name: "Pound" },
 ];
 
 export default function SignupScreen() {
   const router = useRouter();
-  const { theme, typography, spacing, borderRadius, isDark } = useWatermelonTheme();
+  const { theme, typography, spacing, borderRadius, isDark } =
+    useWatermelonTheme();
   const setAuth = useAuthStore((s) => s.setAuth);
 
-  const [fullName, setFullName] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [fullName, setFullName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [defaultCurrency, setDefaultCurrency] = useState<CurrencyCode>('INR');
+  const [defaultCurrency, setDefaultCurrency] = useState<CurrencyCode>("INR");
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -42,10 +42,10 @@ export default function SignupScreen() {
     setErrors({});
     const newErrors: Record<string, string> = {};
 
-    if (!fullName.trim()) newErrors.fullName = 'Full name is required';
-    if (!email.trim()) newErrors.email = 'Valid email is required';
+    if (!fullName.trim()) newErrors.fullName = "Full name is required";
+    if (!email.trim()) newErrors.email = "Valid email is required";
     if (!password || password.length < 8)
-      newErrors.password = 'Password must be at least 8 characters';
+      newErrors.password = "Password must be at least 8 characters";
 
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
@@ -54,7 +54,7 @@ export default function SignupScreen() {
 
     setLoading(true);
     try {
-      const res = await apiClient.post('/auth/signup', {
+      const res = await apiClient.post("/auth/signup", {
         fullName: fullName.trim(),
         email: email.trim(),
         password,
@@ -63,14 +63,17 @@ export default function SignupScreen() {
 
       const { user, accessToken, refreshToken } = res.data;
       setAuth(user, accessToken, refreshToken);
-      router.replace('/(tabs)');
+      router.replace("/(tabs)");
     } catch (err: any) {
       const serverMsg = err.response?.data?.message;
       const netMsg =
-        err.message === 'Network Error' || !err.response
+        err.message === "Network Error" || !err.response
           ? `Cannot reach backend at ${API_BASE_URL}.\nMake sure the NestJS backend is running.`
           : err.message;
-      Alert.alert('Sign Up Error', serverMsg || netMsg || 'Failed to sign up.');
+      dialog.error(
+        "Sign Up Error",
+        serverMsg || netMsg || "Failed to sign up.",
+      );
     } finally {
       setLoading(false);
     }
@@ -80,9 +83,9 @@ export default function SignupScreen() {
     <SafeAreaView
       style={[
         styles.container,
-        { backgroundColor: isDark ? '#090D16' : '#F8FAFC' },
+        { backgroundColor: isDark ? "#090D16" : "#F8FAFC" },
       ]}
-      edges={['top', 'bottom', 'left', 'right']}
+      edges={["top", "bottom", "left", "right"]}
     >
       {/* Top Bar */}
       <View style={styles.topBar}>
@@ -91,15 +94,15 @@ export default function SignupScreen() {
             if (router.canGoBack()) {
               router.back();
             } else {
-              router.replace('/(auth)/welcome');
+              router.replace("/(auth)/welcome");
             }
           }}
           hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
           style={({ pressed }) => [
             styles.backButton,
             {
-              backgroundColor: isDark ? '#141D2E' : '#FFFFFF',
-              borderColor: isDark ? '#23324D' : '#E2E8F0',
+              backgroundColor: isDark ? "#141D2E" : "#FFFFFF",
+              borderColor: isDark ? "#23324D" : "#E2E8F0",
               opacity: pressed ? 0.7 : 1,
             },
           ]}
@@ -109,7 +112,7 @@ export default function SignupScreen() {
       </View>
 
       <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
         style={{ flex: 1 }}
       >
         <ScrollView
@@ -140,8 +143,8 @@ export default function SignupScreen() {
             style={[
               styles.formCard,
               {
-                backgroundColor: isDark ? '#141D2E' : '#FFFFFF',
-                borderColor: isDark ? '#23324D' : '#E2E8F0',
+                backgroundColor: isDark ? "#141D2E" : "#FFFFFF",
+                borderColor: isDark ? "#23324D" : "#E2E8F0",
               },
             ]}
           >
@@ -151,7 +154,13 @@ export default function SignupScreen() {
               value={fullName}
               onChangeText={setFullName}
               error={errors.fullName}
-              leftIcon={<Ionicons name="person-outline" size={18} color={theme.textMuted} />}
+              leftIcon={
+                <Ionicons
+                  name="person-outline"
+                  size={18}
+                  color={theme.textMuted}
+                />
+              }
             />
 
             <Input
@@ -162,7 +171,13 @@ export default function SignupScreen() {
               keyboardType="email-address"
               autoCapitalize="none"
               error={errors.email}
-              leftIcon={<Ionicons name="mail-outline" size={18} color={theme.textMuted} />}
+              leftIcon={
+                <Ionicons
+                  name="mail-outline"
+                  size={18}
+                  color={theme.textMuted}
+                />
+              }
             />
 
             <Input
@@ -172,10 +187,16 @@ export default function SignupScreen() {
               onChangeText={setPassword}
               secureTextEntry={!showPassword}
               error={errors.password}
-              leftIcon={<Ionicons name="lock-closed-outline" size={18} color={theme.textMuted} />}
+              leftIcon={
+                <Ionicons
+                  name="lock-closed-outline"
+                  size={18}
+                  color={theme.textMuted}
+                />
+              }
               rightIcon={
                 <Ionicons
-                  name={showPassword ? 'eye-off-outline' : 'eye-outline'}
+                  name={showPassword ? "eye-off-outline" : "eye-outline"}
                   size={18}
                   color={theme.textMuted}
                 />
@@ -198,15 +219,15 @@ export default function SignupScreen() {
                       styles.currencyChip,
                       {
                         backgroundColor: selected
-                          ? '#10B981'
+                          ? "#10B981"
                           : isDark
-                          ? '#141D2E'
-                          : '#F1F5F9',
+                            ? "#141D2E"
+                            : "#F1F5F9",
                         borderColor: selected
-                          ? '#10B981'
+                          ? "#10B981"
                           : isDark
-                          ? '#23324D'
-                          : '#CBD5E1',
+                            ? "#23324D"
+                            : "#CBD5E1",
                         borderWidth: 1.5,
                         marginRight: idx < currencyData.length - 1 ? 8 : 0,
                         opacity: pressed ? 0.8 : 1,
@@ -217,7 +238,13 @@ export default function SignupScreen() {
                     <Text
                       style={[
                         styles.currencySymbol,
-                        { color: selected ? '#FFFFFF' : (isDark ? '#34D399' : '#059669') },
+                        {
+                          color: selected
+                            ? "#FFFFFF"
+                            : isDark
+                              ? "#34D399"
+                              : "#059669",
+                        },
                       ]}
                     >
                       {curr.symbol}
@@ -226,8 +253,12 @@ export default function SignupScreen() {
                       style={[
                         styles.currencyCode,
                         {
-                          color: selected ? '#FFFFFF' : (isDark ? '#F8FAFC' : '#0F172A'),
-                          fontWeight: '700',
+                          color: selected
+                            ? "#FFFFFF"
+                            : isDark
+                              ? "#F8FAFC"
+                              : "#0F172A",
+                          fontWeight: "700",
                         },
                       ]}
                     >
@@ -239,7 +270,7 @@ export default function SignupScreen() {
             </View>
 
             <Button
-              label={loading ? 'Creating Account...' : 'Create Account'}
+              label={loading ? "Creating Account..." : "Create Account"}
               size="lg"
               variant="primary"
               fullWidth
@@ -252,10 +283,10 @@ export default function SignupScreen() {
           {/* Footer */}
           <View style={styles.footerRow}>
             <Text style={[styles.footerText, { color: theme.textMuted }]}>
-              Already have an account?{' '}
+              Already have an account?{" "}
             </Text>
             <Pressable
-              onPress={() => router.push('/(auth)/login')}
+              onPress={() => router.push("/(auth)/login")}
               hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
               style={({ pressed }) => [{ opacity: pressed ? 0.7 : 1 }]}
             >
@@ -284,8 +315,8 @@ const styles = StyleSheet.create({
     height: 40,
     borderRadius: 12,
     borderWidth: 1.5,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
   scrollContent: {
     paddingHorizontal: 24,
@@ -293,26 +324,26 @@ const styles = StyleSheet.create({
     paddingBottom: 36,
   },
   header: {
-    alignItems: 'center',
+    alignItems: "center",
     marginTop: 16,
     marginBottom: 24,
   },
   brandIcon: {
     width: 52,
     height: 52,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     marginBottom: 14,
   },
   title: {
     fontSize: 26,
-    fontWeight: '800',
+    fontWeight: "800",
     letterSpacing: -0.5,
-    textAlign: 'center',
+    textAlign: "center",
   },
   subtitle: {
     fontSize: 14,
-    textAlign: 'center',
+    textAlign: "center",
     marginTop: 6,
     maxWidth: 290,
     lineHeight: 20,
@@ -325,36 +356,36 @@ const styles = StyleSheet.create({
   },
   currencyLabel: {
     fontSize: 11,
-    fontWeight: '700',
+    fontWeight: "700",
     letterSpacing: 0.6,
     marginBottom: 8,
     marginTop: 4,
   },
   currencyRow: {
-    flexDirection: 'row',
+    flexDirection: "row",
     gap: 8,
     marginBottom: 6,
   },
   currencyChip: {
     flex: 1,
     height: 48,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     borderRadius: 12,
     borderWidth: 1.5,
   },
   currencySymbol: {
     fontSize: 16,
-    fontWeight: '800',
+    fontWeight: "800",
     marginBottom: 1,
   },
   currencyCode: {
     fontSize: 11,
   },
   footerRow: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
     marginTop: 8,
   },
   footerText: {
@@ -362,6 +393,6 @@ const styles = StyleSheet.create({
   },
   signInLink: {
     fontSize: 14,
-    fontWeight: '700',
+    fontWeight: "700",
   },
 });

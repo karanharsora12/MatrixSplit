@@ -5,7 +5,6 @@ import {
   ScrollView,
   Pressable,
   Switch,
-  Alert,
   TextInput,
   ActivityIndicator,
 } from "react-native";
@@ -18,6 +17,7 @@ import { useThemeStore } from "../../src/stores/themeStore";
 import { apiClient } from "../../src/services/api";
 import { CurrencyCode } from "@matrixsplit/shared";
 import { cn } from "@/lib/utils";
+import { dialog } from "@/components";
 
 const currencyOptions: { code: CurrencyCode; symbol: string; label: string }[] =
   [
@@ -51,9 +51,9 @@ export default function SettingsScreen() {
       });
 
       setUser(res.data);
-      Alert.alert("Saved", "Profile updated successfully!");
+      dialog.success("Saved", "Profile updated successfully!");
     } catch (err: any) {
-      Alert.alert(
+      dialog.error(
         "Error",
         err.response?.data?.message || "Failed to update profile",
       );
@@ -62,44 +62,41 @@ export default function SettingsScreen() {
     }
   };
 
-  const handleLogout = () => {
-    Alert.alert("Logout", "Are you sure you want to log out of MatrixSplit?", [
-      { text: "Cancel", style: "cancel" },
-      {
-        text: "Logout",
-        style: "destructive",
-        onPress: () => {
-          logout();
-          router.replace("/(auth)/welcome");
-        },
-      },
-    ]);
+  const handleLogout = async () => {
+    const confirmed = await dialog.confirm({
+      title: "Logout",
+      description: "Are you sure you want to log out of MatrixSplit?",
+      confirmText: "Logout",
+      destructive: true,
+    });
+
+    if (confirmed) {
+      logout();
+      router.replace("/(auth)/welcome");
+    }
   };
 
-  const handleDeleteAccount = () => {
-    Alert.alert(
-      "Delete Account",
-      "This will permanently delete your account and sessions. This action cannot be undone.",
-      [
-        { text: "Cancel", style: "cancel" },
-        {
-          text: "Delete Forever",
-          style: "destructive",
-          onPress: async () => {
-            try {
-              await apiClient.delete("/users/me");
-              logout();
-              router.replace("/(auth)/welcome");
-            } catch (err: any) {
-              Alert.alert(
-                "Error",
-                err.response?.data?.message || "Failed to delete account",
-              );
-            }
-          },
-        },
-      ],
-    );
+  const handleDeleteAccount = async () => {
+    const confirmed = await dialog.confirm({
+      title: "Delete Account",
+      description:
+        "This will permanently delete your account and sessions. This action cannot be undone.",
+      confirmText: "Delete Forever",
+      destructive: true,
+    });
+
+    if (confirmed) {
+      try {
+        await apiClient.delete("/users/me");
+        logout();
+        router.replace("/(auth)/welcome");
+      } catch (err: any) {
+        dialog.error(
+          "Error",
+          err.response?.data?.message || "Failed to delete account",
+        );
+      }
+    }
   };
 
   const initials = (user?.fullName || "User")

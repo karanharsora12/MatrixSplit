@@ -82,3 +82,4 @@ export * from './BalanceCard';
 export * from './BottomSheet';
 export * from './EmptyState';
 export * from './Skeleton';
+export * from '../lib/dialog';

@@ -6,7 +6,6 @@ import {
   Pressable,
   RefreshControl,
   Share,
-  Alert,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useLocalSearchParams, useRouter } from "expo-router";
@@ -17,6 +16,7 @@ import {
   BottomSheet,
   Input,
   Button,
+  dialog,
 } from "@/components";
 import { useWatermelonTheme } from "@/theme";
 import {
@@ -84,7 +84,7 @@ export default function GroupDetailsScreen() {
 
   const handleSaveEdit = async () => {
     if (!editName.trim()) {
-      Alert.alert("Required", "Group name cannot be empty");
+      dialog.warning("Required", "Group name cannot be empty");
       return;
     }
 
@@ -97,9 +97,9 @@ export default function GroupDetailsScreen() {
         },
       });
       setEditSheetVisible(false);
-      Alert.alert("Success", "Group info updated successfully!");
+      dialog.success("Success", "Group info updated successfully!");
     } catch (err: any) {
-      Alert.alert("Error", err.response?.data?.message || "Failed to update group");
+      dialog.error("Error", err.response?.data?.message || "Failed to update group");
     }
   };
 
@@ -118,12 +118,12 @@ export default function GroupDetailsScreen() {
   const handleExportReport = async () => {
     try {
       const res = await apiClient.get(`/groups/${id}/export-csv`);
-      Alert.alert(
+      dialog.info(
         "Export Ready",
         `Summary exported:\nTotal transactions: ${res.data?.recordsCount || expenses?.length || 0}\nDefault Currency: ${group?.defaultCurrency || 'INR'}`
       );
     } catch (err: any) {
-      Alert.alert(
+      dialog.info(
         "Export CSV",
         `Report for ${group?.name || 'Group'} generated with ${expenses?.length || 0} expenses recorded.`
       );

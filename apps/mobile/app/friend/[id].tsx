@@ -6,7 +6,6 @@ import {
   ScrollView,
   Pressable,
   Share,
-  Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
@@ -17,6 +16,7 @@ import {
   Badge,
   Button,
   SegmentedControl,
+  dialog,
 } from '@/components';
 import { useWatermelonTheme } from '@/theme';
 import {
@@ -64,7 +64,7 @@ export default function FriendDetailScreen() {
 
   const handleRemind = async () => {
     if (balanceMinor <= 0) {
-      Alert.alert(
+      dialog.info(
         'No Debt to Remind',
         `${friendName} does not currently owe you any balance.`
       );

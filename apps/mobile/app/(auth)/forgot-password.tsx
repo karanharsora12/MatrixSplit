@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
 import {
   View,
   Text,
@@ -7,43 +7,53 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
-  Alert,
-} from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { Ionicons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
-import { Button, Input, Card } from '@/components';
-import { useWatermelonTheme } from '@/theme';
-import { apiClient } from '../../src/services/api';
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { Ionicons } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
+import { Button, Input, Card, dialog } from "@/components";
+import { useWatermelonTheme } from "@/theme";
+import { apiClient } from "../../src/services/api";
 
 export default function ForgotPasswordScreen() {
   const router = useRouter();
-  const { theme, typography, spacing, borderRadius, isDark } = useWatermelonTheme();
+  const { theme, typography, spacing, borderRadius, isDark } =
+    useWatermelonTheme();
 
-  const [step, setStep] = useState<'request_otp' | 'reset_password'>('request_otp');
-  const [email, setEmail] = useState('');
-  const [otp, setOtp] = useState('');
-  const [newPassword, setNewPassword] = useState('');
+  const [step, setStep] = useState<"request_otp" | "reset_password">(
+    "request_otp",
+  );
+  const [email, setEmail] = useState("");
+  const [otp, setOtp] = useState("");
+  const [newPassword, setNewPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
 
   const handleRequestOtp = async () => {
     if (!email.trim()) {
-      Alert.alert('Required', 'Please enter your registered email address');
+      dialog.warning("Required", "Please enter your registered email address");
       return;
     }
 
     setLoading(true);
     try {
-      const res = await apiClient.post('/auth/forgot-password', { email: email.trim() });
+      const res = await apiClient.post("/auth/forgot-password", {
+        email: email.trim(),
+      });
       if (res.data?.debugOtp) {
-        Alert.alert('Demo OTP', `Your reset OTP is: ${res.data.debugOtp}`);
+        dialog.info("Demo OTP", `Your reset OTP is: ${res.data.debugOtp}`);
       } else {
-        Alert.alert('OTP Sent', 'Check your email for the 6-digit verification code.');
+        dialog.success(
+          "OTP Sent",
+          "Check your email for the 6-digit verification code.",
+        );
       }
-      setStep('reset_password');
+      setStep("reset_password");
     } catch (err: any) {
-      Alert.alert('Error', err.response?.data?.message || 'Failed to send OTP');
+      dialog.error(
+        "Error",
+        err.response?.data?.message || "Failed to send OTP",
+      );
     } finally {
       setLoading(false);
     }
@@ -51,23 +61,31 @@ export default function ForgotPasswordScreen() {
 
   const handleResetPassword = async () => {
     if (!otp.trim() || !newPassword || newPassword.length < 8) {
-      Alert.alert('Required', 'Enter the 6-digit OTP and new password (min 8 chars)');
+      dialog.warning(
+        "Required",
+        "Enter the 6-digit OTP and new password (min 8 chars)",
+      );
       return;
     }
 
     setLoading(true);
     try {
-      await apiClient.post('/auth/reset-password', {
+      await apiClient.post("/auth/reset-password", {
         email: email.trim(),
         otp: otp.trim(),
         newPassword,
       });
 
-      Alert.alert('Success', 'Password reset successfully! Please sign in.', [
-        { text: 'OK', onPress: () => router.replace('/(auth)/login') },
-      ]);
+      dialog.success(
+        "Success",
+        "Password reset successfully! Please sign in.",
+        () => router.replace("/(auth)/login"),
+      );
     } catch (err: any) {
-      Alert.alert('Error', err.response?.data?.message || 'Invalid or expired OTP');
+      dialog.error(
+        "Error",
+        err.response?.data?.message || "Invalid or expired OTP",
+      );
     } finally {
       setLoading(false);
     }
@@ -77,28 +95,28 @@ export default function ForgotPasswordScreen() {
     <SafeAreaView
       style={[
         styles.container,
-        { backgroundColor: isDark ? '#090D16' : '#F8FAFC' },
+        { backgroundColor: isDark ? "#090D16" : "#F8FAFC" },
       ]}
-      edges={['top', 'bottom', 'left', 'right']}
+      edges={["top", "bottom", "left", "right"]}
     >
       {/* Top Bar */}
       <View style={styles.topBar}>
         <Pressable
           onPress={() => {
-            if (step === 'reset_password') {
-              setStep('request_otp');
+            if (step === "reset_password") {
+              setStep("request_otp");
             } else if (router.canGoBack()) {
               router.back();
             } else {
-              router.replace('/(auth)/login');
+              router.replace("/(auth)/login");
             }
           }}
           hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
           style={({ pressed }) => [
             styles.iconButton,
             {
-              backgroundColor: isDark ? '#141D2E' : '#FFFFFF',
-              borderColor: isDark ? '#23324D' : '#E2E8F0',
+              backgroundColor: isDark ? "#141D2E" : "#FFFFFF",
+              borderColor: isDark ? "#23324D" : "#E2E8F0",
               opacity: pressed ? 0.7 : 1,
             },
           ]}
@@ -108,7 +126,7 @@ export default function ForgotPasswordScreen() {
       </View>
 
       <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
         style={{ flex: 1 }}
       >
         <ScrollView
@@ -129,7 +147,7 @@ export default function ForgotPasswordScreen() {
             <Text
               style={[
                 styles.title,
-                { color: theme.text, fontSize: typography.fontSize['3xl'] },
+                { color: theme.text, fontSize: typography.fontSize["3xl"] },
               ]}
             >
               Reset Password
@@ -140,7 +158,7 @@ export default function ForgotPasswordScreen() {
                 { color: theme.textMuted, fontSize: typography.fontSize.sm },
               ]}
             >
-              {step === 'request_otp'
+              {step === "request_otp"
                 ? "Enter your email and we'll send a 6-digit verification code"
                 : `Enter the verification code sent to ${email}`}
             </Text>
@@ -150,15 +168,19 @@ export default function ForgotPasswordScreen() {
               <View
                 style={[
                   styles.stepDot,
-                  { backgroundColor: theme.primary, width: step === 'request_otp' ? 24 : 8 },
+                  {
+                    backgroundColor: theme.primary,
+                    width: step === "request_otp" ? 24 : 8,
+                  },
                 ]}
               />
               <View
                 style={[
                   styles.stepDot,
                   {
-                    backgroundColor: step === 'reset_password' ? theme.primary : theme.border,
-                    width: step === 'reset_password' ? 24 : 8,
+                    backgroundColor:
+                      step === "reset_password" ? theme.primary : theme.border,
+                    width: step === "reset_password" ? 24 : 8,
                   },
                 ]}
               />
@@ -166,12 +188,8 @@ export default function ForgotPasswordScreen() {
           </View>
 
           {/* Form Card */}
-          <Card
-            variant="elevated"
-            padding="lg"
-            style={{ marginBottom: 20 }}
-          >
-            {step === 'request_otp' ? (
+          <Card variant="elevated" padding="lg" style={{ marginBottom: 20 }}>
+            {step === "request_otp" ? (
               <>
                 <Input
                   label="Email Address"
@@ -180,11 +198,17 @@ export default function ForgotPasswordScreen() {
                   onChangeText={setEmail}
                   keyboardType="email-address"
                   autoCapitalize="none"
-                  leftIcon={<Ionicons name="mail-outline" size={18} color={theme.textMuted} />}
+                  leftIcon={
+                    <Ionicons
+                      name="mail-outline"
+                      size={18}
+                      color={theme.textMuted}
+                    />
+                  }
                 />
 
                 <Button
-                  label={loading ? 'Sending Code...' : 'Send Verification Code'}
+                  label={loading ? "Sending Code..." : "Send Verification Code"}
                   size="lg"
                   variant="primary"
                   fullWidth
@@ -202,7 +226,13 @@ export default function ForgotPasswordScreen() {
                   onChangeText={setOtp}
                   keyboardType="number-pad"
                   maxLength={6}
-                  leftIcon={<Ionicons name="shield-outline" size={18} color={theme.textMuted} />}
+                  leftIcon={
+                    <Ionicons
+                      name="shield-outline"
+                      size={18}
+                      color={theme.textMuted}
+                    />
+                  }
                 />
 
                 <Input
@@ -211,10 +241,16 @@ export default function ForgotPasswordScreen() {
                   value={newPassword}
                   onChangeText={setNewPassword}
                   secureTextEntry={!showPassword}
-                  leftIcon={<Ionicons name="lock-closed-outline" size={18} color={theme.textMuted} />}
+                  leftIcon={
+                    <Ionicons
+                      name="lock-closed-outline"
+                      size={18}
+                      color={theme.textMuted}
+                    />
+                  }
                   rightIcon={
                     <Ionicons
-                      name={showPassword ? 'eye-off-outline' : 'eye-outline'}
+                      name={showPassword ? "eye-off-outline" : "eye-outline"}
                       size={18}
                       color={theme.textMuted}
                     />
@@ -223,7 +259,7 @@ export default function ForgotPasswordScreen() {
                 />
 
                 <Button
-                  label={loading ? 'Updating Password...' : 'Save New Password'}
+                  label={loading ? "Updating Password..." : "Save New Password"}
                   size="lg"
                   variant="primary"
                   fullWidth
@@ -250,10 +286,10 @@ export default function ForgotPasswordScreen() {
           {/* Footer Back to Login */}
           <View style={styles.footerRow}>
             <Text style={[styles.footerText, { color: theme.textMuted }]}>
-              Remembered your password?{' '}
+              Remembered your password?{" "}
             </Text>
             <Pressable
-              onPress={() => router.replace('/(auth)/login')}
+              onPress={() => router.replace("/(auth)/login")}
               style={({ pressed }) => [{ opacity: pressed ? 0.7 : 1 }]}
             >
               <Text style={[styles.signInLink, { color: theme.primary }]}>
@@ -281,8 +317,8 @@ const styles = StyleSheet.create({
     height: 38,
     borderRadius: 12,
     borderWidth: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
   scrollContent: {
     paddingHorizontal: 20,
@@ -290,30 +326,30 @@ const styles = StyleSheet.create({
     paddingBottom: 32,
   },
   header: {
-    alignItems: 'center',
+    alignItems: "center",
     marginBottom: 20,
   },
   brandIcon: {
     width: 48,
     height: 48,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     marginBottom: 12,
   },
   title: {
-    fontWeight: '800',
+    fontWeight: "800",
     letterSpacing: -0.5,
-    textAlign: 'center',
+    textAlign: "center",
   },
   subtitle: {
-    textAlign: 'center',
+    textAlign: "center",
     marginTop: 6,
     maxWidth: 290,
     lineHeight: 19,
   },
   stepIndicator: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     marginTop: 14,
     gap: 6,
   },
@@ -322,17 +358,17 @@ const styles = StyleSheet.create({
     borderRadius: 3,
   },
   resendBtn: {
-    alignItems: 'center',
+    alignItems: "center",
     marginTop: 14,
   },
   resendText: {
     fontSize: 13,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   footerRow: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
     marginTop: 8,
   },
   footerText: {
@@ -340,6 +376,6 @@ const styles = StyleSheet.create({
   },
   signInLink: {
     fontSize: 14,
-    fontWeight: '700',
+    fontWeight: "700",
   },
 });

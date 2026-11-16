@@ -6,7 +6,6 @@ import {
   Pressable,
   RefreshControl,
   TextInput,
-  Alert,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
@@ -16,6 +15,7 @@ import {
   Input,
   BottomSheet,
   SkeletonCard,
+  dialog,
 } from "@/components";
 import { useWatermelonTheme } from "@/theme";
 import {
@@ -56,7 +56,7 @@ export default function GroupsScreen() {
 
   const handleCreate = async () => {
     if (!groupName.trim()) {
-      Alert.alert("Required", "Please enter a group name");
+      dialog.warning("Required", "Please enter a group name");
       return;
     }
 
@@ -70,9 +70,9 @@ export default function GroupsScreen() {
       setCreateSheetVisible(false);
       setGroupName("");
       setGroupDesc("");
-      Alert.alert("Success", "Group created successfully!");
+      dialog.success("Success", "Group created successfully!");
     } catch (err: any) {
-      Alert.alert(
+      dialog.error(
         "Error",
         err.response?.data?.message || "Failed to create group",
       );
@@ -81,7 +81,7 @@ export default function GroupsScreen() {
 
   const handleJoin = async () => {
     if (!inviteCodeInput.trim()) {
-      Alert.alert("Required", "Invite code is required");
+      dialog.warning("Required", "Invite code is required");
       return;
     }
 
@@ -89,9 +89,9 @@ export default function GroupsScreen() {
       await joinGroupMutation.mutateAsync(inviteCodeInput.trim().toUpperCase());
       setJoinSheetVisible(false);
       setInviteCodeInput("");
-      Alert.alert("Success", "Successfully joined group!");
+      dialog.success("Success", "Successfully joined group!");
     } catch (err: any) {
-      Alert.alert(
+      dialog.error(
         "Error",
         err.response?.data?.message || "Invalid invite code",
       );

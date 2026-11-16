@@ -6,7 +6,6 @@ import {
   ScrollView,
   Pressable,
   TextInput,
-  Alert,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useLocalSearchParams, useRouter } from "expo-router";
@@ -16,6 +15,7 @@ import {
   Badge,
   Button,
   SkeletonCard,
+  dialog,
 } from '@/components';
 import { useWatermelonTheme } from '@/theme';
 import {
@@ -72,31 +72,28 @@ export default function ExpenseDetailsScreen() {
     setCommentText("");
   };
 
-  const handleDelete = () => {
-    Alert.alert(
-      "Delete Expense",
-      "Are you sure you want to delete this expense? This will recalculate all group and member balances.",
-      [
-        { text: "Cancel", style: "cancel" },
-        {
-          text: "Delete",
-          style: "destructive",
-          onPress: async () => {
-            try {
-              await deleteMutation.mutateAsync(id!);
-              Alert.alert("Deleted", "Expense deleted successfully", [
-                { text: "OK", onPress: () => router.back() },
-              ]);
-            } catch (err: any) {
-              Alert.alert(
-                "Error",
-                err.response?.data?.message || "Failed to delete"
-              );
-            }
-          },
-        },
-      ]
-    );
+  const handleDelete = async () => {
+    const confirmed = await dialog.confirm({
+      title: "Delete Expense",
+      description:
+        "Are you sure you want to delete this expense? This will recalculate all group and member balances.",
+      confirmText: "Delete",
+      destructive: true,
+    });
+
+    if (confirmed) {
+      try {
+        await deleteMutation.mutateAsync(id!);
+        dialog.success("Deleted", "Expense deleted successfully", () =>
+          router.back()
+        );
+      } catch (err: any) {
+        dialog.error(
+          "Error",
+          err.response?.data?.message || "Failed to delete"
+        );
+      }
+    }
   };
 
   const iconName = expense

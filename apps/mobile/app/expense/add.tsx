@@ -7,13 +7,13 @@ import {
   TextInput,
   KeyboardAvoidingView,
   Platform,
-  Alert,
   ActivityIndicator,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { useWatermelonTheme } from "@/theme";
+import { dialog } from "@/components";
 import {
   useCreateExpense,
   useMyGroups,
@@ -293,22 +293,22 @@ export default function AddExpenseScreen() {
 
   const handleSave = async () => {
     if (!title.trim()) {
-      Alert.alert("Required", "Please enter what this expense was for");
+      dialog.warning("Required", "Please enter what this expense was for");
       return;
     }
 
     if (totalMinor <= 0) {
-      Alert.alert("Invalid Amount", "Please enter a valid expense amount");
+      dialog.warning("Invalid Amount", "Please enter a valid expense amount");
       return;
     }
 
     if (selectedParticipants.length === 0) {
-      Alert.alert("Participants Required", "Select at least one participant");
+      dialog.warning("Participants Required", "Select at least one participant");
       return;
     }
 
     if (splitBreakdown && !splitBreakdown.valid) {
-      Alert.alert("Split Mismatch", splitBreakdown.message);
+      dialog.warning("Split Mismatch", splitBreakdown.message);
       return;
     }
 
@@ -352,22 +352,17 @@ export default function AddExpenseScreen() {
         participants: participantInputs,
       });
 
-      Alert.alert("Success", "Expense recorded successfully!", [
-        {
-          text: "OK",
-          onPress: () => {
-            if (router.canGoBack()) {
-              router.back();
-            } else {
-              router.replace("/(tabs)");
-            }
-          },
-        },
-      ]);
+      dialog.success("Success", "Expense recorded successfully!", () => {
+        if (router.canGoBack()) {
+          router.back();
+        } else {
+          router.replace("/(tabs)");
+        }
+      });
     } catch (err: any) {
       const msg =
         err.response?.data?.message || err.message || "Failed to save expense";
-      Alert.alert("Error", msg);
+      dialog.error("Error", msg);
     }
   };
 

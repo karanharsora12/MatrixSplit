@@ -7,12 +7,11 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
-  Alert,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import { Button, Input } from "@/components";
+import { Button, Input, dialog } from "@/components";
 import { useWatermelonTheme } from "@/theme";
 import { apiClient, API_BASE_URL } from "../../src/services/api";
 import { useAuthStore } from "../../src/stores/authStore";
@@ -57,7 +56,7 @@ export default function LoginScreen() {
         err.message === "Network Error" || !err.response
           ? `Cannot reach backend at ${API_BASE_URL}.\nMake sure the NestJS backend is running.`
           : err.message;
-      Alert.alert("Login Failed", serverMsg || netMsg || "Failed to log in.");
+      dialog.error("Login Failed", serverMsg || netMsg || "Failed to log in.");
     } finally {
       setLoading(false);
     }

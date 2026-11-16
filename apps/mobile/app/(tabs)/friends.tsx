@@ -6,7 +6,6 @@ import {
   Pressable,
   RefreshControl,
   TextInput,
-  Alert,
   Share,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -19,6 +18,7 @@ import {
   Input,
   BottomSheet,
   SkeletonCard,
+  dialog,
 } from '@/components';
 import { useWatermelonTheme } from '@/theme';
 import {
@@ -79,13 +79,13 @@ export default function FriendsScreen() {
   const handleSendRequest = async (emailOrId: string) => {
     try {
       await sendRequestMutation.mutateAsync(emailOrId);
-      Alert.alert('Sent', 'Friend request sent successfully!');
+      dialog.success('Sent', 'Friend request sent successfully!');
       setAddSheetVisible(false);
       setAddSearchText('');
       setSearchResults([]);
       refetchRequests();
     } catch (err: any) {
-      Alert.alert('Error', err.response?.data?.message || 'Failed to send request');
+      dialog.error('Error', err.response?.data?.message || 'Failed to send request');
     }
   };
 
@@ -95,7 +95,7 @@ export default function FriendsScreen() {
       refetch();
       refetchRequests();
     } catch (err: any) {
-      Alert.alert('Error', err.response?.data?.message || 'Failed to respond');
+      dialog.error('Error', err.response?.data?.message || 'Failed to respond');
     }
   };
 

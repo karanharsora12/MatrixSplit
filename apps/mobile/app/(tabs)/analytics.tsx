@@ -5,11 +5,10 @@ import {
   ScrollView,
   Pressable,
   RefreshControl,
-  Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { SkeletonCard } from '@/components';
+import { SkeletonCard, dialog } from '@/components';
 import { useWatermelonTheme } from '@/theme';
 import { useAnalyticsSummary } from '../../src/hooks/useQueries';
 import { formatCurrency } from '@matrixsplit/shared';
@@ -39,13 +38,12 @@ export default function AnalyticsScreen() {
 
   const handleExportCsv = async () => {
     try {
-      Alert.alert(
+      dialog.info(
         'Export Ledger Report',
         `CSV export generated.\nEndpoint: ${API_BASE_URL}/analytics/export/csv`,
-        [{ text: 'Dismiss' }]
       );
     } catch {
-      Alert.alert('Export Failed', 'Could not generate report.');
+      dialog.error('Export Failed', 'Could not generate report.');
     }
   };
 

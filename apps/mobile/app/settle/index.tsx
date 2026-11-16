@@ -5,13 +5,13 @@ import {
   ScrollView,
   Pressable,
   TextInput,
-  Alert,
   ActivityIndicator,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useWatermelonTheme } from "@/theme";
+import { dialog } from "@/components";
 import { useFriends, useCreateSettlement } from "../../src/hooks/useQueries";
 import { useAuthStore } from "../../src/stores/authStore";
 import {
@@ -85,7 +85,7 @@ export default function SettleScreen() {
 
   const handleRecordSettlement = async () => {
     if (!selectedFriendId) {
-      Alert.alert(
+      dialog.warning(
         "Recipient Required",
         "Please select who you are settling with.",
       );
@@ -94,7 +94,7 @@ export default function SettleScreen() {
 
     const minorUnits = toMinorUnits(amountStr, user?.defaultCurrency || "INR");
     if (minorUnits <= 0) {
-      Alert.alert("Invalid Amount", "Please enter a valid settlement amount.");
+      dialog.warning("Invalid Amount", "Please enter a valid settlement amount.");
       return;
     }
 
@@ -109,13 +109,13 @@ export default function SettleScreen() {
         notes: notes.trim() || undefined,
       });
 
-      Alert.alert(
+      dialog.success(
         "Settlement Recorded",
         "Payment has been recorded! It updates mutual balances and settles shared debts.",
-        [{ text: "Done", onPress: () => router.back() }],
+        () => router.back()
       );
     } catch (err: any) {
-      Alert.alert(
+      dialog.error(
         "Error",
         err.response?.data?.message || "Failed to record settlement",
       );

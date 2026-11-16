@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from "react";
 import {
   View,
   Text,
@@ -7,20 +7,20 @@ import {
   TextInput,
   KeyboardAvoidingView,
   Platform,
-  Alert,
-} from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { Ionicons } from '@expo/vector-icons';
-import { useLocalSearchParams, useRouter } from 'expo-router';
-import { Button } from '@/components';
-import { useWatermelonTheme } from '@/theme';
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { Ionicons } from "@expo/vector-icons";
+import { useLocalSearchParams, useRouter } from "expo-router";
+import { Button, dialog } from "@/components";
+import { useWatermelonTheme } from "@/theme";
 
 export default function OtpVerificationScreen() {
   const router = useRouter();
   const params = useLocalSearchParams<{ email?: string }>();
-  const { theme, typography, spacing, borderRadius, isDark } = useWatermelonTheme();
+  const { theme, typography, spacing, borderRadius, isDark } =
+    useWatermelonTheme();
 
-  const [otp, setOtp] = useState(['', '', '', '', '', '']);
+  const [otp, setOtp] = useState(["", "", "", "", "", ""]);
   const [timer, setTimer] = useState(30);
   const [loading, setLoading] = useState(false);
   const inputsRef = useRef<(TextInput | null)[]>([]);
@@ -44,34 +44,43 @@ export default function OtpVerificationScreen() {
   };
 
   const handleKeyPress = (e: any, index: number) => {
-    if (e.nativeEvent.key === 'Backspace' && !otp[index] && index > 0) {
+    if (e.nativeEvent.key === "Backspace" && !otp[index] && index > 0) {
       inputsRef.current[index - 1]?.focus();
     }
   };
 
   const handleVerify = async () => {
-    const code = otp.join('');
+    const code = otp.join("");
     if (code.length < 6) {
-      Alert.alert('Incomplete Code', 'Please enter the full 6-digit verification code.');
+      dialog.warning(
+        "Incomplete Code",
+        "Please enter the full 6-digit verification code.",
+      );
       return;
     }
 
     setLoading(true);
     setTimeout(() => {
       setLoading(false);
-      Alert.alert('Verified', 'Email verified successfully!', [
-        { text: 'Continue', onPress: () => router.replace('/(tabs)') },
-      ]);
+      dialog.success("Verified", "Email verified successfully!", () =>
+        router.replace("/(tabs)"),
+      );
     }, 1200);
   };
 
   const handleResend = () => {
     setTimer(30);
-    Alert.alert('Code Resent', 'A new 6-digit verification code was sent to your email.');
+    dialog.info(
+      "Code Resent",
+      "A new 6-digit verification code was sent to your email.",
+    );
   };
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]} edges={['top', 'bottom', 'left', 'right']}>
+    <SafeAreaView
+      style={[styles.container, { backgroundColor: theme.background }]}
+      edges={["top", "bottom", "left", "right"]}
+    >
       {/* Top Bar */}
       <View style={styles.topBar}>
         <Pressable
@@ -91,7 +100,7 @@ export default function OtpVerificationScreen() {
       </View>
 
       <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
         style={{ flex: 1 }}
       >
         <View style={styles.content}>
@@ -100,17 +109,21 @@ export default function OtpVerificationScreen() {
               style={[
                 styles.iconBadge,
                 {
-                  backgroundColor: isDark ? 'rgba(16,185,129,0.12)' : '#D1FAE5',
+                  backgroundColor: isDark ? "rgba(16,185,129,0.12)" : "#D1FAE5",
                   borderRadius: borderRadius.xl,
                 },
               ]}
             >
-              <Ionicons name="mail-unread-outline" size={32} color={theme.primary} />
+              <Ionicons
+                name="mail-unread-outline"
+                size={32}
+                color={theme.primary}
+              />
             </View>
             <Text
               style={[
                 styles.title,
-                { color: theme.text, fontSize: typography.fontSize['3xl'] },
+                { color: theme.text, fontSize: typography.fontSize["3xl"] },
               ]}
             >
               Verify OTP Code
@@ -121,9 +134,9 @@ export default function OtpVerificationScreen() {
                 { color: theme.textMuted, fontSize: typography.fontSize.sm },
               ]}
             >
-              We sent a 6-digit verification code to{' '}
-              <Text style={{ color: theme.text, fontWeight: '700' }}>
-                {params.email || 'your email'}
+              We sent a 6-digit verification code to{" "}
+              <Text style={{ color: theme.text, fontWeight: "700" }}>
+                {params.email || "your email"}
               </Text>
             </Text>
           </View>
@@ -141,7 +154,7 @@ export default function OtpVerificationScreen() {
                     borderColor: digit ? theme.primary : theme.border,
                     color: theme.text,
                     borderRadius: borderRadius.md,
-                    fontVariant: ['tabular-nums'],
+                    fontVariant: ["tabular-nums"],
                   },
                 ]}
                 keyboardType="number-pad"
@@ -158,14 +171,29 @@ export default function OtpVerificationScreen() {
           <View style={styles.resendContainer}>
             {timer > 0 ? (
               <Text style={{ color: theme.textMuted, fontSize: 13 }}>
-                Resend code in <Text style={{ color: theme.primary, fontWeight: '700', fontVariant: ['tabular-nums'] }}>{timer}s</Text>
+                Resend code in{" "}
+                <Text
+                  style={{
+                    color: theme.primary,
+                    fontWeight: "700",
+                    fontVariant: ["tabular-nums"],
+                  }}
+                >
+                  {timer}s
+                </Text>
               </Text>
             ) : (
               <Pressable
                 onPress={handleResend}
                 style={({ pressed }) => [{ opacity: pressed ? 0.7 : 1 }]}
               >
-                <Text style={{ color: theme.primary, fontWeight: '700', fontSize: 14 }}>
+                <Text
+                  style={{
+                    color: theme.primary,
+                    fontWeight: "700",
+                    fontSize: 14,
+                  }}
+                >
                   Resend Verification Code
                 </Text>
               </Pressable>
@@ -173,7 +201,7 @@ export default function OtpVerificationScreen() {
           </View>
 
           <Button
-            label={loading ? 'Verifying...' : 'Verify & Continue'}
+            label={loading ? "Verifying..." : "Verify & Continue"}
             size="lg"
             variant="primary"
             fullWidth
@@ -201,52 +229,52 @@ const styles = StyleSheet.create({
     height: 38,
     borderRadius: 12,
     borderWidth: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
   content: {
     paddingHorizontal: 24,
     paddingTop: 24,
-    alignItems: 'center',
+    alignItems: "center",
   },
   header: {
-    alignItems: 'center',
+    alignItems: "center",
     marginBottom: 32,
   },
   iconBadge: {
     width: 64,
     height: 64,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     marginBottom: 16,
   },
   title: {
-    fontWeight: '800',
+    fontWeight: "800",
     letterSpacing: -0.5,
-    textAlign: 'center',
+    textAlign: "center",
   },
   subtitle: {
-    textAlign: 'center',
+    textAlign: "center",
     marginTop: 8,
     lineHeight: 20,
     maxWidth: 290,
   },
   otpRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    width: '100%',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    width: "100%",
     marginBottom: 20,
   },
   otpInput: {
     width: 48,
     height: 56,
     borderWidth: 1.5,
-    textAlign: 'center',
+    textAlign: "center",
     fontSize: 22,
-    fontWeight: '700',
+    fontWeight: "700",
   },
   resendContainer: {
     marginTop: 10,
-    alignItems: 'center',
+    alignItems: "center",
   },
 });

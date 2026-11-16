@@ -7,12 +7,11 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
-  Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import { Button, Input, Card } from '@/components';
+import { Button, Input, Card, dialog } from '@/components';
 import { useWatermelonTheme } from '@/theme';
 
 export default function ResetPasswordScreen() {
@@ -44,10 +43,10 @@ export default function ResetPasswordScreen() {
     setLoading(true);
     setTimeout(() => {
       setLoading(false);
-      Alert.alert(
+      dialog.success(
         'Password Reset',
         'Your password has been successfully updated. You can now log in with your new password.',
-        [{ text: 'Sign In', onPress: () => router.replace('/(auth)/login') }]
+        () => router.replace('/(auth)/login')
       );
     }, 1200);
   };
