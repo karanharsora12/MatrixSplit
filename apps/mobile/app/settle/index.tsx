@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
 import {
   View,
   Text,
@@ -7,23 +7,20 @@ import {
   TextInput,
   Alert,
   ActivityIndicator,
-} from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { Ionicons } from '@expo/vector-icons';
-import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useWatermelonTheme } from '@/theme';
-import {
-  useFriends,
-  useCreateSettlement,
-} from '../../src/hooks/useQueries';
-import { useAuthStore } from '../../src/stores/authStore';
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { Ionicons } from "@expo/vector-icons";
+import { useLocalSearchParams, useRouter } from "expo-router";
+import { useWatermelonTheme } from "@/theme";
+import { useFriends, useCreateSettlement } from "../../src/hooks/useQueries";
+import { useAuthStore } from "../../src/stores/authStore";
 import {
   toMinorUnits,
   fromMinorUnits,
   formatCurrency,
   SettlementPaymentMethod,
-} from '@matrixsplit/shared';
-import { cn } from '@/lib/utils';
+} from "@matrixsplit/shared";
+import { cn } from "@/lib/utils";
 
 export default function SettleScreen() {
   const router = useRouter();
@@ -40,16 +37,19 @@ export default function SettleScreen() {
   const createSettlementMutation = useCreateSettlement();
 
   const initialAmountStr = params.amountMinor
-    ? fromMinorUnits(parseInt(params.amountMinor, 10), user?.defaultCurrency || 'INR').toString()
-    : '';
+    ? fromMinorUnits(
+        parseInt(params.amountMinor, 10),
+        user?.defaultCurrency || "INR",
+      ).toString()
+    : "";
 
   const [selectedFriendId, setSelectedFriendId] = useState<string>(
-    params.targetUserId || ''
+    params.targetUserId || "",
   );
   const [amountStr, setAmountStr] = useState(initialAmountStr);
   const [paymentMethod, setPaymentMethod] =
-    useState<SettlementPaymentMethod>('upi');
-  const [notes, setNotes] = useState('');
+    useState<SettlementPaymentMethod>("upi");
+  const [notes, setNotes] = useState("");
 
   const paymentMethods: {
     id: SettlementPaymentMethod;
@@ -57,21 +57,44 @@ export default function SettleScreen() {
     subtitle: string;
     icon: keyof typeof Ionicons.glyphMap;
   }[] = [
-    { id: 'upi', label: 'UPI / QR', subtitle: 'GPay, PhonePe, Paytm', icon: 'qr-code-outline' },
-    { id: 'cash', label: 'Cash', subtitle: 'In-person handoff', icon: 'cash-outline' },
-    { id: 'bank_transfer', label: 'Bank Transfer', subtitle: 'NEFT, IMPS, RTGS', icon: 'business-outline' },
-    { id: 'other', label: 'Card / Other', subtitle: 'Debit, credit, wallet', icon: 'card-outline' },
+    {
+      id: "upi",
+      label: "UPI / QR",
+      subtitle: "GPay, PhonePe, Paytm",
+      icon: "qr-code-outline",
+    },
+    {
+      id: "cash",
+      label: "Cash",
+      subtitle: "In-person handoff",
+      icon: "cash-outline",
+    },
+    {
+      id: "bank_transfer",
+      label: "Bank Transfer",
+      subtitle: "NEFT, IMPS, RTGS",
+      icon: "business-outline",
+    },
+    {
+      id: "other",
+      label: "Card / Other",
+      subtitle: "Debit, credit, wallet",
+      icon: "card-outline",
+    },
   ];
 
   const handleRecordSettlement = async () => {
     if (!selectedFriendId) {
-      Alert.alert('Recipient Required', 'Please select who you are settling with.');
+      Alert.alert(
+        "Recipient Required",
+        "Please select who you are settling with.",
+      );
       return;
     }
 
-    const minorUnits = toMinorUnits(amountStr, user?.defaultCurrency || 'INR');
+    const minorUnits = toMinorUnits(amountStr, user?.defaultCurrency || "INR");
     if (minorUnits <= 0) {
-      Alert.alert('Invalid Amount', 'Please enter a valid settlement amount.');
+      Alert.alert("Invalid Amount", "Please enter a valid settlement amount.");
       return;
     }
 
@@ -81,18 +104,21 @@ export default function SettleScreen() {
         receiverId: selectedFriendId,
         groupId: params.groupId || null,
         amountMinor: minorUnits,
-        currency: user?.defaultCurrency || 'INR',
+        currency: user?.defaultCurrency || "INR",
         paymentMethod,
         notes: notes.trim() || undefined,
       });
 
       Alert.alert(
-        'Settlement Recorded',
-        'Payment has been recorded! It updates mutual balances and settles shared debts.',
-        [{ text: 'Done', onPress: () => router.back() }]
+        "Settlement Recorded",
+        "Payment has been recorded! It updates mutual balances and settles shared debts.",
+        [{ text: "Done", onPress: () => router.back() }],
       );
     } catch (err: any) {
-      Alert.alert('Error', err.response?.data?.message || 'Failed to record settlement');
+      Alert.alert(
+        "Error",
+        err.response?.data?.message || "Failed to record settlement",
+      );
     }
   };
 
@@ -100,48 +126,50 @@ export default function SettleScreen() {
   const targetFriendName = selectedFriend?.fullName || params.targetName;
 
   const currencySymbol =
-    user?.defaultCurrency === 'USD'
-      ? '$'
-      : user?.defaultCurrency === 'EUR'
-      ? '€'
-      : user?.defaultCurrency === 'GBP'
-      ? '£'
-      : '₹';
+    user?.defaultCurrency === "USD"
+      ? "$"
+      : user?.defaultCurrency === "EUR"
+        ? "€"
+        : user?.defaultCurrency === "GBP"
+          ? "£"
+          : "₹";
 
   return (
     <SafeAreaView
-      edges={['top', 'left', 'right']}
-      className={cn('flex-1', isDark ? 'bg-[#090D16]' : 'bg-[#F8FAFC]')}
+      edges={["top", "left", "right"]}
+      className={cn("flex-1", isDark ? "bg-[#090D16]" : "bg-[#F8FAFC]")}
     >
       {/* Top Header Bar */}
       <View
         className={cn(
-          'flex-row items-center justify-between px-5 pt-3 pb-3 border-b',
-          isDark ? 'border-[#1E293B] bg-[#090D16]' : 'border-slate-200 bg-white'
+          "flex-row items-center justify-between px-5 pt-3 pb-3 border-b",
+          isDark
+            ? "border-[#1E293B] bg-[#090D16]"
+            : "border-slate-200 bg-white",
         )}
       >
         <Pressable
           onPress={() => router.back()}
           hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
           className={cn(
-            'w-9 h-9 rounded-xl items-center justify-center border active:scale-95',
+            "w-9 h-9 rounded-xl items-center justify-center border active:scale-95",
             isDark
-              ? 'bg-[#141D2E] border-[#23324D] active:bg-[#1E2A42]'
-              : 'bg-white border-slate-200 active:bg-slate-100'
+              ? "bg-[#141D2E] border-[#23324D] active:bg-[#1E2A42]"
+              : "bg-white border-slate-200 active:bg-slate-100",
           )}
         >
           <Ionicons
             name="chevron-back"
             size={20}
-            color={isDark ? '#E2E8F0' : '#334155'}
+            color={isDark ? "#E2E8F0" : "#334155"}
           />
         </Pressable>
 
         <View className="items-center">
           <Text
             className={cn(
-              'text-base font-extrabold tracking-tight',
-              isDark ? 'text-white' : 'text-slate-900'
+              "text-base font-extrabold tracking-tight",
+              isDark ? "text-white" : "text-slate-900",
             )}
           >
             Record Settlement
@@ -155,7 +183,7 @@ export default function SettleScreen() {
       </View>
 
       <ScrollView
-        contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 16, paddingBottom: 36 }}
+        contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 16 }}
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
       >
@@ -164,8 +192,8 @@ export default function SettleScreen() {
           <View className="flex-row items-center justify-between mb-2.5">
             <Text
               className={cn(
-                'text-xs font-bold tracking-wider uppercase',
-                isDark ? 'text-slate-400' : 'text-slate-500'
+                "text-xs font-bold tracking-wider uppercase",
+                isDark ? "text-slate-400" : "text-slate-500",
               )}
             >
               Settling With
@@ -183,45 +211,46 @@ export default function SettleScreen() {
             contentContainerStyle={{ paddingRight: 10 }}
           >
             {/* If param target is present but friend not in list */}
-            {params.targetUserId && !friends?.some((f: any) => f.id === params.targetUserId) && (
-              <Pressable
-                onPress={() => setSelectedFriendId(params.targetUserId!)}
-                className={cn(
-                  'h-10 px-3.5 rounded-full flex-row items-center mr-2.5 border active:scale-95',
-                  selectedFriendId === params.targetUserId
-                    ? 'bg-emerald-500 border-emerald-500 shadow-sm'
-                    : isDark
-                    ? 'bg-[#141D2E] border-[#23324D]'
-                    : 'bg-white border-slate-200'
-                )}
-              >
-                <View className="w-5 h-5 rounded-full bg-white/20 items-center justify-center mr-2">
-                  <Text className="text-[10px] font-bold text-white">
-                    {(params.targetName || 'F').slice(0, 1)}
-                  </Text>
-                </View>
-                <Text
+            {params.targetUserId &&
+              !friends?.some((f: any) => f.id === params.targetUserId) && (
+                <Pressable
+                  onPress={() => setSelectedFriendId(params.targetUserId!)}
                   className={cn(
-                    'text-xs font-bold',
+                    "h-10 px-3.5 rounded-full flex-row items-center mr-2.5 border active:scale-95",
                     selectedFriendId === params.targetUserId
-                      ? 'text-white'
+                      ? "bg-emerald-500 border-emerald-500 shadow-sm"
                       : isDark
-                      ? 'text-slate-300'
-                      : 'text-slate-700'
+                        ? "bg-[#141D2E] border-[#23324D]"
+                        : "bg-white border-slate-200",
                   )}
                 >
-                  {params.targetName || 'Friend'}
-                </Text>
-                {selectedFriendId === params.targetUserId && (
-                  <Ionicons
-                    name="checkmark-circle"
-                    size={14}
-                    color="#FFFFFF"
-                    style={{ marginLeft: 5 }}
-                  />
-                )}
-              </Pressable>
-            )}
+                  <View className="w-5 h-5 rounded-full bg-white/20 items-center justify-center mr-2">
+                    <Text className="text-[10px] font-bold text-white">
+                      {(params.targetName || "F").slice(0, 1)}
+                    </Text>
+                  </View>
+                  <Text
+                    className={cn(
+                      "text-xs font-bold",
+                      selectedFriendId === params.targetUserId
+                        ? "text-white"
+                        : isDark
+                          ? "text-slate-300"
+                          : "text-slate-700",
+                    )}
+                  >
+                    {params.targetName || "Friend"}
+                  </Text>
+                  {selectedFriendId === params.targetUserId && (
+                    <Ionicons
+                      name="checkmark-circle"
+                      size={14}
+                      color="#FFFFFF"
+                      style={{ marginLeft: 5 }}
+                    />
+                  )}
+                </Pressable>
+              )}
 
             {friends && friends.length > 0 ? (
               friends.map((f: any) => {
@@ -235,37 +264,40 @@ export default function SettleScreen() {
                       setSelectedFriendId(f.id);
                       if (balanceMinor !== 0 && !amountStr) {
                         setAmountStr(
-                          fromMinorUnits(Math.abs(balanceMinor), user?.defaultCurrency || 'INR').toString()
+                          fromMinorUnits(
+                            Math.abs(balanceMinor),
+                            user?.defaultCurrency || "INR",
+                          ).toString(),
                         );
                       }
                     }}
                     className={cn(
-                      'h-10 px-3.5 rounded-full flex-row items-center mr-2.5 border active:scale-95',
+                      "h-10 px-3.5 rounded-full flex-row items-center mr-2.5 border active:scale-95",
                       isSelected
-                        ? 'bg-emerald-500 border-emerald-500 shadow-sm'
+                        ? "bg-emerald-500 border-emerald-500 shadow-sm"
                         : isDark
-                        ? 'bg-[#141D2E] border-[#23324D]'
-                        : 'bg-white border-slate-200'
+                          ? "bg-[#141D2E] border-[#23324D]"
+                          : "bg-white border-slate-200",
                     )}
                   >
                     <View
                       className={cn(
-                        'w-5 h-5 rounded-full items-center justify-center mr-2',
+                        "w-5 h-5 rounded-full items-center justify-center mr-2",
                         isSelected
-                          ? 'bg-white/20'
+                          ? "bg-white/20"
                           : isDark
-                          ? 'bg-[#1E293B]'
-                          : 'bg-slate-200'
+                            ? "bg-[#1E293B]"
+                            : "bg-slate-200",
                       )}
                     >
                       <Text
                         className={cn(
-                          'text-[10px] font-bold',
+                          "text-[10px] font-bold",
                           isSelected
-                            ? 'text-white'
+                            ? "text-white"
                             : isDark
-                            ? 'text-slate-300'
-                            : 'text-slate-700'
+                              ? "text-slate-300"
+                              : "text-slate-700",
                         )}
                       >
                         {f.fullName.slice(0, 1)}
@@ -274,12 +306,12 @@ export default function SettleScreen() {
                     <View>
                       <Text
                         className={cn(
-                          'text-xs font-bold',
+                          "text-xs font-bold",
                           isSelected
-                            ? 'text-white'
+                            ? "text-white"
                             : isDark
-                            ? 'text-slate-300'
-                            : 'text-slate-700'
+                              ? "text-slate-300"
+                              : "text-slate-700",
                         )}
                       >
                         {f.fullName}
@@ -287,16 +319,19 @@ export default function SettleScreen() {
                       {balanceMinor !== 0 && (
                         <Text
                           className={cn(
-                            'text-[9px] font-mono font-semibold',
+                            "text-[9px] font-mono font-semibold",
                             isSelected
-                              ? 'text-emerald-100'
+                              ? "text-emerald-100"
                               : balanceMinor > 0
-                              ? 'text-emerald-400'
-                              : 'text-rose-400'
+                                ? "text-emerald-400"
+                                : "text-rose-400",
                           )}
                         >
-                          {balanceMinor > 0 ? 'owes you' : 'you owe'}{' '}
-                          {formatCurrency(Math.abs(balanceMinor), user?.defaultCurrency || 'INR')}
+                          {balanceMinor > 0 ? "owes you" : "you owe"}{" "}
+                          {formatCurrency(
+                            Math.abs(balanceMinor),
+                            user?.defaultCurrency || "INR",
+                          )}
                         </Text>
                       )}
                     </View>
@@ -314,10 +349,10 @@ export default function SettleScreen() {
             ) : (
               <View
                 className={cn(
-                  'px-4 py-2.5 rounded-2xl border',
+                  "px-4 py-2.5 rounded-2xl border",
                   isDark
-                    ? 'bg-[#141D2E] border-[#23324D]'
-                    : 'bg-white border-slate-200'
+                    ? "bg-[#141D2E] border-[#23324D]"
+                    : "bg-white border-slate-200",
                 )}
               >
                 <Text className="text-xs text-slate-400">
@@ -331,10 +366,10 @@ export default function SettleScreen() {
         {/* Settlement Amount Card */}
         <View
           className={cn(
-            'p-5 rounded-3xl border mb-5',
+            "p-5 rounded-3xl border mb-5",
             isDark
-              ? 'bg-[#141D2E] border-[#23324D]'
-              : 'bg-white border-slate-200 shadow-sm shadow-black/5'
+              ? "bg-[#141D2E] border-[#23324D]"
+              : "bg-white border-slate-200 shadow-sm shadow-black/5",
           )}
         >
           <Text className="text-xs font-bold text-slate-400 tracking-wider mb-1.5 uppercase">
@@ -347,24 +382,25 @@ export default function SettleScreen() {
             </Text>
             <TextInput
               placeholder="0.00"
-              placeholderTextColor={isDark ? '#475569' : '#94A3B8'}
+              placeholderTextColor={isDark ? "#475569" : "#94A3B8"}
               value={amountStr}
               onChangeText={setAmountStr}
               keyboardType="decimal-pad"
               autoFocus={!initialAmountStr}
               className={cn(
-                'text-3xl font-extrabold font-mono flex-1 py-0',
-                isDark ? 'text-white' : 'text-slate-900'
+                "text-3xl font-extrabold font-mono flex-1 py-0",
+                isDark ? "text-white" : "text-slate-900",
               )}
             />
           </View>
 
           {/* Settle Full pill if net balance exists */}
-          {selectedFriend && (selectedFriend.netBalanceMinor || selectedFriend.balanceMinor) ? (
+          {selectedFriend &&
+          (selectedFriend.netBalanceMinor || selectedFriend.balanceMinor) ? (
             <View
               className={cn(
-                'flex-row items-center justify-between pt-3 mt-3 border-t',
-                isDark ? 'border-[#23324D]' : 'border-slate-100'
+                "flex-row items-center justify-between pt-3 mt-3 border-t",
+                isDark ? "border-[#23324D]" : "border-slate-100",
               )}
             >
               <View className="flex-row items-center">
@@ -375,16 +411,19 @@ export default function SettleScreen() {
                   style={{ marginRight: 4 }}
                 />
                 <Text className="text-xs text-slate-400 font-mono">
-                  Net balance:{' '}
+                  Net balance:{" "}
                   <Text
                     className={cn(
-                      'font-bold',
-                      isDark ? 'text-white' : 'text-slate-900'
+                      "font-bold",
+                      isDark ? "text-white" : "text-slate-900",
                     )}
                   >
                     {formatCurrency(
-                      Math.abs(selectedFriend.netBalanceMinor || selectedFriend.balanceMinor),
-                      user?.defaultCurrency || 'INR'
+                      Math.abs(
+                        selectedFriend.netBalanceMinor ||
+                          selectedFriend.balanceMinor,
+                      ),
+                      user?.defaultCurrency || "INR",
                     )}
                   </Text>
                 </Text>
@@ -394,9 +433,12 @@ export default function SettleScreen() {
                 onPress={() =>
                   setAmountStr(
                     fromMinorUnits(
-                      Math.abs(selectedFriend.netBalanceMinor || selectedFriend.balanceMinor),
-                      user?.defaultCurrency || 'INR'
-                    ).toString()
+                      Math.abs(
+                        selectedFriend.netBalanceMinor ||
+                          selectedFriend.balanceMinor,
+                      ),
+                      user?.defaultCurrency || "INR",
+                    ).toString(),
                   )
                 }
                 className="flex-row items-center px-2.5 py-1 rounded-full bg-emerald-500/15 border border-emerald-500/30 active:scale-95"
@@ -419,8 +461,8 @@ export default function SettleScreen() {
         <View className="mb-5">
           <Text
             className={cn(
-              'text-xs font-bold tracking-wider mb-2.5 uppercase',
-              isDark ? 'text-slate-400' : 'text-slate-500'
+              "text-xs font-bold tracking-wider mb-2.5 uppercase",
+              isDark ? "text-slate-400" : "text-slate-500",
             )}
           >
             Payment Method
@@ -434,31 +476,37 @@ export default function SettleScreen() {
                   key={m.id}
                   onPress={() => setPaymentMethod(m.id)}
                   className={cn(
-                    'w-[48%] p-3.5 rounded-2xl border active:scale-95',
+                    "w-[48%] p-3.5 rounded-2xl border active:scale-95",
                     isSelected
                       ? isDark
-                        ? 'bg-emerald-500/15 border-emerald-500/50'
-                        : 'bg-emerald-50 border-emerald-500'
+                        ? "bg-emerald-500/15 border-emerald-500/50"
+                        : "bg-emerald-50 border-emerald-500"
                       : isDark
-                      ? 'bg-[#141D2E] border-[#23324D]'
-                      : 'bg-white border-slate-200 shadow-sm shadow-black/5'
+                        ? "bg-[#141D2E] border-[#23324D]"
+                        : "bg-white border-slate-200 shadow-sm shadow-black/5",
                   )}
                 >
                   <View className="flex-row items-center justify-between">
                     <View
                       className={cn(
-                        'w-8 h-8 rounded-xl items-center justify-center',
+                        "w-8 h-8 rounded-xl items-center justify-center",
                         isSelected
-                          ? 'bg-emerald-500'
+                          ? "bg-emerald-500"
                           : isDark
-                          ? 'bg-[#1E293B]'
-                          : 'bg-slate-100'
+                            ? "bg-[#1E293B]"
+                            : "bg-slate-100",
                       )}
                     >
                       <Ionicons
                         name={m.icon}
                         size={16}
-                        color={isSelected ? '#FFFFFF' : isDark ? '#E2E8F0' : '#475569'}
+                        color={
+                          isSelected
+                            ? "#FFFFFF"
+                            : isDark
+                              ? "#E2E8F0"
+                              : "#475569"
+                        }
                       />
                     </View>
                     {isSelected && (
@@ -472,17 +520,20 @@ export default function SettleScreen() {
 
                   <Text
                     className={cn(
-                      'text-xs font-bold mt-2.5',
+                      "text-xs font-bold mt-2.5",
                       isSelected
-                        ? 'text-emerald-500'
+                        ? "text-emerald-500"
                         : isDark
-                        ? 'text-white'
-                        : 'text-slate-900'
+                          ? "text-white"
+                          : "text-slate-900",
                     )}
                   >
                     {m.label}
                   </Text>
-                  <Text className="text-[11px] text-slate-400 mt-0.5" numberOfLines={1}>
+                  <Text
+                    className="text-[11px] text-slate-400 mt-0.5"
+                    numberOfLines={1}
+                  >
                     {m.subtitle}
                   </Text>
                 </Pressable>
@@ -495,18 +546,18 @@ export default function SettleScreen() {
         <View className="mb-6">
           <Text
             className={cn(
-              'text-xs font-bold tracking-wider mb-2.5 uppercase',
-              isDark ? 'text-slate-400' : 'text-slate-500'
+              "text-xs font-bold tracking-wider mb-2.5 uppercase",
+              isDark ? "text-slate-400" : "text-slate-500",
             )}
           >
             Transaction Note / Ref (Optional)
           </Text>
           <View
             className={cn(
-              'flex-row items-center h-12 px-3.5 rounded-2xl border',
+              "flex-row items-center h-12 px-3.5 rounded-2xl border",
               isDark
-                ? 'bg-[#141D2E] border-[#23324D]'
-                : 'bg-white border-slate-200 shadow-sm shadow-black/5'
+                ? "bg-[#141D2E] border-[#23324D]"
+                : "bg-white border-slate-200 shadow-sm shadow-black/5",
             )}
           >
             <Ionicons
@@ -521,8 +572,8 @@ export default function SettleScreen() {
               value={notes}
               onChangeText={setNotes}
               className={cn(
-                'flex-1 text-sm font-semibold py-0',
-                isDark ? 'text-white' : 'text-slate-900'
+                "flex-1 text-sm font-semibold py-0",
+                isDark ? "text-white" : "text-slate-900",
               )}
             />
           </View>
@@ -531,14 +582,20 @@ export default function SettleScreen() {
         {/* Action Button */}
         <Pressable
           onPress={handleRecordSettlement}
-          disabled={createSettlementMutation.isPending || !selectedFriendId || !amountStr}
+          disabled={
+            createSettlementMutation.isPending ||
+            !selectedFriendId ||
+            !amountStr
+          }
           className={cn(
-            'h-13 py-3.5 rounded-2xl items-center justify-center flex-row active:scale-[0.98] shadow-md mb-8',
-            createSettlementMutation.isPending || !selectedFriendId || !amountStr
+            "h-13 py-3.5 rounded-2xl items-center justify-center flex-row active:scale-[0.98] shadow-md mb-8",
+            createSettlementMutation.isPending ||
+              !selectedFriendId ||
+              !amountStr
               ? isDark
-                ? 'bg-[#1A2333] opacity-60'
-                : 'bg-slate-200 opacity-60'
-              : 'bg-emerald-500 active:bg-emerald-600'
+                ? "bg-[#1A2333] opacity-60"
+                : "bg-slate-200 opacity-60"
+              : "bg-emerald-500 active:bg-emerald-600",
           )}
         >
           {createSettlementMutation.isPending ? (
@@ -551,20 +608,20 @@ export default function SettleScreen() {
                 color={
                   !selectedFriendId || !amountStr
                     ? isDark
-                      ? '#64748B'
-                      : '#94A3B8'
-                    : '#FFFFFF'
+                      ? "#64748B"
+                      : "#94A3B8"
+                    : "#FFFFFF"
                 }
                 style={{ marginRight: 6 }}
               />
               <Text
                 className={cn(
-                  'text-sm font-extrabold',
+                  "text-sm font-extrabold",
                   !selectedFriendId || !amountStr
                     ? isDark
-                      ? 'text-slate-500'
-                      : 'text-slate-400'
-                    : 'text-white'
+                      ? "text-slate-500"
+                      : "text-slate-400"
+                    : "text-white",
                 )}
               >
                 Record Payment
