@@ -42,13 +42,8 @@ export const BalanceCard: React.FC<BalanceCardProps> = ({
       style={[
         styles.container,
         {
-          backgroundColor: isDark ? '#111827' : '#FFFFFF',
-          borderColor: isDark ? '#1E293B' : '#E2E8F0',
-          shadowColor: '#000000',
-          shadowOffset: { width: 0, height: 2 },
-          shadowOpacity: isDark ? 0.25 : 0.04,
-          shadowRadius: 6,
-          elevation: 2,
+          backgroundColor: isDark ? '#141D2E' : '#FFFFFF',
+          borderColor: isDark ? '#23324D' : '#E2E8F0',
         },
         style,
       ]}
@@ -219,9 +214,9 @@ export const BalancePill: React.FC<BalancePillProps> = ({
 
 const styles = StyleSheet.create({
   container: {
-    borderRadius: 18,
-    borderWidth: 1,
-    padding: 18,
+    borderRadius: 24,
+    borderWidth: 1.5,
+    padding: 20,
   },
   topRow: {
     flexDirection: 'row',
@@ -233,15 +228,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   indicatorDot: {
-    width: 7,
-    height: 7,
-    borderRadius: 4,
+    width: 6,
+    height: 6,
+    borderRadius: 3,
     marginRight: 7,
   },
   label: {
-    fontSize: 13,
-    fontWeight: '600',
-    letterSpacing: -0.2,
+    fontSize: 12,
+    fontWeight: '500',
+    letterSpacing: 0,
   },
   groupBadge: {
     borderWidth: 1,
@@ -254,16 +249,16 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   mainBalance: {
-    fontSize: 34,
+    fontSize: 36,
     fontWeight: '800',
     fontVariant: ['tabular-nums'],
-    letterSpacing: -0.8,
+    letterSpacing: -1,
     marginTop: 8,
     marginBottom: 6,
   },
   divider: {
     height: 1,
-    marginVertical: 12,
+    marginVertical: 16,
   },
   subRow: {
     flexDirection: 'row',
@@ -284,7 +279,7 @@ const styles = StyleSheet.create({
     marginBottom: 2,
   },
   subValue: {
-    fontSize: 15,
+    fontSize: 16,
     fontWeight: '700',
     fontVariant: ['tabular-nums'],
     letterSpacing: -0.3,

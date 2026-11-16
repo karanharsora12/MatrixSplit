@@ -74,7 +74,13 @@ export default function ForgotPasswordScreen() {
   };
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]} edges={['top', 'bottom', 'left', 'right']}>
+    <SafeAreaView
+      style={[
+        styles.container,
+        { backgroundColor: isDark ? '#090D16' : '#F8FAFC' },
+      ]}
+      edges={['top', 'bottom', 'left', 'right']}
+    >
       {/* Top Bar */}
       <View style={styles.topBar}>
         <Pressable
@@ -91,8 +97,8 @@ export default function ForgotPasswordScreen() {
           style={({ pressed }) => [
             styles.iconButton,
             {
-              backgroundColor: theme.surface,
-              borderColor: theme.border,
+              backgroundColor: isDark ? '#141D2E' : '#FFFFFF',
+              borderColor: isDark ? '#23324D' : '#E2E8F0',
               opacity: pressed ? 0.7 : 1,
             },
           ]}

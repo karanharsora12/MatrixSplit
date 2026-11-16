@@ -12,15 +12,14 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import { Button, Input, Card } from "@/components";
+import { Button, Input } from "@/components";
 import { useWatermelonTheme } from "@/theme";
 import { apiClient, API_BASE_URL } from "../../src/services/api";
 import { useAuthStore } from "../../src/stores/authStore";
 
 export default function LoginScreen() {
   const router = useRouter();
-  const { theme, typography, spacing, isDark, borderRadius } =
-    useWatermelonTheme();
+  const { theme, isDark } = useWatermelonTheme();
   const setAuth = useAuthStore((s) => s.setAuth);
 
   const [email, setEmail] = useState("");
@@ -71,7 +70,10 @@ export default function LoginScreen() {
 
   return (
     <SafeAreaView
-      style={[styles.container, { backgroundColor: theme.background }]}
+      style={[
+        styles.container,
+        { backgroundColor: isDark ? "#090D16" : "#F8FAFC" },
+      ]}
       edges={["top", "bottom", "left", "right"]}
     >
       {/* Top Bar with Back */}
@@ -86,10 +88,10 @@ export default function LoginScreen() {
           }}
           hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
           style={({ pressed }) => [
-            styles.iconButton,
+            styles.backButton,
             {
-              backgroundColor: theme.surface,
-              borderColor: theme.border,
+              backgroundColor: isDark ? "#141D2E" : "#FFFFFF",
+              borderColor: isDark ? "#23324D" : "#E2E8F0",
               opacity: pressed ? 0.7 : 1,
             },
           ]}
@@ -112,31 +114,24 @@ export default function LoginScreen() {
             <View
               style={[
                 styles.brandIcon,
-                { backgroundColor: theme.primary, borderRadius: 16 },
+                {
+                  backgroundColor: theme.primary,
+                  borderRadius: 16,
+                },
               ]}
             >
               <Ionicons name="log-in-outline" size={24} color="#FFFFFF" />
             </View>
-            <Text
-              style={[
-                styles.title,
-                { color: theme.text, fontSize: typography.fontSize["3xl"] },
-              ]}
-            >
+            <Text style={[styles.title, { color: theme.text }]}>
               Welcome back
             </Text>
-            <Text
-              style={[
-                styles.subtitle,
-                { color: theme.textMuted, fontSize: typography.fontSize.sm },
-              ]}
-            >
+            <Text style={[styles.subtitle, { color: theme.textMuted }]}>
               Enter your credentials to access your ledgers and shared balances
             </Text>
           </View>
 
-          {/* Form Card */}
-          <Card variant="elevated" padding="lg" style={{ marginBottom: 20 }}>
+          {/* Form */}
+          <View style={styles.formSection}>
             <Input
               label="Email Address"
               placeholder="you@example.com"
@@ -196,9 +191,9 @@ export default function LoginScreen() {
               fullWidth
               loading={loading}
               onPress={handleLogin}
-              style={{ marginTop: 4 }}
             />
-          </Card>
+          </View>
+
           {/* Sign Up Redirect */}
           <View style={styles.footerRow}>
             <Text style={[styles.footerText, { color: theme.textMuted }]}>
@@ -224,78 +219,58 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   topBar: {
-    paddingHorizontal: 20,
+    paddingHorizontal: 24,
     paddingTop: 8,
     paddingBottom: 4,
   },
-  iconButton: {
-    width: 38,
-    height: 38,
+  backButton: {
+    width: 40,
+    height: 40,
     borderRadius: 12,
-    borderWidth: 1,
+    borderWidth: 1.5,
     alignItems: "center",
     justifyContent: "center",
   },
   scrollContent: {
-    paddingHorizontal: 20,
-    paddingTop: 12,
+    paddingHorizontal: 24,
+    paddingTop: 0,
     paddingBottom: 32,
   },
   header: {
     alignItems: "center",
-    marginBottom: 20,
+    marginTop: 32,
+    marginBottom: 28,
   },
   brandIcon: {
-    width: 48,
-    height: 48,
+    width: 52,
+    height: 52,
     alignItems: "center",
     justifyContent: "center",
-    marginBottom: 12,
+    marginBottom: 14,
   },
   title: {
+    fontSize: 26,
     fontWeight: "800",
     letterSpacing: -0.5,
     textAlign: "center",
   },
   subtitle: {
+    fontSize: 14,
     textAlign: "center",
     marginTop: 6,
     maxWidth: 290,
-    lineHeight: 19,
+    lineHeight: 20,
+  },
+  formSection: {
+    marginBottom: 20,
   },
   forgotRow: {
     alignItems: "flex-end",
-    marginBottom: 14,
+    marginBottom: 16,
     marginTop: -4,
   },
   forgotText: {
     fontSize: 13,
-    fontWeight: "600",
-  },
-  quickFillSection: {
-    marginBottom: 24,
-    alignItems: "center",
-  },
-  quickFillLabel: {
-    fontSize: 11,
-    fontWeight: "700",
-    letterSpacing: 0.6,
-    marginBottom: 8,
-  },
-  demoChipsRow: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    justifyContent: "center",
-    gap: 8,
-  },
-  demoPill: {
-    paddingHorizontal: 12,
-    paddingVertical: 7,
-    borderRadius: 16,
-    borderWidth: 1,
-  },
-  demoPillText: {
-    fontSize: 12,
     fontWeight: "600",
   },
   footerRow: {

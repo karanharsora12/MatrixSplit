@@ -2,7 +2,6 @@ import React, { useState, useMemo } from 'react';
 import {
   View,
   Text,
-  StyleSheet,
   ScrollView,
   Pressable,
   RefreshControl,
@@ -14,14 +13,12 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import {
-  Card,
   Avatar,
   BalancePill,
   Button,
   Input,
   BottomSheet,
   SkeletonCard,
-  SegmentedControl,
 } from '@/components';
 import { useWatermelonTheme } from '@/theme';
 import {
@@ -32,10 +29,12 @@ import {
 } from '../../src/hooks/useQueries';
 import { apiClient } from '../../src/services/api';
 import { useAuthStore } from '../../src/stores/authStore';
+import { cn } from '@/lib/utils';
+import { formatCurrency } from '@matrixsplit/shared';
 
 export default function FriendsScreen() {
   const router = useRouter();
-  const { theme, typography, spacing, borderRadius, isDark } = useWatermelonTheme();
+  const { isDark } = useWatermelonTheme();
   const currentUser = useAuthStore((s) => s.user);
 
   const { data: friends, isLoading, refetch, isRefetching } = useFriends();
@@ -144,318 +143,393 @@ export default function FriendsScreen() {
   }, [friends]);
 
   return (
-    <SafeAreaView edges={['top', 'left', 'right']} style={[styles.container, { backgroundColor: theme.background }]}>
+    <SafeAreaView
+      edges={['top', 'left', 'right']}
+      className={cn('flex-1', isDark ? 'bg-[#090D16]' : 'bg-[#F8FAFC]')}
+    >
       {/* Top Header */}
-      <View style={styles.headerBar}>
+      <View
+        className={cn(
+          'flex-row items-center justify-between px-5 pt-2 pb-3.5 border-b',
+          isDark ? 'border-[#1E293B]' : 'border-slate-200'
+        )}
+      >
         <View>
           <Text
-            style={[
-              styles.headerTitle,
-              { color: theme.text, fontSize: typography.fontSize['2xl'] },
-            ]}
+            className={cn(
+              'text-2xl font-extrabold tracking-tight',
+              isDark ? 'text-white' : 'text-slate-900'
+            )}
           >
             Friends
           </Text>
-          <Text style={[styles.headerSubtitle, { color: theme.textMuted }]}>
-            {friends ? `${friends.length} active connection${friends.length === 1 ? '' : 's'}` : 'Track mutual balances'}
+          <Text className="text-xs text-slate-400 mt-0.5">
+            {friends
+              ? `${friends.length} active connection${friends.length === 1 ? '' : 's'}`
+              : 'Track mutual balances'}
           </Text>
         </View>
 
-        <View style={styles.headerActions}>
+        {/* Action Buttons */}
+        <View className="flex-row items-center">
           <Pressable
             onPress={() => setQrSheetVisible(true)}
-            style={({ pressed }) => [
-              styles.qrBtn,
-              {
-                backgroundColor: theme.surface,
-                borderColor: theme.border,
-                opacity: pressed ? 0.7 : 1,
-              },
-            ]}
+            className={cn(
+              'flex-row items-center h-9 px-3.5 rounded-xl border active:scale-95 mr-2',
+              isDark
+                ? 'bg-[#141D2E] border-[#23324D] active:bg-[#1E2A42]'
+                : 'bg-white border-slate-200 active:bg-slate-100'
+            )}
           >
-            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-              <Ionicons name="qr-code-outline" size={16} color={theme.text} style={{ marginRight: 5 }} />
-              <Text style={{ fontSize: 12, color: theme.text, fontWeight: '700' }}>My ID</Text>
-            </View>
+            <Ionicons
+              name="qr-code-outline"
+              size={16}
+              color={isDark ? '#94A3B8' : '#64748B'}
+              style={{ marginRight: 4 }}
+            />
+            <Text
+              className={cn(
+                'text-xs font-bold',
+                isDark ? 'text-slate-200' : 'text-slate-700'
+              )}
+            >
+              My ID
+            </Text>
           </Pressable>
 
           <Pressable
             onPress={() => setAddSheetVisible(true)}
-            style={({ pressed }) => [
-              styles.addBtn,
-              { backgroundColor: theme.primary, opacity: pressed ? 0.85 : 1 },
-            ]}
+            className="flex-row items-center h-9 px-3.5 rounded-xl bg-emerald-500 active:scale-95 active:bg-emerald-600 shadow-sm"
           >
-            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-              <Ionicons name="person-add-outline" size={15} color="#FFFFFF" style={{ marginRight: 5 }} />
-              <Text style={styles.addBtnText}>Add</Text>
-            </View>
+            <Ionicons
+              name="person-add-outline"
+              size={15}
+              color="#FFFFFF"
+              style={{ marginRight: 4 }}
+            />
+            <Text className="text-xs font-bold text-white">Add</Text>
           </Pressable>
         </View>
       </View>
 
       {/* Search & Status Filters */}
-      <View style={styles.searchSection}>
+      <View className="pt-3.5">
+        {/* Search Bar */}
         <View
-          style={[
-            styles.searchBar,
-            {
-              backgroundColor: theme.card,
-              borderColor: theme.border,
-              borderRadius: borderRadius.lg,
-            },
-          ]}
+          className={cn(
+            'flex-row items-center h-11 px-3.5 rounded-2xl border mx-5 mb-3',
+            isDark
+              ? 'bg-[#141D2E] border-[#23324D]'
+              : 'bg-white border-slate-200 shadow-sm shadow-black/5'
+          )}
         >
-          <Ionicons name="search-outline" size={18} color={theme.textMuted} style={{ marginRight: 8 }} />
+          <Ionicons
+            name="search-outline"
+            size={18}
+            color="#64748B"
+            style={{ marginRight: 8 }}
+          />
           <TextInput
             placeholder="Search by name or email..."
-            placeholderTextColor={theme.textMuted}
+            placeholderTextColor="#64748B"
             value={searchQuery}
             onChangeText={setSearchQuery}
-            style={[styles.searchInput, { color: theme.text }]}
+            className={cn(
+              'flex-1 text-sm font-medium py-0',
+              isDark ? 'text-white' : 'text-slate-900'
+            )}
           />
           {searchQuery ? (
-            <Pressable onPress={() => setSearchQuery('')} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
-              <Ionicons name="close-circle" size={18} color={theme.textMuted} />
+            <Pressable
+              onPress={() => setSearchQuery('')}
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            >
+              <Ionicons name="close-circle" size={18} color="#64748B" />
             </Pressable>
           ) : null}
         </View>
 
-        {/* Status Filters */}
-        <SegmentedControl
-          value={filter}
-          onChange={(val) => setFilter(val as any)}
-          options={[
-            { value: 'all', label: 'All', badge: counts.all },
-            { value: 'owed', label: 'Owed', badge: counts.owed },
-            { value: 'owe', label: 'You Owe', badge: counts.owe },
-            { value: 'settled', label: 'Settled', badge: counts.settled },
-          ]}
-          style={{ marginTop: 10 }}
-        />
+        {/* Status Filter Chips */}
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 12 }}
+        >
+          {[
+            { key: 'all' as const, label: 'All', badge: counts.all },
+            { key: 'owed' as const, label: 'Owed', badge: counts.owed },
+            { key: 'owe' as const, label: 'You Owe', badge: counts.owe },
+            { key: 'settled' as const, label: 'Settled', badge: counts.settled },
+          ].map((item) => {
+            const isSelected = filter === item.key;
+            return (
+              <Pressable
+                key={item.key}
+                onPress={() => setFilter(item.key)}
+                className={cn(
+                  'h-9 px-4 rounded-full flex-row items-center justify-center mr-2.5 active:scale-95',
+                  isSelected
+                    ? 'bg-emerald-500 shadow-sm'
+                    : isDark
+                    ? 'bg-[#141D2E] border border-[#23324D]'
+                    : 'bg-white border border-slate-200'
+                )}
+              >
+                <Text
+                  className={cn(
+                    'text-xs font-bold',
+                    isSelected
+                      ? 'text-white'
+                      : isDark
+                      ? 'text-slate-300'
+                      : 'text-slate-700'
+                  )}
+                >
+                  {item.label}
+                </Text>
+                {item.badge !== undefined && (
+                  <View
+                    className={cn(
+                      'px-1.5 py-0.5 rounded-full ml-1.5',
+                      isSelected
+                        ? 'bg-white/20'
+                        : isDark
+                        ? 'bg-[#1E2A42]'
+                        : 'bg-slate-100'
+                    )}
+                  >
+                    <Text
+                      className={cn(
+                        'text-[10px] font-bold',
+                        isSelected
+                          ? 'text-white'
+                          : isDark
+                          ? 'text-slate-400'
+                          : 'text-slate-600'
+                      )}
+                    >
+                      {item.badge}
+                    </Text>
+                  </View>
+                )}
+              </Pressable>
+            );
+          })}
+        </ScrollView>
       </View>
 
       <ScrollView
-        contentContainerStyle={styles.scrollContent}
+        contentContainerStyle={{ paddingBottom: 20 }}
         showsVerticalScrollIndicator={false}
         refreshControl={
           <RefreshControl
             refreshing={isRefetching}
             onRefresh={onRefresh}
-            tintColor={theme.primary}
+            tintColor="#10B981"
           />
         }
       >
         {/* Pending Requests Banner */}
         {pendingRequests && pendingRequests.length > 0 && (
-          <View style={styles.pendingSection}>
-            <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 10 }}>
-              <View style={[styles.notificationDot, { backgroundColor: theme.primary }]} />
-              <Text
-                style={[
-                  styles.pendingHeaderTitle,
-                  { color: theme.text, fontSize: typography.fontSize.xs },
-                ]}
-              >
-                PENDING FRIEND REQUESTS ({pendingRequests.length})
+          <View className="mb-4">
+            <View className="flex-row items-center px-5 mb-2.5">
+              <View className="w-2 h-2 rounded-full bg-emerald-500 mr-2" />
+              <Text className="text-xs font-bold text-slate-400 tracking-wider">
+                PENDING REQUESTS ({pendingRequests.length})
               </Text>
             </View>
 
             {pendingRequests.map((req: any) => (
-              <Card
+              <View
                 key={req.id}
-                variant="outlined"
-                padding="md"
-                style={{
-                  marginBottom: spacing.sm,
-                  borderColor: theme.primary,
-                  backgroundColor: isDark ? 'rgba(16,185,129,0.08)' : '#ECFDF5',
-                }}
+                className={cn(
+                  'mx-5 mb-2.5 p-3.5 rounded-2xl border flex-row items-center justify-between',
+                  isDark
+                    ? 'bg-[#141D2E] border-emerald-500/40'
+                    : 'bg-emerald-50 border-emerald-300'
+                )}
               >
-                <View style={styles.reqRow}>
+                <View className="flex-row items-center flex-1 mr-3">
                   <Avatar name={req.sender?.fullName || 'Friend'} size="md" />
-                  <View style={{ flex: 1, marginLeft: 12 }}>
+                  <View className="flex-1 ml-3">
                     <Text
-                      style={[
-                        styles.reqName,
-                        { color: theme.text, fontSize: typography.fontSize.base },
-                      ]}
+                      numberOfLines={1}
+                      className={cn(
+                        'text-sm font-bold tracking-tight',
+                        isDark ? 'text-white' : 'text-slate-900'
+                      )}
                     >
                       {req.sender?.fullName}
                     </Text>
-                    <Text
-                      style={[
-                        styles.reqEmail,
-                        { color: theme.textMuted, fontSize: typography.fontSize.xs, marginTop: 2 },
-                      ]}
-                    >
+                    <Text className="text-xs text-slate-400">
                       {req.sender?.email}
                     </Text>
                   </View>
-                  <View style={{ flexDirection: 'row', gap: 8 }}>
-                    <Pressable
-                      onPress={() => handleRespond(req.id, 'reject')}
-                      style={({ pressed }) => [
-                        styles.declineBtn,
-                        {
-                          backgroundColor: theme.surface,
-                          borderColor: theme.border,
-                          opacity: pressed ? 0.7 : 1,
-                        },
-                      ]}
-                    >
-                      <Text style={{ fontSize: 12, color: theme.textMuted, fontWeight: '600' }}>
-                        Decline
-                      </Text>
-                    </Pressable>
-                    <Pressable
-                      onPress={() => handleRespond(req.id, 'accept')}
-                      style={({ pressed }) => [
-                        styles.acceptBtn,
-                        { backgroundColor: theme.primary, opacity: pressed ? 0.85 : 1 },
-                      ]}
-                    >
-                      <Text style={{ fontSize: 12, color: '#FFFFFF', fontWeight: '700' }}>
-                        Accept
-                      </Text>
-                    </Pressable>
-                  </View>
                 </View>
-              </Card>
+
+                <View className="flex-row items-center">
+                  <Pressable
+                    onPress={() => handleRespond(req.id, 'reject')}
+                    className={cn(
+                      'px-3 py-1.5 rounded-xl border mr-2 active:scale-95',
+                      isDark
+                        ? 'bg-[#1E2A42] border-[#23324D]'
+                        : 'bg-white border-slate-200'
+                    )}
+                  >
+                    <Text className="text-xs font-bold text-slate-400">
+                      Decline
+                    </Text>
+                  </Pressable>
+                  <Pressable
+                    onPress={() => handleRespond(req.id, 'accept')}
+                    className="px-3.5 py-1.5 rounded-xl bg-emerald-500 active:scale-95 shadow-sm"
+                  >
+                    <Text className="text-xs font-bold text-white">Accept</Text>
+                  </Pressable>
+                </View>
+              </View>
             ))}
           </View>
         )}
 
         {/* Friends List */}
         {isLoading ? (
-          <>
+          <View className="px-5">
             <SkeletonCard />
             <SkeletonCard />
             <SkeletonCard />
-          </>
+          </View>
         ) : filteredFriends && filteredFriends.length > 0 ? (
-          filteredFriends.map((friend: any) => {
-            const balanceMinor = friend.balanceMinor || friend.netBalanceMinor || 0;
-            const isPositive = balanceMinor > 0;
-            const isNegative = balanceMinor < 0;
+          filteredFriends.map((f: any) => {
+            const balanceMinor = f.netBalanceMinor || f.balanceMinor || 0;
+            const currency = f.defaultCurrency || currentUser?.defaultCurrency || 'INR';
+            const isOwed = balanceMinor > 0;
+            const isOwe = balanceMinor < 0;
 
             return (
               <Pressable
-                key={friend.id}
-                onPress={() => router.push(`/friend/${friend.id}`)}
-                style={({ pressed }) => [{ opacity: pressed ? 0.88 : 1 }]}
+                key={f.id}
+                onPress={() => router.push(`/friend/${f.id}`)}
+                className={cn(
+                  'mx-5 mb-2.5 p-3.5 rounded-2xl border flex-row items-center justify-between active:scale-98',
+                  isDark
+                    ? 'bg-[#141D2E] border-[#23324D] active:bg-[#1A263B]'
+                    : 'bg-white border-slate-200 active:bg-slate-50 shadow-sm shadow-black/5'
+                )}
               >
-                <Card
-                  variant="outlined"
-                  padding="md"
-                  style={{ marginBottom: 10 }}
-                >
-                  <View style={styles.friendRow}>
-                    <Avatar name={friend.fullName} size="md" />
-                    <View style={styles.friendInfo}>
-                      <Text
-                        numberOfLines={1}
-                        style={[
-                          styles.friendName,
-                          { color: theme.text, fontSize: typography.fontSize.base },
-                        ]}
-                      >
-                        {friend.fullName}
-                      </Text>
-                      <Text
-                        numberOfLines={1}
-                        style={[
-                          styles.friendEmail,
-                          { color: theme.textMuted, fontSize: typography.fontSize.xs, marginTop: 2 },
-                        ]}
-                      >
-                        {friend.email}
-                      </Text>
-                    </View>
-
-                    <View style={{ alignItems: 'flex-end', marginLeft: 8 }}>
-                      <BalancePill
-                        amountMinor={balanceMinor}
-                        currency={friend.defaultCurrency || currentUser?.defaultCurrency || 'INR'}
-                      />
-                      <Text
-                        style={{
-                          fontSize: 10,
-                          fontWeight: '600',
-                          marginTop: 4,
-                          color: isPositive
-                            ? theme.positive
-                            : isNegative
-                            ? theme.negative
-                            : theme.textMuted,
-                        }}
-                      >
-                        {isPositive
-                          ? 'owes you'
-                          : isNegative
-                          ? 'you owe'
-                          : 'all settled'}
-                      </Text>
-                    </View>
-
-                    <Ionicons
-                      name="chevron-forward"
-                      size={16}
-                      color={theme.textMuted}
-                      style={{ marginLeft: 6 }}
-                    />
+                <View className="flex-row items-center flex-1 mr-3">
+                  <Avatar name={f.fullName} size="md" />
+                  <View className="ml-3 flex-1">
+                    <Text
+                      numberOfLines={1}
+                      className={cn(
+                        'text-sm font-bold tracking-tight',
+                        isDark ? 'text-white' : 'text-slate-900'
+                      )}
+                    >
+                      {f.fullName}
+                    </Text>
+                    <Text className="text-xs text-slate-400 mt-0.5">
+                      {f.email || 'Connected'}
+                    </Text>
                   </View>
-                </Card>
+                </View>
+
+                <View className="flex-row items-center">
+                  <View className="items-end mr-2">
+                    {balanceMinor !== 0 ? (
+                      <>
+                        <Text
+                          className={cn(
+                            'text-sm font-extrabold font-mono',
+                            isOwed ? 'text-emerald-400' : 'text-rose-400'
+                          )}
+                        >
+                          {formatCurrency(Math.abs(balanceMinor), currency)}
+                        </Text>
+                        <Text
+                          className={cn(
+                            'text-[10px] font-bold mt-0.5',
+                            isOwed ? 'text-emerald-500' : 'text-rose-500'
+                          )}
+                        >
+                          {isOwed ? 'owes you' : 'you owe'}
+                        </Text>
+                      </>
+                    ) : (
+                      <Text className="text-xs font-semibold text-slate-400">
+                        Settled
+                      </Text>
+                    )}
+                  </View>
+                  <Ionicons name="chevron-forward" size={16} color="#64748B" />
+                </View>
               </Pressable>
             );
           })
         ) : (
-          <View style={styles.emptyContainer}>
-            <View
-              style={[
-                styles.emptyIconCircle,
-                {
-                  backgroundColor: isDark ? 'rgba(16,185,129,0.12)' : '#D1FAE5',
-                  borderRadius: borderRadius.full,
-                },
-              ]}
-            >
-              <Ionicons name="people-outline" size={44} color={theme.primary} />
+          <View
+            className={cn(
+              'mx-5 my-10 p-8 rounded-3xl border items-center',
+              isDark ? 'bg-[#141D2E] border-[#23324D]' : 'bg-white border-slate-200 shadow-sm'
+            )}
+          >
+            <View className="w-16 h-16 rounded-full bg-emerald-500/15 items-center justify-center mb-3">
+              <Ionicons name="people-outline" size={32} color="#10B981" />
             </View>
             <Text
-              style={[
-                styles.emptyTitle,
-                { color: theme.text, fontSize: typography.fontSize.lg },
-              ]}
+              className={cn(
+                'text-base font-bold mt-1',
+                isDark ? 'text-white' : 'text-slate-900'
+              )}
             >
-              {searchQuery ? 'No friends match your filter' : 'No friends connected yet'}
+              {searchQuery ? 'No friends found' : 'No friends connected yet'}
             </Text>
-            <Text
-              style={[
-                styles.emptyDesc,
-                { color: theme.textMuted, fontSize: typography.fontSize.sm },
-              ]}
-            >
+            <Text className="text-xs text-slate-400 text-center mt-1 leading-5 max-w-[270px]">
               {searchQuery
-                ? 'Try a different search query or reset the filter pill.'
+                ? 'Try a different search query or clear your filter'
                 : 'Connect with friends to easily track mutual dinner bills, cab rides, and rent.'}
             </Text>
-            {!searchQuery && (
-              <View style={{ flexDirection: 'row', gap: 10, marginTop: 18 }}>
-                <Button
-                  label="Add Friend"
-                  onPress={() => setAddSheetVisible(true)}
-                  variant="primary"
-                  icon={<Ionicons name="person-add-outline" size={16} color="#FFFFFF" />}
+
+            <View className="flex-row items-center mt-5">
+              <Pressable
+                onPress={() => setAddSheetVisible(true)}
+                className="flex-row items-center h-10 px-4 rounded-xl bg-emerald-500 active:scale-95 active:bg-emerald-600 mr-2 shadow-sm"
+              >
+                <Ionicons
+                  name="person-add-outline"
+                  size={15}
+                  color="#FFFFFF"
+                  style={{ marginRight: 6 }}
                 />
-                <Button
-                  label="Share Link"
-                  onPress={handleShareInvite}
-                  variant="outline"
-                  icon={<Ionicons name="share-social-outline" size={16} color={theme.text} />}
+                <Text className="text-xs font-bold text-white">Add Friend</Text>
+              </Pressable>
+              <Pressable
+                onPress={handleShareInvite}
+                className={cn(
+                  'flex-row items-center h-10 px-4 rounded-xl border active:scale-95',
+                  isDark
+                    ? 'bg-[#1E2A42] border-[#23324D] active:bg-[#253554]'
+                    : 'bg-slate-100 border-slate-200 active:bg-slate-200'
+                )}
+              >
+                <Ionicons
+                  name="share-social-outline"
+                  size={15}
+                  color={isDark ? '#94A3B8' : '#475569'}
+                  style={{ marginRight: 6 }}
                 />
-              </View>
-            )}
+                <Text
+                  className={cn(
+                    'text-xs font-bold',
+                    isDark ? 'text-slate-200' : 'text-slate-700'
+                  )}
+                >
+                  Share Link
+                </Text>
+              </Pressable>
+            </View>
           </View>
         )}
       </ScrollView>
@@ -466,113 +540,104 @@ export default function FriendsScreen() {
         onClose={() => setAddSheetVisible(false)}
         title="Add Friend on MatrixSplit"
       >
-        <View style={styles.sheetContent}>
+        <View className="py-1">
           <Input
-            label="Search by Email or Name"
-            placeholder="e.g. bob@matrixsplit.com"
+            label="Search by Email or User ID"
+            placeholder="friend@example.com"
             value={addSearchText}
             onChangeText={handleSearchUsers}
             autoCapitalize="none"
-            leftIcon={<Ionicons name="search-outline" size={18} color={theme.textMuted} />}
+            keyboardType="email-address"
           />
 
-          {searching ? (
-            <Text style={{ color: theme.textMuted, fontSize: 12, marginVertical: 8 }}>
-              Searching directory...
+          {searching && (
+            <Text className="text-xs text-slate-400 text-center py-2">
+              Searching registered users...
             </Text>
-          ) : searchResults && searchResults.length > 0 ? (
-            <View style={{ marginVertical: 8 }}>
-              <Text
-                style={{
-                  color: theme.textMuted,
-                  fontSize: typography.fontSize.xs,
-                  fontWeight: '700',
-                  marginBottom: 8,
-                  letterSpacing: 0.5,
-                }}
-              >
-                MATCHING USERS ({searchResults.length})
+          )}
+
+          {searchResults && searchResults.length > 0 && (
+            <View className="mb-3">
+              <Text className="text-xs font-bold text-slate-400 tracking-wider mb-2">
+                FOUND USERS
               </Text>
-              {searchResults.map((u: any) => (
+              {searchResults.map((user: any) => (
                 <View
-                  key={u.id}
-                  style={[
-                    styles.searchResultRow,
-                    {
-                      backgroundColor: theme.surface,
-                      borderColor: theme.border,
-                      borderRadius: borderRadius.md,
-                    },
-                  ]}
+                  key={user.id}
+                  className={cn(
+                    'p-3 rounded-2xl border flex-row items-center justify-between mb-2',
+                    isDark ? 'bg-[#141D2E] border-[#23324D]' : 'bg-slate-50 border-slate-200'
+                  )}
                 >
-                  <Avatar name={u.fullName} size="sm" />
-                  <View style={{ marginLeft: 10, flex: 1 }}>
-                    <Text style={{ color: theme.text, fontWeight: '700', fontSize: 13 }}>
-                      {u.fullName}
-                    </Text>
-                    <Text style={{ color: theme.textMuted, fontSize: 11 }}>
-                      {u.email}
-                    </Text>
+                  <View className="flex-row items-center flex-1 mr-2">
+                    <Avatar name={user.fullName} size="sm" />
+                    <View className="ml-2.5 flex-1">
+                      <Text
+                        numberOfLines={1}
+                        className={cn(
+                          'text-xs font-bold',
+                          isDark ? 'text-white' : 'text-slate-900'
+                        )}
+                      >
+                        {user.fullName}
+                      </Text>
+                      <Text className="text-[11px] text-slate-400">
+                        {user.email}
+                      </Text>
+                    </View>
                   </View>
                   <Button
-                    label="Send Invite"
+                    label="Connect"
                     size="sm"
                     variant="primary"
-                    onPress={() => handleSendRequest(u.email || u.id)}
+                    onPress={() => handleSendRequest(user.id)}
+                    loading={sendRequestMutation.isPending}
                   />
                 </View>
               ))}
             </View>
-          ) : addSearchText.length > 1 ? (
-            <View style={{ marginVertical: 12, alignItems: 'center' }}>
-              <Text style={{ color: theme.textMuted, fontSize: 12, marginBottom: 8 }}>
-                No registered user found with that email.
-              </Text>
-              <Button
-                label="Send Request Anyway"
-                size="sm"
-                variant="outline"
-                onPress={() => handleSendRequest(addSearchText.trim())}
-              />
-            </View>
-          ) : null}
-
-          <View style={[styles.sheetDivider, { backgroundColor: theme.border }]} />
+          )}
 
           <Button
-            label="Share My MatrixSplit Invite Link"
-            variant="outline"
+            label={
+              sendRequestMutation.isPending ? 'Sending Invite...' : 'Send Friend Request'
+            }
+            size="lg"
+            variant="primary"
             fullWidth
-            onPress={handleShareInvite}
-            icon={<Ionicons name="share-social-outline" size={16} color={theme.text} />}
+            onPress={() => handleSendRequest(addSearchText.trim())}
+            loading={sendRequestMutation.isPending}
+            disabled={!addSearchText.trim()}
+            style={{ marginTop: 14 }}
           />
         </View>
       </BottomSheet>
 
-      {/* QR Code Bottom Sheet */}
+      {/* QR & Profile ID Bottom Sheet */}
       <BottomSheet
         visible={qrSheetVisible}
         onClose={() => setQrSheetVisible(false)}
         title="Your MatrixSplit ID"
       >
-        <View style={styles.qrSheetContent}>
+        <View className="items-center py-2">
           <View
-            style={[
-              styles.qrBox,
-              {
-                backgroundColor: theme.surface,
-                borderColor: theme.border,
-                borderRadius: borderRadius.xl,
-              },
-            ]}
+            className={cn(
+              'w-full p-6 rounded-3xl border items-center mb-4',
+              isDark ? 'bg-[#141D2E] border-[#23324D]' : 'bg-slate-50 border-slate-200'
+            )}
           >
-            <View style={[styles.qrIconWrap, { backgroundColor: theme.primary }]}>
-              <Ionicons name="qr-code" size={54} color="#FFFFFF" />
+            <View className="w-20 h-20 rounded-2xl bg-emerald-500/15 items-center justify-center mb-3">
+              <Ionicons name="qr-code-outline" size={44} color="#10B981" />
             </View>
-            <Text style={[styles.qrName, { color: theme.text }]}>
+            <Text
+              className={cn(
+                'text-lg font-bold tracking-tight',
+                isDark ? 'text-white' : 'text-slate-900'
+              )}
+            >
               {currentUser?.fullName}
             </Text>
-            <Text style={[styles.qrEmail, { color: theme.textMuted }]}>
+            <Text className="text-xs text-slate-400 mt-0.5">
               {currentUser?.email}
             </Text>
           </View>
@@ -584,185 +649,9 @@ export default function FriendsScreen() {
             fullWidth
             onPress={handleShareInvite}
             icon={<Ionicons name="share-social-outline" size={18} color="#FFFFFF" />}
-            style={{ marginTop: 16 }}
           />
         </View>
       </BottomSheet>
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  headerBar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    paddingTop: 8,
-    paddingBottom: 8,
-  },
-  headerTitle: {
-    fontWeight: '800',
-    letterSpacing: -0.5,
-  },
-  headerSubtitle: {
-    fontSize: 12,
-    marginTop: 2,
-  },
-  headerActions: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  qrBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 12,
-    paddingVertical: 7,
-    borderRadius: 16,
-    borderWidth: 1,
-  },
-  addBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 14,
-    paddingVertical: 7,
-    borderRadius: 16,
-  },
-  addBtnText: {
-    color: '#FFFFFF',
-    fontWeight: '700',
-    fontSize: 13,
-  },
-  searchSection: {
-    paddingHorizontal: 20,
-    paddingTop: 4,
-    paddingBottom: 8,
-  },
-  searchBar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 12,
-    height: 42,
-    borderWidth: 1,
-  },
-  searchInput: {
-    flex: 1,
-    fontSize: 14,
-    paddingVertical: 0,
-  },
-  scrollContent: {
-    paddingHorizontal: 20,
-    paddingTop: 8,
-    paddingBottom: 40,
-  },
-  pendingSection: {
-    marginBottom: 16,
-  },
-  notificationDot: {
-    width: 7,
-    height: 7,
-    borderRadius: 4,
-    marginRight: 6,
-  },
-  pendingHeaderTitle: {
-    fontWeight: '700',
-    letterSpacing: 0.6,
-  },
-  reqRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  reqName: {
-    fontWeight: '700',
-  },
-  reqEmail: {},
-  declineBtn: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 10,
-    borderWidth: 1,
-  },
-  acceptBtn: {
-    paddingHorizontal: 14,
-    paddingVertical: 6,
-    borderRadius: 10,
-  },
-  friendRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  friendInfo: {
-    flex: 1,
-    marginLeft: 12,
-  },
-  friendName: {
-    fontWeight: '700',
-    letterSpacing: -0.2,
-  },
-  friendEmail: {},
-  emptyContainer: {
-    alignItems: 'center',
-    paddingVertical: 48,
-    paddingHorizontal: 24,
-  },
-  emptyIconCircle: {
-    width: 80,
-    height: 80,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 16,
-  },
-  emptyTitle: {
-    fontWeight: '800',
-    textAlign: 'center',
-    marginBottom: 6,
-  },
-  emptyDesc: {
-    textAlign: 'center',
-    lineHeight: 20,
-  },
-  sheetContent: {
-    paddingTop: 8,
-  },
-  searchResultRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 10,
-    borderWidth: 1,
-    marginBottom: 8,
-  },
-  sheetDivider: {
-    height: 1,
-    marginVertical: 14,
-  },
-  qrSheetContent: {
-    alignItems: 'center',
-    paddingTop: 8,
-  },
-  qrBox: {
-    alignItems: 'center',
-    padding: 24,
-    borderWidth: 1,
-    width: '100%',
-  },
-  qrIconWrap: {
-    width: 88,
-    height: 88,
-    borderRadius: 18,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 16,
-  },
-  qrName: {
-    fontSize: 18,
-    fontWeight: '800',
-    marginBottom: 4,
-  },
-  qrEmail: {
-    fontSize: 13,
-  },
-});

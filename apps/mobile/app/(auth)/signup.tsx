@@ -77,7 +77,13 @@ export default function SignupScreen() {
   };
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]} edges={['top', 'bottom', 'left', 'right']}>
+    <SafeAreaView
+      style={[
+        styles.container,
+        { backgroundColor: isDark ? '#090D16' : '#F8FAFC' },
+      ]}
+      edges={['top', 'bottom', 'left', 'right']}
+    >
       {/* Top Bar */}
       <View style={styles.topBar}>
         <Pressable
@@ -90,10 +96,10 @@ export default function SignupScreen() {
           }}
           hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
           style={({ pressed }) => [
-            styles.iconButton,
+            styles.backButton,
             {
-              backgroundColor: theme.surface,
-              borderColor: theme.border,
+              backgroundColor: isDark ? '#141D2E' : '#FFFFFF',
+              borderColor: isDark ? '#23324D' : '#E2E8F0',
               opacity: pressed ? 0.7 : 1,
             },
           ]}
@@ -121,29 +127,23 @@ export default function SignupScreen() {
             >
               <Ionicons name="person-add-outline" size={24} color="#FFFFFF" />
             </View>
-            <Text
-              style={[
-                styles.title,
-                { color: theme.text, fontSize: typography.fontSize['3xl'] },
-              ]}
-            >
+            <Text style={[styles.title, { color: theme.text }]}>
               Create Account
             </Text>
-            <Text
-              style={[
-                styles.subtitle,
-                { color: theme.textMuted, fontSize: typography.fontSize.sm },
-              ]}
-            >
+            <Text style={[styles.subtitle, { color: theme.textMuted }]}>
               Join MatrixSplit to manage shared bills with friends & groups
             </Text>
           </View>
 
           {/* Form Card */}
-          <Card
-            variant="elevated"
-            padding="lg"
-            style={{ marginBottom: 20 }}
+          <View
+            style={[
+              styles.formCard,
+              {
+                backgroundColor: isDark ? '#141D2E' : '#FFFFFF',
+                borderColor: isDark ? '#23324D' : '#E2E8F0',
+              },
+            ]}
           >
             <Input
               label="Full Name"
@@ -184,16 +184,11 @@ export default function SignupScreen() {
             />
 
             {/* Default Currency Selection */}
-            <Text
-              style={[
-                styles.currencyLabel,
-                { color: theme.textMuted, fontSize: typography.fontSize.xs },
-              ]}
-            >
+            <Text style={[styles.currencyLabel, { color: theme.textMuted }]}>
               DEFAULT CURRENCY
             </Text>
             <View style={styles.currencyRow}>
-              {currencyData.map((curr) => {
+              {currencyData.map((curr, idx) => {
                 const selected = defaultCurrency === curr.code;
                 return (
                   <Pressable
@@ -205,40 +200,39 @@ export default function SignupScreen() {
                         backgroundColor: selected
                           ? '#10B981'
                           : isDark
-                          ? '#1E293B'
+                          ? '#141D2E'
                           : '#F1F5F9',
                         borderColor: selected
                           ? '#10B981'
                           : isDark
-                          ? '#334155'
+                          ? '#23324D'
                           : '#CBD5E1',
                         borderWidth: 1.5,
+                        marginRight: idx < currencyData.length - 1 ? 8 : 0,
                         opacity: pressed ? 0.8 : 1,
                         transform: [{ scale: pressed ? 0.96 : 1 }],
                       },
                     ]}
                   >
-                    <View style={{ alignItems: 'center', justifyContent: 'center' }}>
-                      <Text
-                        style={[
-                          styles.currencySymbol,
-                          { color: selected ? '#FFFFFF' : (isDark ? '#34D399' : '#059669') },
-                        ]}
-                      >
-                        {curr.symbol}
-                      </Text>
-                      <Text
-                        style={[
-                          styles.currencyCode,
-                          {
-                            color: selected ? '#FFFFFF' : (isDark ? '#F8FAFC' : '#0F172A'),
-                            fontWeight: '700',
-                          },
-                        ]}
-                      >
-                        {curr.code}
-                      </Text>
-                    </View>
+                    <Text
+                      style={[
+                        styles.currencySymbol,
+                        { color: selected ? '#FFFFFF' : (isDark ? '#34D399' : '#059669') },
+                      ]}
+                    >
+                      {curr.symbol}
+                    </Text>
+                    <Text
+                      style={[
+                        styles.currencyCode,
+                        {
+                          color: selected ? '#FFFFFF' : (isDark ? '#F8FAFC' : '#0F172A'),
+                          fontWeight: '700',
+                        },
+                      ]}
+                    >
+                      {curr.code}
+                    </Text>
                   </Pressable>
                 );
               })}
@@ -251,9 +245,9 @@ export default function SignupScreen() {
               fullWidth
               loading={loading}
               onPress={handleSignup}
-              style={{ marginTop: 14 }}
+              style={{ marginTop: 16 }}
             />
-          </Card>
+          </View>
 
           {/* Footer */}
           <View style={styles.footerRow}>
@@ -262,6 +256,7 @@ export default function SignupScreen() {
             </Text>
             <Pressable
               onPress={() => router.push('/(auth)/login')}
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
               style={({ pressed }) => [{ opacity: pressed ? 0.7 : 1 }]}
             >
               <Text style={[styles.signInLink, { color: theme.primary }]}>
@@ -280,46 +275,56 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   topBar: {
-    paddingHorizontal: 20,
+    paddingHorizontal: 24,
     paddingTop: 8,
     paddingBottom: 4,
   },
-  iconButton: {
-    width: 38,
-    height: 38,
+  backButton: {
+    width: 40,
+    height: 40,
     borderRadius: 12,
-    borderWidth: 1,
+    borderWidth: 1.5,
     alignItems: 'center',
     justifyContent: 'center',
   },
   scrollContent: {
-    paddingHorizontal: 20,
-    paddingTop: 12,
-    paddingBottom: 32,
+    paddingHorizontal: 24,
+    paddingTop: 8,
+    paddingBottom: 36,
   },
   header: {
     alignItems: 'center',
-    marginBottom: 20,
+    marginTop: 16,
+    marginBottom: 24,
   },
   brandIcon: {
-    width: 48,
-    height: 48,
+    width: 52,
+    height: 52,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 12,
+    marginBottom: 14,
   },
   title: {
+    fontSize: 26,
     fontWeight: '800',
     letterSpacing: -0.5,
     textAlign: 'center',
   },
   subtitle: {
+    fontSize: 14,
     textAlign: 'center',
     marginTop: 6,
     maxWidth: 290,
-    lineHeight: 19,
+    lineHeight: 20,
+  },
+  formCard: {
+    padding: 20,
+    borderRadius: 24,
+    borderWidth: 1.5,
+    marginBottom: 20,
   },
   currencyLabel: {
+    fontSize: 11,
     fontWeight: '700',
     letterSpacing: 0.6,
     marginBottom: 8,
@@ -332,16 +337,16 @@ const styles = StyleSheet.create({
   },
   currencyChip: {
     flex: 1,
-    paddingVertical: 10,
+    height: 48,
     alignItems: 'center',
     justifyContent: 'center',
-    borderRadius: 10,
-    borderWidth: 1,
+    borderRadius: 12,
+    borderWidth: 1.5,
   },
   currencySymbol: {
     fontSize: 16,
     fontWeight: '800',
-    marginBottom: 2,
+    marginBottom: 1,
   },
   currencyCode: {
     fontSize: 11,

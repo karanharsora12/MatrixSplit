@@ -163,13 +163,9 @@ export default function ExpenseDetailsScreen() {
               style={[
                 styles.receiptCard,
                 {
-                  backgroundColor: isDark ? '#111827' : '#FFFFFF',
-                  borderColor: isDark ? '#1E293B' : '#E2E8F0',
-                  shadowColor: '#000',
-                  shadowOffset: { width: 0, height: 2 },
-                  shadowOpacity: isDark ? 0.25 : 0.04,
-                  shadowRadius: 6,
-                  elevation: 2,
+                  backgroundColor: isDark ? '#141D2E' : '#FFFFFF',
+                  borderColor: isDark ? '#23324D' : '#E2E8F0',
+                  borderWidth: 1.5,
                 },
               ]}
             >
@@ -235,8 +231,9 @@ export default function ExpenseDetailsScreen() {
               style={[
                 styles.infoCard,
                 {
-                  backgroundColor: isDark ? '#111827' : '#FFFFFF',
-                  borderColor: isDark ? '#1E293B' : '#E2E8F0',
+                  backgroundColor: isDark ? '#141D2E' : '#FFFFFF',
+                  borderColor: isDark ? '#23324D' : '#E2E8F0',
+                  borderWidth: 1.5,
                 },
               ]}
             >
@@ -258,7 +255,7 @@ export default function ExpenseDetailsScreen() {
                     Paid the entire amount upfront
                   </Text>
                 </View>
-                <Text style={{ color: isDark ? '#34D399' : '#059669', fontWeight: "800", fontSize: 15, fontVariant: ['tabular-nums'] }}>
+                <Text style={{ color: '#10B981', fontWeight: "800", fontSize: 15, fontVariant: ['tabular-nums'] }}>
                   {formatCurrency(expense.totalAmountMinor, expense.currency)}
                 </Text>
               </View>
@@ -269,8 +266,9 @@ export default function ExpenseDetailsScreen() {
               style={[
                 styles.infoCard,
                 {
-                  backgroundColor: isDark ? '#111827' : '#FFFFFF',
-                  borderColor: isDark ? '#1E293B' : '#E2E8F0',
+                  backgroundColor: isDark ? '#141D2E' : '#FFFFFF',
+                  borderColor: isDark ? '#23324D' : '#E2E8F0',
+                  borderWidth: 1.5,
                 },
               ]}
             >
@@ -297,7 +295,7 @@ export default function ExpenseDetailsScreen() {
                     key={p.userId}
                     style={[
                       styles.participantRow,
-                      { borderBottomColor: isDark ? '#1E293B' : '#F1F5F9' },
+                      { borderBottomColor: isDark ? '#23324D' : '#F1F5F9' },
                     ]}
                   >
                     <Avatar name={p.user?.fullName || "User"} size="sm" />
@@ -332,8 +330,9 @@ export default function ExpenseDetailsScreen() {
               style={[
                 styles.infoCard,
                 {
-                  backgroundColor: isDark ? '#111827' : '#FFFFFF',
-                  borderColor: isDark ? '#1E293B' : '#E2E8F0',
+                  backgroundColor: isDark ? '#141D2E' : '#FFFFFF',
+                  borderColor: isDark ? '#23324D' : '#E2E8F0',
+                  borderWidth: 1.5,
                   marginBottom: 24,
                 },
               ]}

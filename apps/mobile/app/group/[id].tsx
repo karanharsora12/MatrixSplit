@@ -2,7 +2,6 @@ import React, { useState } from "react";
 import {
   View,
   Text,
-  StyleSheet,
   ScrollView,
   Pressable,
   RefreshControl,
@@ -13,15 +12,11 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import {
-  Card,
-  Avatar,
-  Badge,
-  Button,
+  SkeletonCard,
+  BalancePill,
   BottomSheet,
   Input,
-  SkeletonCard,
-  SegmentedControl,
-  BalancePill,
+  Button,
 } from "@/components";
 import { useWatermelonTheme } from "@/theme";
 import {
@@ -33,6 +28,7 @@ import {
 import { formatCurrency } from "@matrixsplit/shared";
 import { useAuthStore } from "../../src/stores/authStore";
 import { apiClient } from "../../src/services/api";
+import { cn } from "@/lib/utils";
 
 const groupIcons: Record<string, keyof typeof Ionicons.glyphMap> = {
   trip: "airplane-outline",
@@ -46,7 +42,7 @@ const groupIcons: Record<string, keyof typeof Ionicons.glyphMap> = {
 export default function GroupDetailsScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
-  const { theme, isDark } = useWatermelonTheme();
+  const { isDark } = useWatermelonTheme();
   const currentUserId = useAuthStore((s) => s.user?.id);
 
   const {
@@ -137,52 +133,65 @@ export default function GroupDetailsScreen() {
   const iconName = groupIcons[group?.category || "other"] || "folder-outline";
 
   return (
-    <SafeAreaView edges={['top', 'left', 'right']} style={[styles.container, { backgroundColor: isDark ? '#090D16' : '#F8FAFC' }]}>
-      {/* Top Header */}
-      <View style={[styles.headerBar, { borderBottomColor: isDark ? '#1E293B' : '#F1F5F9' }]}>
+    <SafeAreaView
+      edges={['top', 'left', 'right']}
+      className={cn('flex-1', isDark ? 'bg-[#090D16]' : 'bg-[#F8FAFC]')}
+    >
+      {/* Top Header Bar */}
+      <View
+        className={cn(
+          "flex-row items-center justify-between px-5 pt-3 pb-3 border-b",
+          isDark ? "border-[#1E293B] bg-[#090D16]" : "border-slate-200 bg-white"
+        )}
+      >
         <Pressable
           onPress={() => router.back()}
           hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-          style={({ pressed }) => [
-            styles.backBtn,
-            {
-              backgroundColor: isDark ? '#111827' : '#FFFFFF',
-              borderColor: isDark ? '#1E293B' : '#E2E8F0',
-              opacity: pressed ? 0.7 : 1,
-            },
-          ]}
+          className={cn(
+            "w-9 h-9 rounded-xl items-center justify-center border active:scale-95",
+            isDark
+              ? "bg-[#141D2E] border-[#23324D] active:bg-[#1E2A42]"
+              : "bg-white border-slate-200 active:bg-slate-100"
+          )}
         >
-          <Ionicons name="chevron-back" size={20} color={theme.text} />
+          <Ionicons
+            name="chevron-back"
+            size={19}
+            color={isDark ? "#E2E8F0" : "#334155"}
+          />
         </Pressable>
 
-        <View style={styles.headerTitleBox}>
+        <View className="flex-1 mx-3">
           <Text
             numberOfLines={1}
-            style={[styles.headerTitle, { color: theme.text }]}
+            className={cn(
+              "text-base font-extrabold tracking-tight",
+              isDark ? "text-white" : "text-slate-900"
+            )}
           >
             {group?.name || "Group Details"}
           </Text>
-          <Text
-            style={[styles.headerSub, { color: theme.textMuted }]}
-          >
+          <Text className="text-[11px] font-semibold tracking-wider uppercase text-slate-400 mt-0.5">
             {group?.category ? group.category.toUpperCase() : "GROUP"}
           </Text>
         </View>
 
-        <View style={styles.headerActionIcons}>
+        <View className="flex-row items-center">
           <Pressable
             onPress={handleOpenEdit}
             hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-            style={({ pressed }) => [
-              styles.iconBtn,
-              {
-                backgroundColor: isDark ? '#111827' : '#FFFFFF',
-                borderColor: isDark ? '#1E293B' : '#E2E8F0',
-                opacity: pressed ? 0.7 : 1,
-              },
-            ]}
+            className={cn(
+              "w-9 h-9 rounded-xl items-center justify-center border active:scale-95 mr-2",
+              isDark
+                ? "bg-[#141D2E] border-[#23324D] active:bg-[#1E2A42]"
+                : "bg-white border-slate-200 active:bg-slate-100"
+            )}
           >
-            <Ionicons name="ellipsis-horizontal" size={17} color={theme.text} />
+            <Ionicons
+              name="ellipsis-horizontal"
+              size={17}
+              color={isDark ? "#E2E8F0" : "#334155"}
+            />
           </Pressable>
 
           <Pressable
@@ -192,80 +201,70 @@ export default function GroupDetailsScreen() {
                 params: { preselectedGroupId: id },
               })
             }
-            style={({ pressed }) => [
-              styles.addExpBtn,
-              {
-                backgroundColor: pressed ? '#059669' : '#10B981',
-                opacity: pressed ? 0.9 : 1,
-                transform: [{ scale: pressed ? 0.97 : 1 }],
-              },
-            ]}
+            className="flex-row items-center h-9 px-3.5 rounded-xl bg-emerald-500 active:bg-emerald-600 active:scale-95 shadow-sm"
           >
-            <View style={{ flexDirection: "row", alignItems: "center" }}>
-              <Ionicons
-                name="add"
-                size={16}
-                color="#FFFFFF"
-                style={{ marginRight: 2 }}
-              />
-              <Text style={styles.addExpBtnText}>Expense</Text>
-            </View>
+            <Ionicons
+              name="add"
+              size={16}
+              color="#FFFFFF"
+              style={{ marginRight: 2 }}
+            />
+            <Text className="text-xs font-bold text-white">Expense</Text>
           </Pressable>
         </View>
       </View>
 
       <ScrollView
-        contentContainerStyle={styles.scrollContent}
+        contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 16, paddingBottom: 24 }}
         showsVerticalScrollIndicator={false}
         refreshControl={
           <RefreshControl
             refreshing={loadingGroup || loadingExpenses}
             onRefresh={onRefresh}
-            tintColor={theme.primary}
+            tintColor="#10B981"
           />
         }
       >
         {/* Group Hero Card */}
         {group && (
           <View
-            style={[
-              styles.heroCard,
-              {
-                backgroundColor: isDark ? '#111827' : '#FFFFFF',
-                borderColor: isDark ? '#1E293B' : '#E2E8F0',
-              },
-            ]}
+            className={cn(
+              "p-5 rounded-3xl border mb-5",
+              isDark
+                ? "bg-[#141D2E] border-[#23324D]"
+                : "bg-white border-slate-200 shadow-sm shadow-black/5"
+            )}
           >
-            <View style={styles.heroTop}>
-              <View
-                style={[
-                  styles.categoryCircle,
-                  { backgroundColor: isDark ? 'rgba(16,185,129,0.18)' : '#D1FAE5' },
-                ]}
-              >
-                <Ionicons name={iconName} size={26} color={theme.primary} />
+            <View className="flex-row items-center">
+              <View className="w-12 h-12 rounded-2xl bg-emerald-500/15 items-center justify-center mr-3.5">
+                <Ionicons name={iconName} size={24} color="#10B981" />
               </View>
 
-              <View style={{ flex: 1, marginLeft: 12 }}>
+              <View className="flex-1">
                 <Text
-                  style={[styles.groupNameLarge, { color: theme.text }]}
+                  className={cn(
+                    "text-xl font-extrabold tracking-tight",
+                    isDark ? "text-white" : "text-slate-900"
+                  )}
                   numberOfLines={1}
                 >
                   {group.name}
                 </Text>
-                <View style={{ flexDirection: "row", alignItems: "center", marginTop: 3 }}>
-                  <Badge label={group.category} size="sm" variant="info" />
-                  <Text
-                    style={[styles.memberCountText, { color: theme.textMuted }]}
-                  >
-                    {group.members?.length || 1} members
+                <View className="flex-row items-center mt-1">
+                  <View className="px-2.5 py-0.5 rounded-full bg-blue-500/15 border border-blue-500/30">
+                    <Text className="text-[11px] font-bold text-blue-400 capitalize">
+                      {group.category}
+                    </Text>
+                  </View>
+                  <Text className="text-xs text-slate-400 ml-2 font-medium">
+                    {group.members?.length || 1} member{group.members?.length === 1 ? '' : 's'}
                   </Text>
                 </View>
               </View>
             </View>
 
             {group.description ? (
-              <Text style={[styles.descText, { color: theme.textMuted }]}>
+              <Text className="text-xs text-slate-400 mt-3 leading-5">
                 {group.description}
               </Text>
             ) : null}
@@ -273,23 +272,20 @@ export default function GroupDetailsScreen() {
             {/* Net Position Banner */}
             {balanceData?.userNetBalanceMinor !== undefined && (
               <View
-                style={[
-                  styles.balanceHighlightBanner,
-                  {
-                    backgroundColor:
-                      balanceData.userNetBalanceMinor > 0
-                        ? isDark ? 'rgba(16,185,129,0.12)' : '#ECFDF5'
-                        : balanceData.userNetBalanceMinor < 0
-                        ? isDark ? 'rgba(244,63,94,0.12)' : '#FFE4E6'
-                        : isDark ? '#1E293B' : '#F8FAFC',
-                    borderColor:
-                      balanceData.userNetBalanceMinor > 0
-                        ? isDark ? 'rgba(16,185,129,0.3)' : '#A7F3D0'
-                        : balanceData.userNetBalanceMinor < 0
-                        ? isDark ? 'rgba(244,63,94,0.3)' : '#FECDD3'
-                        : isDark ? '#334155' : '#E2E8F0',
-                  },
-                ]}
+                className={cn(
+                  "flex-row items-center p-3 rounded-2xl border my-3.5",
+                  balanceData.userNetBalanceMinor > 0
+                    ? isDark
+                      ? "bg-emerald-500/10 border-emerald-500/30"
+                      : "bg-emerald-50 border-emerald-200"
+                    : balanceData.userNetBalanceMinor < 0
+                    ? isDark
+                      ? "bg-rose-500/10 border-rose-500/30"
+                      : "bg-rose-50 border-rose-200"
+                    : isDark
+                    ? "bg-[#090D16] border-[#23324D]"
+                    : "bg-slate-50 border-slate-200"
+                )}
               >
                 <Ionicons
                   name={
@@ -299,28 +295,31 @@ export default function GroupDetailsScreen() {
                       ? "arrow-up-circle"
                       : "checkmark-circle"
                   }
-                  size={18}
+                  size={17}
                   color={
                     balanceData.userNetBalanceMinor > 0
-                      ? (isDark ? '#34D399' : '#059669')
+                      ? "#10B981"
                       : balanceData.userNetBalanceMinor < 0
-                      ? '#F43F5E'
-                      : theme.textMuted
+                      ? "#F43F5E"
+                      : "#64748B"
                   }
                   style={{ marginRight: 8 }}
                 />
                 <Text
-                  style={{
-                    color:
-                      balanceData.userNetBalanceMinor > 0
-                        ? (isDark ? '#34D399' : '#059669')
-                        : balanceData.userNetBalanceMinor < 0
-                        ? '#F43F5E'
-                        : theme.text,
-                    fontWeight: "700",
-                    fontSize: 13,
-                    flex: 1,
-                  }}
+                  className={cn(
+                    "text-xs font-bold flex-1",
+                    balanceData.userNetBalanceMinor > 0
+                      ? isDark
+                        ? "text-emerald-400"
+                        : "text-emerald-700"
+                      : balanceData.userNetBalanceMinor < 0
+                      ? isDark
+                        ? "text-rose-400"
+                        : "text-rose-700"
+                      : isDark
+                      ? "text-slate-300"
+                      : "text-slate-700"
+                  )}
                 >
                   {balanceData.userNetBalanceMinor > 0
                     ? `You are owed ${formatCurrency(balanceData.userNetBalanceMinor, group.defaultCurrency)} in this group`
@@ -332,72 +331,134 @@ export default function GroupDetailsScreen() {
             )}
 
             {/* Quick action bar: Export & Invite */}
-            <View style={styles.groupToolsRow}>
+            <View className="flex-row items-center gap-2.5 mt-1">
               <Pressable
                 onPress={handleExportReport}
-                style={({ pressed }) => [
-                  styles.groupToolBtn,
-                  {
-                    backgroundColor: pressed
-                      ? (isDark ? '#334155' : '#E2E8F0')
-                      : (isDark ? '#1E293B' : '#F8FAFC'),
-                    borderColor: isDark ? '#334155' : '#CBD5E1',
-                    opacity: pressed ? 0.85 : 1,
-                  },
-                ]}
+                className={cn(
+                  "flex-1 h-9 rounded-xl border flex-row items-center justify-center active:scale-95",
+                  isDark
+                    ? "bg-[#090D16] border-[#23324D] active:bg-[#1E2A42]"
+                    : "bg-slate-50 border-slate-200 active:bg-slate-100"
+                )}
               >
-                <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>
-                  <Ionicons
-                    name="download-outline"
-                    size={14}
-                    color={theme.text}
-                    style={{ marginRight: 6 }}
-                  />
-                  <Text style={{ fontSize: 12, color: theme.text, fontWeight: "600" }}>
-                    Export CSV
-                  </Text>
-                </View>
+                <Ionicons
+                  name="download-outline"
+                  size={14}
+                  color={isDark ? "#94A3B8" : "#64748B"}
+                  style={{ marginRight: 5 }}
+                />
+                <Text
+                  className={cn(
+                    "text-xs font-semibold",
+                    isDark ? "text-slate-300" : "text-slate-700"
+                  )}
+                >
+                  Export CSV
+                </Text>
               </Pressable>
 
               <Pressable
                 onPress={handleShareInvite}
-                style={({ pressed }) => [
-                  styles.groupToolBtn,
-                  {
-                    backgroundColor: pressed
-                      ? (isDark ? 'rgba(16,185,129,0.25)' : '#A7F3D0')
-                      : (isDark ? 'rgba(16,185,129,0.14)' : '#ECFDF5'),
-                    borderColor: isDark ? 'rgba(16,185,129,0.3)' : '#A7F3D0',
-                    opacity: pressed ? 0.85 : 1,
-                  },
-                ]}
+                className={cn(
+                  "flex-1 h-9 rounded-xl border flex-row items-center justify-center active:scale-95",
+                  isDark
+                    ? "bg-emerald-500/10 border-emerald-500/30 active:bg-emerald-500/20"
+                    : "bg-emerald-50 border-emerald-200 active:bg-emerald-100"
+                )}
               >
-                <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>
-                  <Ionicons
-                    name="share-social-outline"
-                    size={14}
-                    color="#10B981"
-                    style={{ marginRight: 6 }}
-                  />
-                  <Text style={{ fontSize: 12, color: '#10B981', fontWeight: "700" }}>
-                    Share Invite
-                  </Text>
-                </View>
+                <Ionicons
+                  name="share-social-outline"
+                  size={14}
+                  color="#10B981"
+                  style={{ marginRight: 5 }}
+                />
+                <Text className="text-xs font-bold text-emerald-500">
+                  Share Invite
+                </Text>
               </Pressable>
             </View>
           </View>
         )}
 
         {/* Tab Controls */}
-        <SegmentedControl
-          value={activeTab}
-          onChange={(val) => setActiveTab(val as any)}
-          options={[
-            { value: "expenses", label: "Expenses", badge: expenses?.length || 0 },
-            { value: "balances", label: "Balances & Settle" },
-          ]}
-          style={{ marginBottom: 14 }}
-        />
+        <View
+          className={cn(
+            "flex-row p-1 rounded-2xl border mb-5",
+            isDark
+              ? "bg-[#141D2E] border-[#23324D]"
+              : "bg-slate-100 border-slate-200"
+          )}
+        >
+          <Pressable
+            onPress={() => setActiveTab("expenses")}
+            className={cn(
+              "flex-1 py-2 rounded-xl flex-row items-center justify-center active:scale-95",
+              activeTab === "expenses"
+                ? isDark
+                  ? "bg-[#1E293B] shadow-sm"
+                  : "bg-white shadow-sm"
+                : ""
+            )}
+          >
+            <Text
+              className={cn(
+                "text-xs font-bold",
+                activeTab === "expenses"
+                  ? isDark
+                    ? "text-white"
+                    : "text-slate-900"
+                  : isDark
+                  ? "text-slate-400"
+                  : "text-slate-500"
+              )}
+            >
+              Expenses
+            </Text>
+            {expenses && expenses.length > 0 && (
+              <View
+                className={cn(
+                  "ml-1.5 px-1.5 py-0.5 rounded-full",
+                  activeTab === "expenses"
+                    ? "bg-emerald-500/20"
+                    : isDark
+                    ? "bg-[#090D16]"
+                    : "bg-slate-200"
+                )}
+              >
+                <Text className="text-[10px] font-bold text-emerald-400">
+                  {expenses.length}
+                </Text>
+              </View>
+            )}
+          </Pressable>
+
+          <Pressable
+            onPress={() => setActiveTab("balances")}
+            className={cn(
+              "flex-1 py-2 rounded-xl flex-row items-center justify-center active:scale-95",
+              activeTab === "balances"
+                ? isDark
+                  ? "bg-[#1E293B] shadow-sm"
+                  : "bg-white shadow-sm"
+                : ""
+            )}
+          >
+            <Text
+              className={cn(
+                "text-xs font-bold",
+                activeTab === "balances"
+                  ? isDark
+                    ? "text-white"
+                    : "text-slate-900"
+                  : isDark
+                  ? "text-slate-400"
+                  : "text-slate-500"
+              )}
+            >
+              Balances
+            </Text>
+          </Pressable>
+        </View>
 
         {/* Expenses Tab */}
         {activeTab === "expenses" && (
@@ -409,74 +470,90 @@ export default function GroupDetailsScreen() {
                 <Pressable
                   key={exp.id}
                   onPress={() => router.push(`/expense/${exp.id}`)}
-                  style={({ pressed }) => [
-                    styles.expenseItemCard,
-                    {
-                      backgroundColor: isDark ? '#111827' : '#FFFFFF',
-                      borderColor: isDark ? '#1E293B' : '#E2E8F0',
-                      opacity: pressed ? 0.85 : 1,
-                      transform: [{ scale: pressed ? 0.99 : 1 }],
-                    },
-                  ]}
+                  className={cn(
+                    "p-3.5 rounded-2xl border mb-2.5 flex-row items-center active:scale-[0.99]",
+                    isDark
+                      ? "bg-[#141D2E] border-[#23324D] active:bg-[#1A253A]"
+                      : "bg-white border-slate-200 active:bg-slate-50 shadow-sm shadow-black/5"
+                  )}
                 >
-                  <View style={{ flexDirection: 'row', alignItems: 'center', width: '100%' }}>
-                    <Avatar name={exp.payer?.fullName || "User"} size="sm" />
-                    <View style={{ flex: 1, marginLeft: 10, marginRight: 8 }}>
-                      <Text
-                        style={[styles.expItemTitle, { color: theme.text }]}
-                        numberOfLines={1}
-                      >
-                        {exp.title}
-                      </Text>
-                      <Text
-                        style={[styles.expItemSub, { color: theme.textMuted }]}
-                        numberOfLines={1}
-                      >
-                        Paid by {exp.payer?.fullName} ·{" "}
-                        {new Date(exp.date).toLocaleDateString(undefined, {
-                          month: 'short',
-                          day: 'numeric',
-                        })}
-                      </Text>
-                    </View>
-                    <View style={{ alignItems: "flex-end" }}>
-                      <Text
-                        style={[styles.expTotalAmount, { color: theme.text }]}
-                      >
-                        {formatCurrency(exp.totalAmountMinor, exp.currency)}
-                      </Text>
-                      <Text
-                        style={{
-                          color: theme.textMuted,
-                          fontSize: 11,
-                          marginTop: 2,
-                        }}
-                      >
-                        Your share:{" "}
-                        {formatCurrency(
-                          exp.userShareMinor || 0,
-                          exp.currency
-                        )}
-                      </Text>
-                    </View>
+                  <View
+                    className={cn(
+                      "w-9 h-9 rounded-xl items-center justify-center mr-3",
+                      isDark ? "bg-[#1E293B]" : "bg-slate-100"
+                    )}
+                  >
+                    <Text
+                      className={cn(
+                        "text-xs font-bold",
+                        isDark ? "text-slate-300" : "text-slate-700"
+                      )}
+                    >
+                      {(exp.payer?.fullName || "User").slice(0, 1)}
+                    </Text>
+                  </View>
+
+                  <View className="flex-1 mr-2">
+                    <Text
+                      className={cn(
+                        "text-sm font-bold",
+                        isDark ? "text-white" : "text-slate-900"
+                      )}
+                      numberOfLines={1}
+                    >
+                      {exp.title}
+                    </Text>
+                    <Text className="text-xs text-slate-400 mt-0.5" numberOfLines={1}>
+                      Paid by {exp.payer?.fullName} ·{" "}
+                      {new Date(exp.date).toLocaleDateString(undefined, {
+                        month: 'short',
+                        day: 'numeric',
+                      })}
+                    </Text>
+                  </View>
+
+                  <View className="items-end">
+                    <Text
+                      className={cn(
+                        "text-sm font-extrabold font-mono",
+                        isDark ? "text-white" : "text-slate-900"
+                      )}
+                    >
+                      {formatCurrency(exp.totalAmountMinor, exp.currency)}
+                    </Text>
+                    <Text className="text-[11px] text-slate-400 mt-0.5 font-mono">
+                      Your share:{" "}
+                      {formatCurrency(exp.userShareMinor || 0, exp.currency)}
+                    </Text>
                   </View>
                 </Pressable>
               ))
             ) : (
               <View
-                style={[
-                  styles.emptyCardBox,
-                  {
-                    backgroundColor: isDark ? '#111827' : '#FFFFFF',
-                    borderColor: isDark ? '#1E293B' : '#E2E8F0',
-                  },
-                ]}
+                className={cn(
+                  "p-8 rounded-3xl border items-center justify-center",
+                  isDark
+                    ? "bg-[#141D2E] border-[#23324D]"
+                    : "bg-white border-slate-200 shadow-sm shadow-black/5"
+                )}
               >
-                <Ionicons name="receipt-outline" size={36} color={theme.textMuted} style={{ marginBottom: 8 }} />
-                <Text style={{ color: theme.text, fontWeight: '700', fontSize: 14, marginBottom: 4 }}>
+                <View
+                  className={cn(
+                    "w-14 h-14 rounded-2xl items-center justify-center mb-3",
+                    isDark ? "bg-[#1E293B]" : "bg-slate-100"
+                  )}
+                >
+                  <Ionicons name="receipt-outline" size={28} color="#64748B" />
+                </View>
+                <Text
+                  className={cn(
+                    "font-bold text-base",
+                    isDark ? "text-white" : "text-slate-900"
+                  )}
+                >
                   No expenses in this group yet
                 </Text>
-                <Text style={{ color: theme.textMuted, fontSize: 12, textAlign: "center" }}>
+                <Text className="text-xs text-slate-400 text-center mt-1 leading-5 max-w-[260px]">
                   Tap '+ Expense' above to record your first shared expense!
                 </Text>
               </View>
@@ -488,13 +565,21 @@ export default function GroupDetailsScreen() {
         {activeTab === "balances" && (
           <View>
             {/* Simplified Debts Sub-section */}
-            <View style={styles.balanceSectionHeader}>
-              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                <Ionicons name="git-network-outline" size={15} color={theme.primary} style={{ marginRight: 6 }} />
-                <Text style={[styles.balanceSectionTitle, { color: theme.text }]}>
-                  Simplified Repayment Plan
-                </Text>
-              </View>
+            <View className="flex-row items-center mb-2.5">
+              <Ionicons
+                name="git-network-outline"
+                size={15}
+                color="#10B981"
+                style={{ marginRight: 6 }}
+              />
+              <Text
+                className={cn(
+                  "text-xs font-bold tracking-wider uppercase",
+                  isDark ? "text-slate-400" : "text-slate-500"
+                )}
+              >
+                Simplified Repayment Plan
+              </Text>
             </View>
 
             {balanceData?.simplifiedDebts && balanceData.simplifiedDebts.length > 0 ? (
@@ -504,95 +589,143 @@ export default function GroupDetailsScreen() {
                 return (
                   <View
                     key={index}
-                    style={[
-                      styles.debtCard,
-                      {
-                        backgroundColor: isDark ? '#111827' : '#FFFFFF',
-                        borderColor: isDark ? '#1E293B' : '#E2E8F0',
-                      },
-                    ]}
+                    className={cn(
+                      "p-3.5 rounded-2xl border mb-2.5 flex-row items-center justify-between",
+                      isDark
+                        ? "bg-[#141D2E] border-[#23324D]"
+                        : "bg-white border-slate-200 shadow-sm shadow-black/5"
+                    )}
                   >
-                    <View style={styles.debtPlanRow}>
-                      <View style={{ flex: 1, flexDirection: "row", alignItems: "center" }}>
-                        <Avatar name={debt.fromUser?.fullName || "User"} size="sm" />
-                        <Ionicons
-                          name="arrow-forward"
-                          size={14}
-                          color={theme.primary}
-                          style={{ marginHorizontal: 8 }}
-                        />
-                        <Avatar name={debt.toUser?.fullName || "User"} size="sm" />
-                        <View style={{ marginLeft: 8, flex: 1 }}>
-                          <Text
-                            style={{ color: theme.text, fontWeight: "600", fontSize: 13 }}
-                            numberOfLines={1}
-                          >
-                            {isFromYou ? 'You' : debt.fromUser?.fullName || 'User'} pays {debt.toUser?.fullName || 'User'}
-                          </Text>
-                          <Text style={{ color: theme.textMuted, fontSize: 11 }}>
-                            Debt simplification plan
-                          </Text>
-                        </View>
+                    <View className="flex-row items-center flex-1 mr-3">
+                      <View
+                        className={cn(
+                          "w-7 h-7 rounded-full items-center justify-center",
+                          isDark ? "bg-[#1E293B]" : "bg-slate-100"
+                        )}
+                      >
+                        <Text
+                          className={cn(
+                            "text-xs font-bold",
+                            isDark ? "text-slate-300" : "text-slate-700"
+                          )}
+                        >
+                          {(debt.fromUser?.fullName || "User").slice(0, 1)}
+                        </Text>
                       </View>
 
-                      <View style={{ alignItems: "flex-end", marginLeft: 8 }}>
-                        <Text
-                          style={{
-                            color: isFromYou ? '#F43F5E' : theme.text,
-                            fontWeight: "800",
-                            fontSize: 14,
-                            fontVariant: ['tabular-nums'],
-                          }}
-                        >
-                          {formatCurrency(debt.amountMinor, debt.currency)}
-                        </Text>
-                        {isFromYou && (
-                          <Button
-                            label="Settle Up"
-                            size="sm"
-                            variant="primary"
-                            onPress={() =>
-                              router.push({
-                                pathname: "/settle",
-                                params: {
-                                  groupId: id,
-                                  targetUserId: debt.toUserId,
-                                  targetName: debt.toUser?.fullName,
-                                  amountMinor: debt.amountMinor,
-                                },
-                              })
-                            }
-                            style={{ marginTop: 4, height: 30, paddingVertical: 4, paddingHorizontal: 10 }}
-                          />
+                      <Ionicons
+                        name="arrow-forward"
+                        size={13}
+                        color="#10B981"
+                        style={{ marginHorizontal: 6 }}
+                      />
+
+                      <View
+                        className={cn(
+                          "w-7 h-7 rounded-full items-center justify-center",
+                          isDark ? "bg-[#1E293B]" : "bg-slate-100"
                         )}
+                      >
+                        <Text
+                          className={cn(
+                            "text-xs font-bold",
+                            isDark ? "text-slate-300" : "text-slate-700"
+                          )}
+                        >
+                          {(debt.toUser?.fullName || "User").slice(0, 1)}
+                        </Text>
                       </View>
+
+                      <View className="ml-2.5 flex-1">
+                        <Text
+                          className={cn(
+                            "text-xs font-bold",
+                            isDark ? "text-white" : "text-slate-900"
+                          )}
+                          numberOfLines={1}
+                        >
+                          {isFromYou ? 'You' : debt.fromUser?.fullName || 'User'} pays {debt.toUser?.fullName || 'User'}
+                        </Text>
+                        <Text className="text-[11px] text-slate-400 mt-0.5">
+                          Min-cash flow settlement
+                        </Text>
+                      </View>
+                    </View>
+
+                    <View className="items-end">
+                      <Text
+                        className={cn(
+                          "text-sm font-extrabold font-mono",
+                          isFromYou
+                            ? "text-rose-400"
+                            : isDark
+                            ? "text-white"
+                            : "text-slate-900"
+                        )}
+                      >
+                        {formatCurrency(debt.amountMinor, debt.currency)}
+                      </Text>
+                      {isFromYou && (
+                        <Pressable
+                          onPress={() =>
+                            router.push({
+                              pathname: "/settle",
+                              params: {
+                                groupId: id,
+                                targetUserId: debt.toUserId,
+                                targetName: debt.toUser?.fullName,
+                                amountMinor: debt.amountMinor,
+                              },
+                            })
+                          }
+                          className="mt-1 px-3 py-1 rounded-lg bg-emerald-500 active:scale-95 shadow-sm"
+                        >
+                          <Text className="text-[11px] font-bold text-white">
+                            Settle Up
+                          </Text>
+                        </Pressable>
+                      )}
                     </View>
                   </View>
                 );
               })
             ) : (
               <View
-                style={[
-                  styles.emptyCardBox,
-                  {
-                    backgroundColor: isDark ? '#111827' : '#FFFFFF',
-                    borderColor: isDark ? '#1E293B' : '#E2E8F0',
-                  },
-                ]}
+                className={cn(
+                  "p-8 rounded-3xl border items-center justify-center mb-5",
+                  isDark
+                    ? "bg-[#141D2E] border-[#23324D]"
+                    : "bg-white border-slate-200 shadow-sm shadow-black/5"
+                )}
               >
-                <Ionicons name="checkmark-done-circle-outline" size={36} color={theme.primary} style={{ marginBottom: 6 }} />
-                <Text style={{ color: theme.text, fontWeight: "700", fontSize: 14 }}>
+                <Ionicons
+                  name="checkmark-done-circle-outline"
+                  size={36}
+                  color="#10B981"
+                  style={{ marginBottom: 6 }}
+                />
+                <Text
+                  className={cn(
+                    "font-bold text-base",
+                    isDark ? "text-white" : "text-slate-900"
+                  )}
+                >
                   All Settled Up!
                 </Text>
-                <Text style={{ color: theme.textMuted, fontSize: 12, marginTop: 2 }}>
+                <Text className="text-xs text-slate-400 text-center mt-1">
                   Nobody in this group owes anything right now.
                 </Text>
               </View>
             )}
 
             {/* Member Balances List */}
-            <View style={[styles.balanceSectionHeader, { marginTop: 18 }]}>
-              <Text style={[styles.balanceSectionTitle, { color: theme.text }]}>
+            <View className="flex-row items-center mb-2.5 mt-4">
+              <Text
+                className={cn(
+                  "text-xs font-bold tracking-wider uppercase",
+                  isDark ? "text-slate-400" : "text-slate-500"
+                )}
+              >
                 Member Balances ({group?.members?.length || 0})
               </Text>
             </View>
@@ -604,24 +737,41 @@ export default function GroupDetailsScreen() {
               return (
                 <View
                   key={m.id}
-                  style={[
-                    styles.memberBalanceRow,
-                    {
-                      backgroundColor: isDark ? '#111827' : '#FFFFFF',
-                      borderColor: isDark ? '#1E293B' : '#E2E8F0',
-                    },
-                  ]}
+                  className={cn(
+                    "p-3.5 rounded-2xl border mb-2.5 flex-row items-center justify-between",
+                    isDark
+                      ? "bg-[#141D2E] border-[#23324D]"
+                      : "bg-white border-slate-200 shadow-sm shadow-black/5"
+                  )}
                 >
-                  <View style={{ flexDirection: "row", alignItems: "center", flex: 1 }}>
-                    <Avatar name={m.user?.fullName || "User"} size="sm" />
-                    <View style={{ marginLeft: 10, flex: 1 }}>
+                  <View className="flex-row items-center flex-1 mr-3">
+                    <View
+                      className={cn(
+                        "w-8 h-8 rounded-full items-center justify-center mr-2.5",
+                        isDark ? "bg-[#1E293B]" : "bg-slate-100"
+                      )}
+                    >
                       <Text
-                        style={{ color: theme.text, fontWeight: "600", fontSize: 13 }}
+                        className={cn(
+                          "text-xs font-bold",
+                          isDark ? "text-slate-300" : "text-slate-700"
+                        )}
+                      >
+                        {(m.user?.fullName || "Member").slice(0, 1)}
+                      </Text>
+                    </View>
+
+                    <View className="flex-1">
+                      <Text
+                        className={cn(
+                          "text-xs font-bold",
+                          isDark ? "text-white" : "text-slate-900"
+                        )}
                         numberOfLines={1}
                       >
                         {m.user?.fullName || "Member"} {m.role === 'admin' ? '⭐' : ''}
                       </Text>
-                      <Text style={{ color: theme.textMuted, fontSize: 11 }}>
+                      <Text className="text-[11px] text-slate-400 mt-0.5" numberOfLines={1}>
                         {m.user?.email || "Member"}
                       </Text>
                     </View>
@@ -644,7 +794,7 @@ export default function GroupDetailsScreen() {
         onClose={() => setEditSheetVisible(false)}
         title="Edit Group Info"
       >
-        <View style={{ paddingVertical: 4 }}>
+        <View className="py-1">
           <Input
             label="Group Name"
             value={editName}
@@ -656,195 +806,17 @@ export default function GroupDetailsScreen() {
             onChangeText={setEditDesc}
           />
 
-          <Button
-            label="Save Changes"
-            size="lg"
-            variant="primary"
-            fullWidth
-            onPress={handleSaveEdit}
-            style={{ marginTop: 12 }}
-          />
+          <View className="mt-3">
+            <Button
+              label="Save Changes"
+              size="lg"
+              variant="primary"
+              fullWidth
+              onPress={handleSaveEdit}
+            />
+          </View>
         </View>
       </BottomSheet>
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  headerBar: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: 18,
-    paddingTop: 10,
-    paddingBottom: 12,
-    borderBottomWidth: 1,
-  },
-  backBtn: {
-    width: 36,
-    height: 36,
-    borderRadius: 12,
-    borderWidth: 1,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  headerTitleBox: {
-    flex: 1,
-    marginHorizontal: 12,
-  },
-  headerTitle: {
-    fontWeight: "800",
-    fontSize: 16,
-    letterSpacing: -0.2,
-  },
-  headerSub: {
-    fontSize: 11,
-    fontWeight: "600",
-    marginTop: 1,
-    letterSpacing: 0.4,
-  },
-  headerActionIcons: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-  },
-  iconBtn: {
-    width: 36,
-    height: 36,
-    borderRadius: 12,
-    borderWidth: 1,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  addExpBtn: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: 12,
-    paddingVertical: 7,
-    borderRadius: 14,
-  },
-  addExpBtnText: {
-    color: "#FFFFFF",
-    fontWeight: "700",
-    fontSize: 12,
-  },
-  scrollContent: {
-    padding: 18,
-    paddingTop: 12,
-    paddingBottom: 40,
-  },
-  heroCard: {
-    borderRadius: 18,
-    borderWidth: 1,
-    padding: 16,
-    marginBottom: 14,
-  },
-  heroTop: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  categoryCircle: {
-    width: 50,
-    height: 50,
-    borderRadius: 16,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  groupNameLarge: {
-    fontWeight: "800",
-    fontSize: 18,
-    letterSpacing: -0.3,
-  },
-  memberCountText: {
-    fontSize: 12,
-    marginLeft: 8,
-  },
-  descText: {
-    marginTop: 10,
-    lineHeight: 18,
-    fontSize: 13,
-  },
-  balanceHighlightBanner: {
-    flexDirection: "row",
-    alignItems: "center",
-    padding: 12,
-    borderRadius: 12,
-    borderWidth: 1,
-    marginTop: 14,
-  },
-  groupToolsRow: {
-    flexDirection: "row",
-    gap: 8,
-    marginTop: 12,
-  },
-  groupToolBtn: {
-    flex: 1,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    paddingVertical: 9,
-    borderRadius: 12,
-    borderWidth: 1,
-  },
-  expenseItemCard: {
-    flexDirection: "row",
-    alignItems: "center",
-    padding: 12,
-    borderRadius: 14,
-    borderWidth: 1,
-    marginBottom: 8,
-  },
-  expItemTitle: {
-    fontWeight: "700",
-    fontSize: 14,
-    letterSpacing: -0.2,
-  },
-  expItemSub: {
-    fontSize: 11,
-    marginTop: 2,
-  },
-  expTotalAmount: {
-    fontWeight: "800",
-    fontSize: 14,
-    fontVariant: ['tabular-nums'],
-  },
-  balanceSectionHeader: {
-    marginBottom: 10,
-    marginTop: 4,
-  },
-  balanceSectionTitle: {
-    fontWeight: "700",
-    fontSize: 14,
-    letterSpacing: -0.2,
-  },
-  debtCard: {
-    padding: 12,
-    borderRadius: 14,
-    borderWidth: 1,
-    marginBottom: 8,
-  },
-  debtPlanRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-  },
-  memberBalanceRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    padding: 12,
-    borderRadius: 14,
-    borderWidth: 1,
-    marginBottom: 8,
-  },
-  emptyCardBox: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: 24,
-    borderRadius: 16,
-    borderWidth: 1,
-  },
-});

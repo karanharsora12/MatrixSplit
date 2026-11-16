@@ -57,10 +57,10 @@ export const Input: React.FC<InputProps> = ({
         <Text
           style={{
             color: isFocused ? theme.primary : isDark ? '#94A3B8' : '#475569',
-            fontSize: 13,
+            fontSize: 12,
             fontWeight: '600',
             marginBottom: 6,
-            letterSpacing: -0.1,
+            letterSpacing: 0.1,
           }}
         >
           {label}
@@ -69,14 +69,14 @@ export const Input: React.FC<InputProps> = ({
 
       <View
         style={{
-          minHeight: 46,
+          minHeight: 50,
           backgroundColor: inputBg,
           borderColor,
           borderWidth: isFocused || error ? 1.5 : 1,
-          borderRadius: 12,
+          borderRadius: 14,
           flexDirection: 'row',
           alignItems: 'center',
-          paddingHorizontal: 12,
+          paddingHorizontal: 14,
         }}
       >
         {leftIcon && <View style={{ marginRight: 8 }}>{leftIcon}</View>}
@@ -87,7 +87,7 @@ export const Input: React.FC<InputProps> = ({
             {
               flex: 1,
               color: theme.text,
-              fontSize: 14,
+              fontSize: 15,
               fontWeight: '500',
               paddingVertical: 10,
             },

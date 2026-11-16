@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import {
   View,
   Text,
-  StyleSheet,
   ScrollView,
   Pressable,
   RefreshControl,
@@ -10,15 +9,12 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import {
-  Card,
-  SkeletonCard,
-  SegmentedControl,
-} from '@/components';
+import { SkeletonCard } from '@/components';
 import { useWatermelonTheme } from '@/theme';
 import { useAnalyticsSummary } from '../../src/hooks/useQueries';
 import { formatCurrency } from '@matrixsplit/shared';
 import { API_BASE_URL } from '../../src/services/api';
+import { cn } from '@/lib/utils';
 
 const categoryMeta: Record<
   string,
@@ -37,7 +33,7 @@ const categoryMeta: Record<
 };
 
 export default function AnalyticsScreen() {
-  const { theme, typography, spacing, borderRadius, isDark } = useWatermelonTheme();
+  const { isDark } = useWatermelonTheme();
   const { data: analytics, isLoading, refetch, isRefetching } = useAnalyticsSummary();
   const [period, setPeriod] = useState<'month' | 'quarter' | 'all'>('month');
 
@@ -53,389 +49,321 @@ export default function AnalyticsScreen() {
     }
   };
 
-  const totalSpent = analytics?.totalSpentMinor || 0;
+  const totalSpent = Number(analytics?.totalSpentMinor) || 0;
   const currency = analytics?.currency || 'INR';
-  const totalCount = analytics?.totalExpensesCount || 0;
+  const totalCount = Number(analytics?.totalExpensesCount) || 0;
   const avgExpense = totalCount > 0 ? Math.round(totalSpent / totalCount) : 0;
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]} edges={['top', 'left', 'right']}>
+    <SafeAreaView
+      edges={['top', 'left', 'right']}
+      className={cn('flex-1', isDark ? 'bg-[#090D16]' : 'bg-[#F8FAFC]')}
+    >
       {/* Top Header */}
-      <View style={styles.headerBar}>
+      <View
+        className={cn(
+          'flex-row items-center justify-between px-5 pt-2 pb-3.5 border-b',
+          isDark ? 'border-[#1E293B]' : 'border-slate-200'
+        )}
+      >
         <View>
           <Text
-            style={[
-              styles.headerTitle,
-              { color: theme.text, fontSize: typography.fontSize['2xl'] },
-            ]}
+            className={cn(
+              'text-2xl font-extrabold tracking-tight',
+              isDark ? 'text-white' : 'text-slate-900'
+            )}
           >
             Insights & Analytics
           </Text>
-          <Text style={[styles.headerSubtitle, { color: theme.textMuted }]}>
+          <Text className="text-xs text-slate-400 mt-0.5">
             Spending trends and group allocation breakdown
           </Text>
         </View>
 
         <Pressable
           onPress={handleExportCsv}
-          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-          style={({ pressed }) => [
-            styles.exportBtn,
-            {
-              backgroundColor: theme.surface,
-              borderColor: theme.border,
-              opacity: pressed ? 0.7 : 1,
-            },
-          ]}
+          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+          className={cn(
+            'flex-row items-center h-9 px-3.5 rounded-xl border active:scale-95',
+            isDark
+              ? 'bg-[#141D2E] border-[#23324D] active:bg-[#1E2A42]'
+              : 'bg-white border-slate-200 active:bg-slate-100'
+          )}
         >
-          <Ionicons name="download-outline" size={14} color={theme.text} style={{ marginRight: 4 }} />
+          <Ionicons
+            name="download-outline"
+            size={14}
+            color={isDark ? '#94A3B8' : '#475569'}
+            style={{ marginRight: 4 }}
+          />
           <Text
-            style={[
-              styles.exportBtnText,
-              { color: theme.text, fontSize: typography.fontSize.xs },
-            ]}
+            className={cn(
+              'text-xs font-bold',
+              isDark ? 'text-slate-200' : 'text-slate-700'
+            )}
           >
             Export
           </Text>
         </Pressable>
       </View>
 
-      {/* Period Selector */}
-      <View style={styles.periodSection}>
-        <SegmentedControl
-          value={period}
-          onChange={(val) => setPeriod(val as any)}
-          options={[
-            { value: 'month', label: 'This Month' },
-            { value: 'quarter', label: 'Last 3 Months' },
-            { value: 'all', label: 'All Time' },
-          ]}
-        />
+      {/* Period Selector Tabs */}
+      <View className="px-5 pt-3.5 pb-2">
+        <View
+          className={cn(
+            'flex-row items-center p-1 rounded-2xl border',
+            isDark ? 'bg-[#141D2E] border-[#23324D]' : 'bg-slate-100 border-slate-200'
+          )}
+        >
+          {[
+            { key: 'month' as const, label: 'This Month' },
+            { key: 'quarter' as const, label: 'Last 3 Months' },
+            { key: 'all' as const, label: 'All Time' },
+          ].map((item) => {
+            const isSelected = period === item.key;
+            return (
+              <Pressable
+                key={item.key}
+                onPress={() => setPeriod(item.key)}
+                className={cn(
+                  'flex-1 h-9 items-center justify-center rounded-xl active:scale-95',
+                  isSelected
+                    ? isDark
+                      ? 'bg-[#1E2A42] border border-blue-500/50 shadow-sm'
+                      : 'bg-white border border-slate-300 shadow-sm'
+                    : 'bg-transparent'
+                )}
+              >
+                <Text
+                  className={cn(
+                    'text-xs font-bold',
+                    isSelected
+                      ? isDark
+                        ? 'text-white'
+                        : 'text-slate-900'
+                      : isDark
+                      ? 'text-slate-400'
+                      : 'text-slate-500'
+                  )}
+                >
+                  {item.label}
+                </Text>
+              </Pressable>
+            );
+          })}
+        </View>
       </View>
 
       <ScrollView
-        contentContainerStyle={styles.scrollContent}
+        contentContainerStyle={{ paddingBottom: 20 }}
         showsVerticalScrollIndicator={false}
         refreshControl={
           <RefreshControl
             refreshing={isRefetching}
             onRefresh={refetch}
-            tintColor={theme.primary}
+            tintColor="#10B981"
           />
         }
       >
         {isLoading ? (
-          <>
+          <View className="px-5 pt-3">
             <SkeletonCard />
             <SkeletonCard />
-          </>
+          </View>
         ) : (
-          <>
+          <View className="px-5 pt-2">
             {/* Total Spending Hero Card */}
-            <Card
-              variant="elevated"
-              padding="lg"
-              style={{ marginBottom: 20 }}
+            <View
+              className={cn(
+                'p-5 rounded-3xl border mb-5',
+                isDark
+                  ? 'bg-[#141D2E] border-[#23324D]'
+                  : 'bg-white border-slate-200 shadow-sm shadow-black/5'
+              )}
             >
-              <View style={styles.heroTopRow}>
-                <Text
-                  style={[
-                    styles.statLabel,
-                    { color: theme.textMuted, fontSize: typography.fontSize.xs },
-                  ]}
-                >
+              <View className="flex-row items-center justify-between mb-2">
+                <Text className="text-xs font-bold text-slate-400 tracking-wider">
                   TOTAL EXPENDITURE
                 </Text>
-                <View
-                  style={[
-                    styles.badgePill,
-                    { backgroundColor: isDark ? 'rgba(16,185,129,0.15)' : '#D1FAE5' },
-                  ]}
-                >
-                  <Ionicons name="trending-up" size={12} color={theme.primary} style={{ marginRight: 4 }} />
-                  <Text style={{ color: theme.primary, fontSize: 11, fontWeight: '700' }}>Active</Text>
+                <View className="flex-row items-center px-2.5 py-1 rounded-full bg-emerald-500/15 border border-emerald-500/30">
+                  <Ionicons
+                    name="trending-up"
+                    size={12}
+                    color="#10B981"
+                    style={{ marginRight: 4 }}
+                  />
+                  <Text className="text-[11px] font-bold text-emerald-400">
+                    Active
+                  </Text>
                 </View>
               </View>
 
               <Text
-                style={[
-                  styles.totalSpentAmount,
-                  { color: theme.text, fontSize: 34, fontVariant: ['tabular-nums'] },
-                ]}
+                className={cn(
+                  'text-3xl font-extrabold font-mono tracking-tight my-1',
+                  isDark ? 'text-white' : 'text-slate-900'
+                )}
               >
                 {formatCurrency(totalSpent, currency)}
               </Text>
 
-              <View style={[styles.statDivider, { backgroundColor: isDark ? '#1E293B' : '#E2E8F0' }]} />
+              <View
+                className={cn(
+                  'h-[1px] my-3.5',
+                  isDark ? 'bg-[#23324D]' : 'bg-slate-200'
+                )}
+              />
 
-              <View style={styles.statSubRow}>
+              <View className="flex-row items-center justify-between">
                 <View>
-                  <Text style={{ color: theme.textMuted, fontSize: 11 }}>Total Transactions</Text>
-                  <Text style={{ color: theme.text, fontWeight: '700', fontSize: 13, marginTop: 2, fontVariant: ['tabular-nums'] }}>
+                  <Text className="text-xs text-slate-400">
+                    Total Transactions
+                  </Text>
+                  <Text
+                    className={cn(
+                      'text-sm font-bold mt-0.5 font-mono',
+                      isDark ? 'text-white' : 'text-slate-900'
+                    )}
+                  >
                     {totalCount} bills
                   </Text>
                 </View>
-                <View style={{ alignItems: 'flex-end' }}>
-                  <Text style={{ color: theme.textMuted, fontSize: 11 }}>Average / Expense</Text>
-                  <Text style={{ color: theme.text, fontWeight: '700', fontSize: 13, marginTop: 2, fontVariant: ['tabular-nums'] }}>
+                <View className="items-end">
+                  <Text className="text-xs text-slate-400">
+                    Average / Expense
+                  </Text>
+                  <Text
+                    className={cn(
+                      'text-sm font-bold mt-0.5 font-mono',
+                      isDark ? 'text-white' : 'text-slate-900'
+                    )}
+                  >
                     {formatCurrency(avgExpense, currency)}
                   </Text>
                 </View>
               </View>
-            </Card>
+            </View>
 
             {/* Category Breakdown Header */}
-            <View style={styles.sectionHeader}>
+            <View className="mb-3">
               <Text
-                style={[
-                  styles.sectionTitle,
-                  { color: theme.text, fontSize: typography.fontSize.base },
-                ]}
+                className={cn(
+                  'text-base font-bold tracking-tight',
+                  isDark ? 'text-white' : 'text-slate-900'
+                )}
               >
                 Spending by Category
               </Text>
             </View>
 
+            {/* Category Breakdown Card */}
             {analytics?.categoryBreakdown && analytics.categoryBreakdown.length > 0 ? (
-              <Card
-                variant="outlined"
-                padding="md"
-                style={{ marginBottom: 20 }}
+              <View
+                className={cn(
+                  'p-5 rounded-3xl border mb-6',
+                  isDark
+                    ? 'bg-[#141D2E] border-[#23324D]'
+                    : 'bg-white border-slate-200 shadow-sm shadow-black/5'
+                )}
               >
-                {analytics.categoryBreakdown.map((cat: any) => {
+                {analytics.categoryBreakdown.map((cat: any, index: number) => {
                   const meta = categoryMeta[cat.category] || {
-                    label: cat.category,
-                    color: theme.primary,
+                    label: cat.categoryLabel || cat.category || 'General',
+                    color: '#10B981',
                     icon: 'pricetag-outline',
                   };
-                  const percent = totalSpent > 0 ? Math.round((cat.amountMinor / totalSpent) * 100) : 0;
+
+                  const catAmount = Number(cat.totalAmountMinor ?? cat.amountMinor ?? 0) || 0;
+                  const catPercent =
+                    cat.percentage != null && !isNaN(cat.percentage)
+                      ? Number(cat.percentage)
+                      : totalSpent > 0
+                      ? Math.round((catAmount / totalSpent) * 100)
+                      : 0;
+
+                  const isLast = index === analytics.categoryBreakdown.length - 1;
 
                   return (
-                    <View key={cat.category} style={styles.categoryItem}>
-                      <View style={styles.categoryHeaderRow}>
-                        <View style={styles.categoryLabelRow}>
+                    <View key={cat.category} className={isLast ? '' : 'mb-5'}>
+                      <View className="flex-row items-center justify-between mb-2">
+                        <View className="flex-row items-center flex-1 mr-3">
                           <View
-                            style={[
-                              styles.categoryIconCircle,
-                              { backgroundColor: `${meta.color}20` },
-                            ]}
+                            className="w-9 h-9 rounded-xl items-center justify-center mr-3"
+                            style={{ backgroundColor: `${meta.color}20` }}
                           >
-                            <Ionicons name={meta.icon} size={14} color={meta.color} />
+                            <Ionicons name={meta.icon} size={16} color={meta.color} />
                           </View>
                           <Text
-                            style={[
-                              styles.categoryName,
-                              { color: theme.text, fontSize: typography.fontSize.sm },
-                            ]}
+                            numberOfLines={1}
+                            className={cn(
+                              'text-sm font-semibold flex-1',
+                              isDark ? 'text-white' : 'text-slate-900'
+                            )}
                           >
                             {meta.label}
                           </Text>
                         </View>
 
-                        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                        <View className="flex-row items-center">
                           <Text
-                            style={[
-                              styles.categoryAmount,
-                              { color: theme.text, fontSize: typography.fontSize.sm, fontVariant: ['tabular-nums'] },
-                            ]}
+                            className={cn(
+                              'text-sm font-bold font-mono',
+                              isDark ? 'text-white' : 'text-slate-900'
+                            )}
                           >
-                            {formatCurrency(cat.amountMinor, currency)}
+                            {formatCurrency(catAmount, currency)}
                           </Text>
-                          <Text
-                            style={[
-                              styles.categoryPercent,
-                              { color: theme.textMuted, fontSize: typography.fontSize.xs, fontVariant: ['tabular-nums'] },
-                            ]}
-                          >
-                            ({percent}%)
+                          <Text className="text-xs text-slate-400 ml-1.5 font-mono">
+                            ({catPercent}%)
                           </Text>
                         </View>
                       </View>
 
-                      {/* Visual Progress Bar */}
+                      {/* Progress Bar Track */}
                       <View
-                        style={[
-                          styles.progressBarTrack,
-                          {
-                            backgroundColor: isDark ? '#1E293B' : '#F1F5F9',
-                            borderRadius: borderRadius.full,
-                          },
-                        ]}
+                        className={cn(
+                          'h-2 w-full rounded-full overflow-hidden mt-1',
+                          isDark ? 'bg-[#1E293B]' : 'bg-slate-100'
+                        )}
                       >
                         <View
-                          style={[
-                            styles.progressBarFill,
-                            {
-                              backgroundColor: meta.color,
-                              width: `${Math.min(100, Math.max(percent, 4))}%`,
-                              borderRadius: borderRadius.full,
-                            },
-                          ]}
+                          className="h-full rounded-full"
+                          style={{
+                            backgroundColor: meta.color,
+                            width: `${Math.min(100, Math.max(catPercent, 4))}%`,
+                          }}
                         />
                       </View>
                     </View>
                   );
                 })}
-              </Card>
+              </View>
             ) : (
-              <Card padding="lg" variant="outlined" style={{ alignItems: 'center', paddingVertical: 32, marginBottom: 20 }}>
-                <Ionicons name="pie-chart-outline" size={38} color={theme.textMuted} style={{ marginBottom: 8 }} />
-                <Text style={{ color: theme.text, fontWeight: '700', fontSize: 15, marginBottom: 4 }}>
+              <View
+                className={cn(
+                  'p-8 rounded-3xl border items-center mb-6',
+                  isDark
+                    ? 'bg-[#141D2E] border-[#23324D]'
+                    : 'bg-white border-slate-200 shadow-sm'
+                )}
+              >
+                <Ionicons name="pie-chart-outline" size={38} color="#64748B" />
+                <Text
+                  className={cn(
+                    'font-bold text-sm mt-2',
+                    isDark ? 'text-white' : 'text-slate-900'
+                  )}
+                >
                   No category data yet
                 </Text>
-                <Text style={{ color: theme.textMuted, fontSize: 12, textAlign: 'center', maxWidth: 260 }}>
+                <Text className="text-xs text-slate-400 text-center mt-1 leading-5 max-w-[260px]">
                   Add expenses to see real-time visual categorization and spending distribution.
                 </Text>
-              </Card>
-            )}
-
-            {/* Smart Financial Optimization Card */}
-            <View
-              style={[
-                styles.tipCard,
-                {
-                  backgroundColor: isDark ? 'rgba(59,130,246,0.1)' : '#EFF6FF',
-                  borderColor: isDark ? 'rgba(59,130,246,0.3)' : '#BFDBFE',
-                  borderRadius: borderRadius.lg,
-                },
-              ]}
-            >
-              <Ionicons name="sparkles" size={18} color="#3B82F6" style={{ marginRight: 10, marginTop: 2 }} />
-              <View style={{ flex: 1 }}>
-                <Text style={{ color: theme.text, fontWeight: '700', fontSize: 13, marginBottom: 2 }}>
-                  Min-Cash Flow Graph Optimization
-                </Text>
-                <Text style={{ color: theme.textMuted, fontSize: 12, lineHeight: 18 }}>
-                  MatrixSplit simplifies multi-party debts behind the scenes, eliminating circular repayments so groups settle up in the minimum number of steps.
-                </Text>
               </View>
-            </View>
-          </>
+            )}
+          </View>
         )}
       </ScrollView>
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  headerBar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    paddingTop: 8,
-    paddingBottom: 8,
-  },
-  headerTitle: {
-    fontWeight: '800',
-    letterSpacing: -0.5,
-  },
-  headerSubtitle: {
-    fontSize: 12,
-    marginTop: 2,
-  },
-  exportBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 12,
-    paddingVertical: 7,
-    borderRadius: 16,
-    borderWidth: 1,
-  },
-  exportBtnText: {
-    fontWeight: '700',
-  },
-  periodSection: {
-    paddingHorizontal: 20,
-    paddingTop: 4,
-    paddingBottom: 8,
-  },
-  scrollContent: {
-    paddingHorizontal: 20,
-    paddingTop: 8,
-    paddingBottom: 40,
-  },
-  heroTopRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  statLabel: {
-    fontWeight: '700',
-    letterSpacing: 0.6,
-  },
-  badgePill: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 12,
-  },
-  totalSpentAmount: {
-    fontWeight: '800',
-    marginVertical: 10,
-    letterSpacing: -0.5,
-  },
-  statDivider: {
-    height: 1,
-    marginVertical: 12,
-  },
-  statSubRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  sectionHeader: {
-    marginBottom: 10,
-  },
-  sectionTitle: {
-    fontWeight: '700',
-    letterSpacing: -0.2,
-  },
-  categoryItem: {
-    marginBottom: 16,
-  },
-  categoryHeaderRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 6,
-  },
-  categoryLabelRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  categoryIconCircle: {
-    width: 24,
-    height: 24,
-    borderRadius: 7,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 8,
-  },
-  categoryName: {
-    fontWeight: '600',
-  },
-  categoryAmount: {
-    fontWeight: '700',
-  },
-  categoryPercent: {
-    marginLeft: 6,
-  },
-  progressBarTrack: {
-    height: 6,
-    overflow: 'hidden',
-  },
-  progressBarFill: {
-    height: '100%',
-  },
-  tipCard: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    padding: 14,
-    borderWidth: 1,
-  },
-});

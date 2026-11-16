@@ -46,8 +46,8 @@ export const Avatar: React.FC<AvatarProps> = ({
           width: dimension,
           height: dimension,
           borderRadius: dimension / 2,
-          backgroundColor: isDark ? 'rgba(16,185,129,0.18)' : '#D1FAE5',
-          borderColor: isDark ? 'rgba(16,185,129,0.25)' : '#A7F3D0',
+          backgroundColor: isDark ? 'rgba(16,185,129,0.15)' : '#D1FAE5',
+          borderColor: isDark ? 'rgba(16,185,129,0.2)' : '#A7F3D0',
         },
         style,
       ]}

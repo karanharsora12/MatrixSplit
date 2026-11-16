@@ -1,64 +1,62 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo } from "react";
 import {
   View,
   Text,
-  StyleSheet,
   ScrollView,
   Pressable,
   RefreshControl,
   TextInput,
   Alert,
-} from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRouter } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { useRouter } from "expo-router";
+import { Ionicons } from "@expo/vector-icons";
 import {
-  Card,
   Button,
   Input,
   BottomSheet,
   SkeletonCard,
-  Badge,
-} from '@/components';
-import { useWatermelonTheme } from '@/theme';
+} from "@/components";
+import { useWatermelonTheme } from "@/theme";
 import {
   useMyGroups,
   useCreateGroup,
   useJoinGroup,
-} from '../../src/hooks/useQueries';
-import { GroupCategory } from '@matrixsplit/shared';
+} from "../../src/hooks/useQueries";
+import { GroupCategory } from "@matrixsplit/shared";
+import { cn } from "@/lib/utils";
 
 const categoryIcons: Record<string, keyof typeof Ionicons.glyphMap> = {
-  trip: 'airplane-outline',
-  home: 'home-outline',
-  couple: 'heart-outline',
-  family: 'people-outline',
-  friends: 'beer-outline',
-  other: 'folder-outline',
+  trip: "airplane-outline",
+  home: "home-outline",
+  couple: "heart-outline",
+  family: "people-outline",
+  friends: "beer-outline",
+  other: "folder-outline",
 };
 
 export default function GroupsScreen() {
   const router = useRouter();
-  const { theme, isDark } = useWatermelonTheme();
+  const { isDark } = useWatermelonTheme();
 
   const { data: groups, isLoading, refetch, isRefetching } = useMyGroups();
   const createGroupMutation = useCreateGroup();
   const joinGroupMutation = useJoinGroup();
 
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState<string>("all");
 
   const [createSheetVisible, setCreateSheetVisible] = useState(false);
   const [joinSheetVisible, setJoinSheetVisible] = useState(false);
 
-  const [groupName, setGroupName] = useState('');
-  const [groupDesc, setGroupDesc] = useState('');
-  const [category, setCategory] = useState<GroupCategory>('friends');
-  const [inviteCodeInput, setInviteCodeInput] = useState('');
+  const [groupName, setGroupName] = useState("");
+  const [groupDesc, setGroupDesc] = useState("");
+  const [category, setCategory] = useState<GroupCategory>("friends");
+  const [inviteCodeInput, setInviteCodeInput] = useState("");
 
   const handleCreate = async () => {
     if (!groupName.trim()) {
-      Alert.alert('Required', 'Please enter a group name');
+      Alert.alert("Required", "Please enter a group name");
       return;
     }
 
@@ -67,40 +65,46 @@ export default function GroupsScreen() {
         name: groupName.trim(),
         description: groupDesc.trim() || undefined,
         category,
-        defaultCurrency: 'INR',
+        defaultCurrency: "INR",
       });
       setCreateSheetVisible(false);
-      setGroupName('');
-      setGroupDesc('');
-      Alert.alert('Success', 'Group created successfully!');
+      setGroupName("");
+      setGroupDesc("");
+      Alert.alert("Success", "Group created successfully!");
     } catch (err: any) {
-      Alert.alert('Error', err.response?.data?.message || 'Failed to create group');
+      Alert.alert(
+        "Error",
+        err.response?.data?.message || "Failed to create group",
+      );
     }
   };
 
   const handleJoin = async () => {
     if (!inviteCodeInput.trim()) {
-      Alert.alert('Required', 'Invite code is required');
+      Alert.alert("Required", "Invite code is required");
       return;
     }
 
     try {
       await joinGroupMutation.mutateAsync(inviteCodeInput.trim().toUpperCase());
       setJoinSheetVisible(false);
-      setInviteCodeInput('');
-      Alert.alert('Success', 'Successfully joined group!');
+      setInviteCodeInput("");
+      Alert.alert("Success", "Successfully joined group!");
     } catch (err: any) {
-      Alert.alert('Error', err.response?.data?.message || 'Invalid invite code');
+      Alert.alert(
+        "Error",
+        err.response?.data?.message || "Invalid invite code",
+      );
     }
   };
 
   const categories: GroupCategory[] = [
-    'trip',
-    'home',
-    'couple',
-    'family',
-    'friends',
-    'other',
+    "trip",
+    "home",
+    "couple",
+    "family",
+    "friends",
+    "other",
   ];
 
   const filteredGroups = useMemo(() => {
@@ -109,195 +113,146 @@ export default function GroupsScreen() {
       const matchesSearch =
         !searchQuery ||
         g.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        (g.description && g.description.toLowerCase().includes(searchQuery.toLowerCase()));
+        (g.description &&
+          g.description.toLowerCase().includes(searchQuery.toLowerCase()));
       const matchesCategory =
-        selectedCategory === 'all' || g.category === selectedCategory;
+        selectedCategory === "all" || g.category === selectedCategory;
       return matchesSearch && matchesCategory;
     });
   }, [groups, searchQuery, selectedCategory]);
 
   return (
-    <SafeAreaView edges={['top', 'left', 'right']} style={[styles.container, { backgroundColor: isDark ? '#090D16' : '#F8FAFC' }]}>
-      {/* Top Header */}
-      <View style={[styles.headerBar, { borderBottomColor: isDark ? '#1E293B' : '#F1F5F9' }]}>
+    <SafeAreaView
+      edges={["top", "left", "right"]}
+      className="flex-1 bg-[#090D16]"
+    >
+      {/* Top Header Bar */}
+      <View className="flex-row items-center justify-between px-5 pt-2 pb-3.5 border-b border-[#1E293B]">
         <View>
-          <Text style={[styles.headerTitle, { color: theme.text }]}>
+          <Text className="text-2xl font-extrabold text-white tracking-tight">
             Groups
           </Text>
-          <Text style={[styles.headerSubtitle, { color: theme.textMuted }]}>
-            {groups ? `${groups.length} active group${groups.length === 1 ? '' : 's'}` : 'Manage your groups'}
+          <Text className="text-xs text-slate-400 mt-0.5">
+            {groups
+              ? `${groups.length} active ${groups.length === 1 ? "group" : "groups"}`
+              : "Manage your shared groups"}
           </Text>
         </View>
 
-        <View style={styles.headerActions}>
+        {/* Action Buttons */}
+        <View className="flex-row items-center">
           <Pressable
             onPress={() => setJoinSheetVisible(true)}
-            style={({ pressed }) => [
-              styles.joinBtn,
-              {
-                backgroundColor: isDark ? '#1E293B' : '#FFFFFF',
-                borderColor: isDark ? '#334155' : '#E2E8F0',
-                opacity: pressed ? 0.75 : 1,
-                transform: [{ scale: pressed ? 0.97 : 1 }],
-              },
-            ]}
+            className="flex-row items-center h-9 px-3.5 rounded-xl bg-[#141D2E] border border-[#23324D] active:scale-95 active:bg-[#1E2A42] mr-2"
           >
-            <Ionicons name="enter-outline" size={16} color={theme.text} style={{ marginRight: 4 }} />
-            <Text style={[styles.joinBtnText, { color: theme.text }]}>
+            <Ionicons
+              name="enter-outline"
+              size={16}
+              color="#94A3B8"
+              style={{ marginRight: 4 }}
+            />
+            <Text className="text-xs font-bold text-slate-200">
               Join
             </Text>
           </Pressable>
 
           <Pressable
             onPress={() => setCreateSheetVisible(true)}
-            style={({ pressed }) => [
-              styles.addBtn,
-              {
-                backgroundColor: theme.primary,
-                opacity: pressed ? 0.85 : 1,
-                transform: [{ scale: pressed ? 0.97 : 1 }],
-              },
-            ]}
+            className="flex-row items-center h-9 px-3.5 rounded-xl bg-emerald-500 active:scale-95 active:bg-emerald-600 shadow-sm"
           >
-            <Ionicons name="add" size={18} color="#FFFFFF" style={{ marginRight: 2 }} />
-            <Text style={styles.addBtnText}>Create</Text>
+            <Ionicons
+              name="add"
+              size={18}
+              color="#FFFFFF"
+              style={{ marginRight: 2 }}
+            />
+            <Text className="text-xs font-bold text-white">Create</Text>
           </Pressable>
         </View>
       </View>
 
       {/* Search & Category Filter Section */}
-      <View style={styles.searchSection}>
-        <View
-          style={[
-            styles.searchBar,
-            {
-              backgroundColor: isDark ? '#111827' : '#FFFFFF',
-              borderColor: isDark ? '#1E293B' : '#E2E8F0',
-            },
-          ]}
-        >
-          <Ionicons name="search-outline" size={18} color={theme.textMuted} style={{ marginRight: 8 }} />
+      <View className="pt-3.5">
+        {/* Search Bar */}
+        <View className="flex-row items-center h-11 px-3.5 rounded-2xl bg-[#141D2E] border border-[#23324D] mx-5 mb-3">
+          <Ionicons
+            name="search-outline"
+            size={18}
+            color="#64748B"
+            style={{ marginRight: 8 }}
+          />
           <TextInput
             placeholder="Search groups by name..."
-            placeholderTextColor={theme.textMuted}
+            placeholderTextColor="#64748B"
             value={searchQuery}
             onChangeText={setSearchQuery}
-            style={[styles.searchInput, { color: theme.text }]}
+            className="flex-1 text-sm font-medium text-white py-0"
           />
           {searchQuery ? (
-            <Pressable onPress={() => setSearchQuery('')} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
-              <Ionicons name="close-circle" size={18} color={theme.textMuted} />
+            <Pressable
+              onPress={() => setSearchQuery("")}
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            >
+              <Ionicons name="close-circle" size={18} color="#64748B" />
             </Pressable>
           ) : null}
         </View>
 
-        {/* Filter Chips */}
+        {/* Category Filter Chips */}
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
-          contentContainerStyle={{ paddingVertical: 4, gap: 8 }}
+          contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 12 }}
         >
+          {/* All Chip */}
           <Pressable
-            onPress={() => setSelectedCategory('all')}
-            className="flex-row items-center"
-            style={({ pressed }) => [
-              styles.filterChip,
-              {
-                backgroundColor:
-                  selectedCategory === 'all'
-                    ? isDark
-                      ? 'rgba(16,185,129,0.22)'
-                      : '#D1FAE5'
-                    : isDark
-                    ? '#1E293B'
-                    : '#FFFFFF',
-                borderColor:
-                  selectedCategory === 'all'
-                    ? '#10B981'
-                    : isDark
-                    ? '#334155'
-                    : '#E2E8F0',
-                borderWidth: selectedCategory === 'all' ? 1.5 : 1,
-                opacity: pressed ? 0.8 : 1,
-              },
-            ]}
+            onPress={() => setSelectedCategory("all")}
+            className={cn(
+              "h-9 px-4 rounded-full items-center justify-center mr-2 active:scale-95",
+              selectedCategory === "all"
+                ? "bg-emerald-500 shadow-sm"
+                : "bg-[#141D2E] border border-[#23324D]"
+            )}
           >
             <Text
-              style={[
-                styles.filterChipText,
-                {
-                  color:
-                    selectedCategory === 'all'
-                      ? isDark
-                        ? '#34D399'
-                        : '#059669'
-                      : theme.text,
-                  fontWeight: selectedCategory === 'all' ? '700' : '600',
-                },
-              ]}
+              className={cn(
+                "text-xs font-bold",
+                selectedCategory === "all" ? "text-white" : "text-slate-300"
+              )}
             >
               All
             </Text>
           </Pressable>
 
+          {/* Category Chips */}
           {categories.map((cat) => {
             const isSelected = selectedCategory === cat;
-            const iconName = categoryIcons[cat] || 'folder-outline';
+            const iconName = categoryIcons[cat] || "folder-outline";
             return (
               <Pressable
                 key={cat}
                 onPress={() => setSelectedCategory(cat)}
-                className="flex-row items-center"
-                style={({ pressed }) => [
-                  styles.filterChip,
-                  {
-                    backgroundColor: isSelected
-                      ? isDark
-                        ? 'rgba(16,185,129,0.22)'
-                        : '#D1FAE5'
-                      : isDark
-                      ? '#1E293B'
-                      : '#FFFFFF',
-                    borderColor: isSelected
-                      ? '#10B981'
-                      : isDark
-                      ? '#334155'
-                      : '#E2E8F0',
-                    borderWidth: isSelected ? 1.5 : 1,
-                    opacity: pressed ? 0.8 : 1,
-                  },
-                ]}
+                className={cn(
+                  "h-9 px-3.5 rounded-full flex-row items-center justify-center mr-2 active:scale-95",
+                  isSelected
+                    ? "bg-emerald-500 shadow-sm"
+                    : "bg-[#141D2E] border border-[#23324D]"
+                )}
               >
-                <View className="flex-row items-center" style={{ flexDirection: 'row', alignItems: 'center' }}>
-                  <Ionicons
-                    name={iconName}
-                    size={14}
-                    color={
-                      isSelected
-                        ? isDark
-                          ? '#34D399'
-                          : '#059669'
-                        : theme.textMuted
-                    }
-                    style={{ marginRight: 6 }}
-                  />
-                  <Text
-                    style={[
-                      styles.filterChipText,
-                      {
-                        color: isSelected
-                          ? isDark
-                            ? '#34D399'
-                            : '#059669'
-                          : theme.text,
-                        fontWeight: isSelected ? '700' : '600',
-                        textTransform: 'capitalize',
-                      },
-                    ]}
-                  >
-                    {cat}
-                  </Text>
-                </View>
+                <Ionicons
+                  name={iconName}
+                  size={14}
+                  color={isSelected ? "#FFFFFF" : "#64748B"}
+                  style={{ marginRight: 6 }}
+                />
+                <Text
+                  className={cn(
+                    "text-xs font-bold capitalize",
+                    isSelected ? "text-white" : "text-slate-300"
+                  )}
+                >
+                  {cat}
+                </Text>
               </Pressable>
             );
           })}
@@ -306,112 +261,106 @@ export default function GroupsScreen() {
 
       {/* Groups List */}
       <ScrollView
-        contentContainerStyle={styles.scrollContent}
+        contentContainerStyle={{ paddingBottom: 20 }}
         showsVerticalScrollIndicator={false}
         refreshControl={
           <RefreshControl
             refreshing={isRefetching}
             onRefresh={refetch}
-            tintColor={theme.primary}
+            tintColor="#10B981"
           />
         }
       >
         {isLoading ? (
-          <>
+          <View className="px-5">
             <SkeletonCard />
             <SkeletonCard />
             <SkeletonCard />
-          </>
+          </View>
         ) : filteredGroups && filteredGroups.length > 0 ? (
           filteredGroups.map((group: any) => {
-            const iconName = categoryIcons[group.category] || 'folder-outline';
+            const iconName = categoryIcons[group.category] || "folder-outline";
             return (
               <Pressable
                 key={group.id}
                 onPress={() => router.push(`/group/${group.id}`)}
-                className="w-full flex-row items-center justify-between"
-                style={({ pressed }) => [
-                  styles.groupCard,
-                  {
-                    backgroundColor: isDark ? '#111827' : '#FFFFFF',
-                    borderColor: isDark ? '#1E293B' : '#E2E8F0',
-                    opacity: pressed ? 0.85 : 1,
-                    transform: [{ scale: pressed ? 0.99 : 1 }],
-                  },
-                ]}
+                className="mx-5 mb-3 p-4 rounded-2xl bg-[#141D2E] border border-[#23324D] flex-row items-center justify-between active:scale-98 active:bg-[#1A263B]"
               >
-                <View className="flex-row items-center flex-1" style={styles.groupCardLeft}>
-                  <View
-                    style={[
-                      styles.categoryCircle,
-                      {
-                        backgroundColor: isDark
-                          ? 'rgba(16,185,129,0.18)'
-                          : '#D1FAE5',
-                      },
-                    ]}
-                  >
-                    <Ionicons name={iconName} size={22} color={theme.primary} />
+                <View className="flex-row items-center flex-1 mr-3">
+                  {/* Category Squircle Icon */}
+                  <View className="w-12 h-12 rounded-xl bg-emerald-500/15 items-center justify-center mr-3.5">
+                    <Ionicons name={iconName} size={22} color="#10B981" />
                   </View>
-                  <View style={styles.groupMeta}>
-                    <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                      <Text
-                        style={[styles.groupName, { color: theme.text }]}
-                        numberOfLines={1}
-                      >
-                        {group.name}
-                      </Text>
-                    </View>
+
+                  {/* Group Info */}
+                  <View className="flex-1">
+                    <Text
+                      numberOfLines={1}
+                      className="text-base font-bold text-white tracking-tight"
+                    >
+                      {group.name}
+                    </Text>
+
                     {group.description ? (
                       <Text
                         numberOfLines={1}
-                        style={[styles.groupDesc, { color: theme.textMuted }]}
+                        className="text-xs text-slate-400 mt-0.5"
                       >
                         {group.description}
                       </Text>
                     ) : null}
-                    <View style={styles.groupFootRow}>
+
+                    {/* Metadata Footer */}
+                    <View className="flex-row items-center mt-1">
                       <Ionicons
                         name="people-outline"
                         size={13}
-                        color={theme.textMuted}
+                        color="#64748B"
                         style={{ marginRight: 4 }}
                       />
-                      <Text style={[styles.memberCount, { color: theme.textMuted }]}>
-                        {group.membersCount || 1} members
+                      <Text className="text-xs text-slate-400">
+                        {group.membersCount || 1} {group.membersCount === 1 ? "member" : "members"}
                       </Text>
-                      <Text style={[styles.dotSep, { color: theme.textMuted }]}>·</Text>
-                      <Text style={[styles.memberCount, { color: theme.textMuted }]}>
-                        {new Date(group.createdAt).toLocaleDateString(undefined, {
-                          month: 'short',
-                          year: 'numeric',
-                        })}
+                      <Text className="text-xs text-slate-600 mx-1.5">
+                        ·
+                      </Text>
+                      <Text className="text-xs text-slate-400">
+                        {new Date(group.createdAt).toLocaleDateString(
+                          undefined,
+                          {
+                            month: "short",
+                            year: "numeric",
+                          },
+                        )}
                       </Text>
                     </View>
                   </View>
                 </View>
 
-                <Ionicons name="chevron-forward" size={18} color={theme.textMuted} />
+                <Ionicons
+                  name="chevron-forward"
+                  size={18}
+                  color="#64748B"
+                />
               </Pressable>
             );
           })
         ) : (
-          <View style={styles.emptyContainer}>
-            <View
-              style={[
-                styles.emptyIconCircle,
-                { backgroundColor: isDark ? '#1E293B' : '#F1F5F9' },
-              ]}
-            >
-              <Ionicons name="people-outline" size={32} color={theme.textMuted} />
+          <View className="mx-5 my-10 p-8 rounded-3xl bg-[#141D2E] border border-[#23324D] items-center">
+            <View className="w-16 h-16 rounded-full bg-emerald-500/15 items-center justify-center mb-3">
+              <Ionicons
+                name="people-outline"
+                size={32}
+                color="#10B981"
+              />
             </View>
-            <Text style={[styles.emptyTitle, { color: theme.text }]}>
-              {searchQuery ? 'No groups found' : 'No groups yet'}
+            <Text className="text-base font-bold text-white mt-1">
+              {searchQuery ? "No groups found" : "No groups yet"}
             </Text>
-            <Text style={[styles.emptySubtitle, { color: theme.textMuted }]}>
+            <Text className="text-xs text-slate-400 text-center mt-1 leading-5 max-w-[260px]">
               {searchQuery
-                ? 'Try a different search query or clear your filter'
-                : 'Create a group for your trip, house, or friends to split expenses effortlessly'}
+                ? "Try a different search query or clear your category filter"
+                : "Create a group for your trip, house, or friends to split expenses effortlessly"}
             </Text>
             <Button
               label="Create a Group"
@@ -430,7 +379,7 @@ export default function GroupsScreen() {
         onClose={() => setCreateSheetVisible(false)}
         title="Create New Group"
       >
-        <View style={{ paddingVertical: 4 }}>
+        <View className="py-1">
           <Input
             label="Group Name"
             placeholder="e.g. Goa Trip, Flat 402, Friday Dinners"
@@ -445,60 +394,36 @@ export default function GroupsScreen() {
             onChangeText={setGroupDesc}
           />
 
-          <Text style={[styles.sheetSectionLabel, { color: theme.textMuted }]}>
+          <Text className="text-xs font-bold text-slate-400 tracking-wider mb-2 mt-1">
             CATEGORY
           </Text>
 
-          <View style={styles.categoryGrid}>
+          <View className="flex-row flex-wrap gap-2 mb-2">
             {categories.map((cat) => {
               const isSelected = category === cat;
-              const iconName = categoryIcons[cat] || 'folder-outline';
+              const iconName = categoryIcons[cat] || "folder-outline";
               return (
                 <Pressable
                   key={cat}
                   onPress={() => setCategory(cat)}
-                  style={({ pressed }) => [
-                    styles.categoryPickBtn,
-                    {
-                      backgroundColor: isSelected
-                        ? isDark
-                          ? 'rgba(16,185,129,0.22)'
-                          : '#D1FAE5'
-                        : isDark
-                        ? '#161F30'
-                        : '#F8FAFC',
-                      borderColor: isSelected
-                        ? theme.primary
-                        : isDark
-                        ? '#1E293B'
-                        : '#E2E8F0',
-                      opacity: pressed ? 0.8 : 1,
-                    },
-                  ]}
+                  className={cn(
+                    "flex-row items-center h-10 px-3.5 rounded-xl border active:scale-95",
+                    isSelected
+                      ? "bg-emerald-500/20 border-emerald-500"
+                      : "bg-[#141D2E] border-[#23324D]"
+                  )}
                 >
                   <Ionicons
                     name={iconName}
                     size={16}
-                    color={
-                      isSelected
-                        ? isDark
-                          ? '#34D399'
-                          : '#059669'
-                        : theme.textMuted
-                    }
+                    color={isSelected ? "#10B981" : "#64748B"}
                     style={{ marginRight: 6 }}
                   />
                   <Text
-                    style={{
-                      color: isSelected
-                        ? isDark
-                          ? '#34D399'
-                          : '#059669'
-                        : theme.text,
-                      fontSize: 12,
-                      fontWeight: isSelected ? '700' : '500',
-                      textTransform: 'capitalize',
-                    }}
+                    className={cn(
+                      "text-xs font-bold capitalize",
+                      isSelected ? "text-emerald-400" : "text-slate-300"
+                    )}
                   >
                     {cat}
                   </Text>
@@ -508,7 +433,11 @@ export default function GroupsScreen() {
           </View>
 
           <Button
-            label={createGroupMutation.isPending ? 'Creating Group...' : 'Create Group'}
+            label={
+              createGroupMutation.isPending
+                ? "Creating Group..."
+                : "Create Group"
+            }
             size="lg"
             variant="primary"
             fullWidth
@@ -525,9 +454,10 @@ export default function GroupsScreen() {
         onClose={() => setJoinSheetVisible(false)}
         title="Join Existing Group"
       >
-        <View style={{ paddingVertical: 4 }}>
-          <Text style={[styles.joinSheetInfo, { color: theme.textMuted }]}>
-            Ask the group creator for their 6-character invite code (e.g. TRIP24).
+        <View className="py-1">
+          <Text className="text-xs text-slate-400 mb-3 leading-5">
+            Ask the group creator for their 6-character invite code (e.g.
+            TRIP24).
           </Text>
 
           <Input
@@ -539,7 +469,9 @@ export default function GroupsScreen() {
           />
 
           <Button
-            label={joinGroupMutation.isPending ? 'Joining Group...' : 'Join Group'}
+            label={
+              joinGroupMutation.isPending ? "Joining Group..." : "Join Group"
+            }
             size="lg"
             variant="primary"
             fullWidth
@@ -552,193 +484,3 @@ export default function GroupsScreen() {
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  headerBar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    paddingTop: 10,
-    paddingBottom: 12,
-    borderBottomWidth: 1,
-  },
-  headerTitle: {
-    fontSize: 22,
-    fontWeight: '800',
-    letterSpacing: -0.4,
-  },
-  headerSubtitle: {
-    fontSize: 12,
-    marginTop: 2,
-  },
-  headerActions: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  joinBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 12,
-    paddingVertical: 7,
-    borderRadius: 14,
-    borderWidth: 1,
-  },
-  joinBtnText: {
-    fontWeight: '600',
-    fontSize: 12,
-  },
-  addBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 14,
-    paddingVertical: 7,
-    borderRadius: 14,
-  },
-  addBtnText: {
-    color: '#FFFFFF',
-    fontWeight: '700',
-    fontSize: 12,
-  },
-  searchSection: {
-    paddingHorizontal: 20,
-    paddingTop: 12,
-    paddingBottom: 8,
-  },
-  searchBar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    height: 42,
-    paddingHorizontal: 12,
-    borderRadius: 12,
-    borderWidth: 1,
-    marginBottom: 10,
-  },
-  searchInput: {
-    flex: 1,
-    fontSize: 13,
-    fontWeight: '500',
-    paddingVertical: 0,
-  },
-  filterScroll: {
-    gap: 8,
-    paddingRight: 10,
-  },
-  filterChip: {
-    height: 36,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 14,
-    borderRadius: 18,
-  },
-  filterChipText: {
-    fontSize: 12,
-  },
-  scrollContent: {
-    padding: 20,
-    paddingTop: 8,
-    paddingBottom: 36,
-  },
-  groupCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    padding: 14,
-    borderRadius: 16,
-    borderWidth: 1,
-    marginBottom: 10,
-  },
-  groupCardLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    flex: 1,
-    marginRight: 12,
-  },
-  categoryCircle: {
-    width: 44,
-    height: 44,
-    borderRadius: 14,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 12,
-  },
-  groupMeta: {
-    flex: 1,
-  },
-  groupName: {
-    fontSize: 15,
-    fontWeight: '700',
-    letterSpacing: -0.2,
-    marginBottom: 2,
-  },
-  groupDesc: {
-    fontSize: 12,
-    marginBottom: 4,
-  },
-  groupFootRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  memberCount: {
-    fontSize: 11,
-  },
-  dotSep: {
-    marginHorizontal: 5,
-    fontSize: 11,
-  },
-  emptyContainer: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 48,
-    paddingHorizontal: 20,
-  },
-  emptyIconCircle: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 14,
-  },
-  emptyTitle: {
-    fontSize: 16,
-    fontWeight: '700',
-    marginBottom: 6,
-  },
-  emptySubtitle: {
-    fontSize: 13,
-    textAlign: 'center',
-    lineHeight: 18,
-    maxWidth: 280,
-  },
-  sheetSectionLabel: {
-    fontSize: 11,
-    fontWeight: '700',
-    letterSpacing: 0.6,
-    marginBottom: 8,
-    marginTop: 4,
-  },
-  categoryGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
-  },
-  categoryPickBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 12,
-    paddingVertical: 7,
-    borderRadius: 12,
-    borderWidth: 1,
-  },
-  joinSheetInfo: {
-    fontSize: 13,
-    lineHeight: 18,
-    marginBottom: 14,
-  },
-});

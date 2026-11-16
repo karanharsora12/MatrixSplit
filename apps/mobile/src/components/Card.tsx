@@ -1,27 +1,27 @@
-import React from 'react';
+import React from "react";
 import {
   View,
   Pressable,
   StyleSheet,
   ViewStyle,
   StyleProp,
-} from 'react-native';
-import { useWatermelonTheme } from '@/theme';
-import { cn } from '@/lib/utils';
+} from "react-native";
+import { useWatermelonTheme } from "@/theme";
+import { cn } from "@/lib/utils";
 export {
   CardContent,
   CardDescription,
   CardFooter,
   CardHeader,
   CardTitle,
-} from './ui/card';
+} from "./ui/card";
 
 export interface CardProps {
   children?: React.ReactNode;
   style?: StyleProp<ViewStyle>;
   onPress?: () => void;
-  variant?: 'elevated' | 'outlined' | 'flat';
-  padding?: 'none' | 'sm' | 'md' | 'lg';
+  variant?: "elevated" | "outlined" | "flat";
+  padding?: "none" | "sm" | "md" | "lg";
   className?: string;
   [key: string]: any;
 }
@@ -30,39 +30,29 @@ export const Card: React.FC<CardProps> = ({
   children,
   style,
   onPress,
-  variant = 'elevated',
-  padding = 'md',
+  variant = "elevated",
+  padding = "md",
   className,
   ...rest
 }) => {
   const { theme, isDark } = useWatermelonTheme();
 
   const paddingValue =
-    padding === 'none'
-      ? 0
-      : padding === 'sm'
-      ? 10
-      : padding === 'lg'
-      ? 20
-      : 14;
+    padding === "none" ? 0 : padding === "sm" ? 10 : padding === "lg" ? 20 : 14;
 
   const cardStyle: ViewStyle = {
-    backgroundColor: isDark ? '#111827' : '#FFFFFF',
-    borderRadius: 16,
+    backgroundColor: isDark ? "#141D2E" : "#FFFFFF",
+    borderRadius: 20,
     padding: paddingValue,
-    borderWidth: 1,
-    borderColor: isDark ? '#1E293B' : '#E2E8F0',
-    ...(variant === 'elevated'
+    borderWidth: 1.5,
+    borderColor: isDark ? "#23324D" : "#E2E8F0",
+    ...(variant === "elevated"
       ? {
-          shadowColor: '#000000',
-          shadowOffset: { width: 0, height: 2 },
-          shadowOpacity: isDark ? 0.25 : 0.04,
-          shadowRadius: 5,
-          elevation: 2,
+          elevation: 0,
         }
-      : variant === 'flat'
-      ? { borderWidth: 0 }
-      : {}),
+      : variant === "flat"
+        ? { borderWidth: 0 }
+        : {}),
   };
 
   if (onPress) {
@@ -87,10 +77,7 @@ export const Card: React.FC<CardProps> = ({
   }
 
   return (
-    <View
-      style={[styles.base, cardStyle, style]}
-      {...rest}
-    >
+    <View style={[styles.base, cardStyle, style]} {...rest}>
       {children}
     </View>
   );
@@ -98,6 +85,6 @@ export const Card: React.FC<CardProps> = ({
 
 const styles = StyleSheet.create({
   base: {
-    overflow: 'hidden',
+    overflow: "hidden",
   },
 });

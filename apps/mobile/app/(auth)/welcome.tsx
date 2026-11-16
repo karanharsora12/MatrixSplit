@@ -50,8 +50,8 @@ export default function WelcomeScreen() {
             style={[
               styles.logoBadge,
               {
-                backgroundColor: isDark ? "#111827" : "#FFFFFF",
-                borderColor: isDark ? "#1E293B" : "#E2E8F0",
+                backgroundColor: isDark ? "#141D2E" : "#FFFFFF",
+                borderColor: isDark ? "#23324D" : "#E2E8F0",
               },
             ]}
           >
@@ -68,7 +68,7 @@ export default function WelcomeScreen() {
             </Text>
           </View>
           <Text style={[styles.brandTagline, { color: theme.textMuted }]}>
-            Shared expenses, simplified debts & instant settlements.
+            Shared expenses, simplified debts{"\n"}&amp; instant settlements.
           </Text>
         </View>
 
@@ -77,13 +77,8 @@ export default function WelcomeScreen() {
           style={[
             styles.previewCard,
             {
-              backgroundColor: isDark ? "#111827" : "#FFFFFF",
-              borderColor: isDark ? "#1E293B" : "#E2E8F0",
-              shadowColor: "#000000",
-              shadowOffset: { width: 0, height: 4 },
-              shadowOpacity: isDark ? 0.35 : 0.06,
-              shadowRadius: 10,
-              elevation: 4,
+              backgroundColor: isDark ? "#141D2E" : "#FFFFFF",
+              borderColor: isDark ? "#23324D" : "#E2E8F0",
             },
           ]}
         >
@@ -94,7 +89,7 @@ export default function WelcomeScreen() {
                   styles.previewGroupIcon,
                   {
                     backgroundColor: isDark
-                      ? "rgba(16,185,129,0.18)"
+                      ? "rgba(16,185,129,0.15)"
                       : "#D1FAE5",
                   },
                 ]}
@@ -116,7 +111,7 @@ export default function WelcomeScreen() {
               style={[
                 styles.previewStatusPill,
                 {
-                  backgroundColor: isDark ? "rgba(16,185,129,0.18)" : "#D1FAE5",
+                  backgroundColor: isDark ? "rgba(16,185,129,0.15)" : "#D1FAE5",
                   borderColor: isDark ? "rgba(16,185,129,0.3)" : "#A7F3D0",
                 },
               ]}
@@ -135,7 +130,7 @@ export default function WelcomeScreen() {
           <View
             style={[
               styles.previewDivider,
-              { backgroundColor: isDark ? "#1E293B" : "#F1F5F9" },
+              { backgroundColor: isDark ? "#23324D" : "#F1F5F9" },
             ]}
           />
 
@@ -167,7 +162,7 @@ export default function WelcomeScreen() {
               </View>
             </View>
             <Text style={[styles.previewInfoText, { color: theme.textMuted }]}>
-              Dinner & Airbnb split equally
+              Dinner &amp; Airbnb split equally
             </Text>
             <Text style={[styles.previewAmountText, { color: theme.text }]}>
               ₹18,600
@@ -188,7 +183,7 @@ export default function WelcomeScreen() {
             >
               <Ionicons
                 name="pie-chart-outline"
-                size={18}
+                size={20}
                 color={theme.primary}
               />
             </View>
@@ -212,7 +207,7 @@ export default function WelcomeScreen() {
                 },
               ]}
             >
-              <Ionicons name="git-network-outline" size={18} color="#3B82F6" />
+              <Ionicons name="git-network-outline" size={20} color="#3B82F6" />
             </View>
             <View style={styles.pillarTextWrap}>
               <Text style={[styles.pillarTitle, { color: theme.text }]}>
@@ -233,7 +228,7 @@ export default function WelcomeScreen() {
                 },
               ]}
             >
-              <Ionicons name="flash-outline" size={18} color="#F59E0B" />
+              <Ionicons name="flash-outline" size={20} color="#F59E0B" />
             </View>
             <View style={styles.pillarTextWrap}>
               <Text style={[styles.pillarTitle, { color: theme.text }]}>
@@ -250,14 +245,12 @@ export default function WelcomeScreen() {
         {/* Action CTAs */}
         <View style={styles.actionSection}>
           <Button
-            label="Get Started"
+            label="Get Started →"
             size="lg"
             variant="primary"
             fullWidth
-            icon={<Ionicons name="arrow-forward" size={18} color="#FFFFFF" />}
-            iconPosition="right"
             onPress={() => router.push("/(auth)/signup")}
-            style={{ marginBottom: 12 }}
+            style={{ marginBottom: 14 }}
           />
 
           <View style={styles.loginRow}>
@@ -285,16 +278,15 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scrollContent: {
-    paddingHorizontal: 22,
-    paddingTop: 16,
-    paddingBottom: 28,
+    paddingHorizontal: 24,
+    paddingTop: 20,
+    paddingBottom: 32,
     flexGrow: 1,
     justifyContent: "space-between",
   },
   brandHeader: {
     alignItems: "center",
-    marginTop: 8,
-    marginBottom: 20,
+    marginBottom: 24,
   },
   logoBadge: {
     flexDirection: "row",
@@ -302,7 +294,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 10,
     borderRadius: 24,
-    borderWidth: 1,
+    borderWidth: 1.5,
     marginBottom: 12,
   },
   logoIconCircle: {
@@ -325,9 +317,9 @@ const styles = StyleSheet.create({
     lineHeight: 20,
   },
   previewCard: {
-    borderRadius: 18,
-    borderWidth: 1,
-    padding: 16,
+    borderRadius: 24,
+    borderWidth: 1.5,
+    padding: 20,
     marginBottom: 24,
   },
   previewTop: {
@@ -342,7 +334,7 @@ const styles = StyleSheet.create({
   previewGroupIcon: {
     width: 36,
     height: 36,
-    borderRadius: 12,
+    borderRadius: 10,
     alignItems: "center",
     justifyContent: "center",
     marginRight: 10,
@@ -369,7 +361,7 @@ const styles = StyleSheet.create({
   },
   previewDivider: {
     height: 1,
-    marginVertical: 12,
+    marginVertical: 14,
   },
   previewDetailRow: {
     flexDirection: "row",
@@ -405,50 +397,37 @@ const styles = StyleSheet.create({
     fontVariant: ["tabular-nums"],
   },
   pillarsContainer: {
-    gap: 14,
-    marginBottom: 24,
+    gap: 16,
+    marginBottom: 28,
   },
   pillarItem: {
     flexDirection: "row",
     alignItems: "flex-start",
   },
   pillarIconWrap: {
-    width: 36,
-    height: 36,
-    borderRadius: 12,
+    width: 44,
+    height: 44,
+    borderRadius: 10,
     alignItems: "center",
     justifyContent: "center",
-    marginRight: 12,
+    marginRight: 14,
     marginTop: 1,
   },
   pillarTextWrap: {
     flex: 1,
   },
   pillarTitle: {
-    fontSize: 14,
+    fontSize: 15,
     fontWeight: "700",
     letterSpacing: -0.2,
-    marginBottom: 2,
+    marginBottom: 3,
   },
   pillarDesc: {
-    fontSize: 12,
-    lineHeight: 17,
+    fontSize: 13,
+    lineHeight: 18,
   },
   actionSection: {
     width: "100%",
-  },
-  demoBtn: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    height: 44,
-    borderRadius: 14,
-    borderWidth: 1,
-    marginBottom: 14,
-  },
-  demoBtnText: {
-    fontSize: 13,
-    fontWeight: "600",
   },
   loginRow: {
     flexDirection: "row",

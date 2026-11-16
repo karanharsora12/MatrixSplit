@@ -101,17 +101,23 @@ export default function SettingsScreen() {
   };
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]} edges={['top', 'left', 'right']}>
+    <SafeAreaView
+      style={[
+        styles.container,
+        { backgroundColor: isDark ? '#090D16' : '#F8FAFC' },
+      ]}
+      edges={['top', 'left', 'right']}
+    >
       {/* Top Header */}
-      <View style={styles.headerBar}>
+      <View style={[styles.headerBar, { borderBottomColor: isDark ? '#1E293B' : '#F1F5F9' }]}>
         <Pressable
           onPress={() => router.back()}
           hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
           style={({ pressed }) => [
             styles.backBtn,
             {
-              backgroundColor: theme.surface,
-              borderColor: theme.border,
+              backgroundColor: isDark ? '#141D2E' : '#FFFFFF',
+              borderColor: isDark ? '#23324D' : '#E2E8F0',
               opacity: pressed ? 0.7 : 1,
             },
           ]}
@@ -119,16 +125,11 @@ export default function SettingsScreen() {
           <Ionicons name="chevron-back" size={20} color={theme.text} />
         </Pressable>
 
-        <Text
-          style={[
-            styles.headerTitle,
-            { color: theme.text, fontSize: typography.fontSize.base },
-          ]}
-        >
+        <Text style={[styles.headerTitle, { color: theme.text }]}>
           Settings
         </Text>
 
-        <View style={{ width: 38 }} />
+        <View style={{ width: 40 }} />
       </View>
 
       <ScrollView
@@ -137,46 +138,40 @@ export default function SettingsScreen() {
         keyboardShouldPersistTaps="handled"
       >
         {/* Profile Card */}
-        <Card
-          variant="elevated"
-          padding="lg"
-          style={{ alignItems: 'center', marginBottom: 20 }}
+        <View
+          style={[
+            styles.profileCard,
+            {
+              backgroundColor: isDark ? '#141D2E' : '#FFFFFF',
+              borderColor: isDark ? '#23324D' : '#E2E8F0',
+            },
+          ]}
         >
           <Avatar name={user?.fullName || 'User'} size="xl" />
-          <Text
-            style={[
-              styles.userName,
-              {
-                color: theme.text,
-                fontSize: typography.fontSize.xl,
-                marginTop: 12,
-              },
-            ]}
-          >
+          <Text style={[styles.userName, { color: theme.text }]}>
             {user?.fullName || 'MatrixSplit Member'}
           </Text>
-          <Text style={[styles.userEmail, { color: theme.textMuted, marginBottom: 8 }]}>
+          <Text style={[styles.userEmail, { color: theme.textMuted }]}>
             {user?.email}
           </Text>
-          <Badge label="Verified Account" variant="positive" size="sm" />
-        </Card>
+          <Badge label="Verified Account" variant="positive" size="sm" style={{ marginTop: 8 }} />
+        </View>
 
         {/* Appearance / Theme Options */}
         <View style={styles.sectionHeader}>
-          <Text
-            style={[
-              styles.sectionTitle,
-              { color: theme.textMuted, fontSize: typography.fontSize.xs },
-            ]}
-          >
+          <Text style={[styles.sectionTitle, { color: theme.textMuted }]}>
             APPEARANCE & THEME
           </Text>
         </View>
 
-        <Card
-          variant="outlined"
-          padding="md"
-          style={{ marginBottom: 20 }}
+        <View
+          style={[
+            styles.cardContainer,
+            {
+              backgroundColor: isDark ? '#141D2E' : '#FFFFFF',
+              borderColor: isDark ? '#23324D' : '#E2E8F0',
+            },
+          ]}
         >
           <View style={styles.themeSelectorRow}>
             {[
@@ -194,53 +189,50 @@ export default function SettingsScreen() {
                     {
                       backgroundColor: isSelected
                         ? (isDark ? 'rgba(16,185,129,0.18)' : '#ECFDF5')
-                        : (isDark ? '#1E293B' : '#F1F5F9'),
-                      borderColor: isSelected ? '#10B981' : (isDark ? '#334155' : '#E2E8F0'),
+                        : (isDark ? '#0F172A' : '#F1F5F9'),
+                      borderColor: isSelected ? '#10B981' : (isDark ? '#23324D' : '#E2E8F0'),
                       borderWidth: isSelected ? 1.5 : 1,
                       opacity: pressed ? 0.8 : 1,
                       transform: [{ scale: pressed ? 0.97 : 1 }],
                     },
                   ]}
                 >
-                  <View style={{ alignItems: 'center', justifyContent: 'center' }}>
-                    <Ionicons
-                      name={t.icon as any}
-                      size={20}
-                      color={isSelected ? '#10B981' : theme.textMuted}
-                    />
-                    <Text
-                      style={{
-                        color: isSelected ? '#10B981' : theme.text,
-                        fontWeight: isSelected ? '700' : '600',
-                        fontSize: 12,
-                        marginTop: 6,
-                      }}
-                    >
-                      {t.label}
-                    </Text>
-                  </View>
+                  <Ionicons
+                    name={t.icon as any}
+                    size={22}
+                    color={isSelected ? '#10B981' : theme.textMuted}
+                  />
+                  <Text
+                    style={{
+                      color: isSelected ? '#10B981' : theme.text,
+                      fontWeight: isSelected ? '700' : '600',
+                      fontSize: 12.5,
+                      marginTop: 6,
+                    }}
+                  >
+                    {t.label}
+                  </Text>
                 </Pressable>
               );
             })}
           </View>
-        </Card>
+        </View>
 
         {/* Edit Profile Form */}
         <View style={styles.sectionHeader}>
-          <Text
-            style={[
-              styles.sectionTitle,
-              { color: theme.textMuted, fontSize: typography.fontSize.xs },
-            ]}
-          >
+          <Text style={[styles.sectionTitle, { color: theme.textMuted }]}>
             ACCOUNT PREFERENCES
           </Text>
         </View>
 
-        <Card
-          variant="outlined"
-          padding="md"
-          style={{ marginBottom: 20 }}
+        <View
+          style={[
+            styles.cardContainer,
+            {
+              backgroundColor: isDark ? '#141D2E' : '#FFFFFF',
+              borderColor: isDark ? '#23324D' : '#E2E8F0',
+            },
+          ]}
         >
           <Input
             label="Full Name"
@@ -249,17 +241,12 @@ export default function SettingsScreen() {
             leftIcon={<Ionicons name="person-outline" size={18} color={theme.textMuted} />}
           />
 
-          <Text
-            style={[
-              styles.fieldLabel,
-              { color: theme.textMuted, fontSize: typography.fontSize.xs },
-            ]}
-          >
+          <Text style={[styles.fieldLabel, { color: theme.textMuted }]}>
             DEFAULT CURRENCY
           </Text>
 
           <View style={styles.currencyRow}>
-            {currencyOptions.map((c) => {
+            {currencyOptions.map((c, idx) => {
               const isSelected = currency === c.code;
               return (
                 <Pressable
@@ -270,37 +257,36 @@ export default function SettingsScreen() {
                     {
                       backgroundColor: isSelected
                         ? '#10B981'
-                        : (isDark ? '#1E293B' : '#F1F5F9'),
+                        : (isDark ? '#0F172A' : '#F1F5F9'),
                       borderColor: isSelected
                         ? '#10B981'
-                        : (isDark ? '#334155' : '#CBD5E1'),
+                        : (isDark ? '#23324D' : '#E2E8F0'),
                       borderWidth: 1.5,
+                      marginRight: idx < currencyOptions.length - 1 ? 8 : 0,
                       opacity: pressed ? 0.8 : 1,
                       transform: [{ scale: pressed ? 0.96 : 1 }],
                     },
                   ]}
                 >
-                  <View style={{ alignItems: 'center', justifyContent: 'center' }}>
-                    <Text
-                      style={{
-                        color: isSelected ? '#FFFFFF' : '#10B981',
-                        fontWeight: '800',
-                        fontSize: 16,
-                        marginBottom: 2,
-                      }}
-                    >
-                      {c.symbol}
-                    </Text>
-                    <Text
-                      style={{
-                        color: isSelected ? '#FFFFFF' : theme.text,
-                        fontWeight: '700',
-                        fontSize: 12,
-                      }}
-                    >
-                      {c.label}
-                    </Text>
-                  </View>
+                  <Text
+                    style={{
+                      color: isSelected ? '#FFFFFF' : '#10B981',
+                      fontWeight: '800',
+                      fontSize: 16,
+                      marginBottom: 1,
+                    }}
+                  >
+                    {c.symbol}
+                  </Text>
+                  <Text
+                    style={{
+                      color: isSelected ? '#FFFFFF' : theme.text,
+                      fontWeight: '700',
+                      fontSize: 11.5,
+                    }}
+                  >
+                    {c.label}
+                  </Text>
                 </Pressable>
               );
             })}
@@ -311,68 +297,72 @@ export default function SettingsScreen() {
             onPress={handleUpdateProfile}
             loading={updating}
             variant="primary"
+            size="lg"
             fullWidth
-            style={{ marginTop: 14 }}
+            style={{ marginTop: 18 }}
           />
-        </Card>
+        </View>
 
         {/* Notification Preferences */}
         <View style={styles.sectionHeader}>
-          <Text
-            style={[
-              styles.sectionTitle,
-              { color: theme.textMuted, fontSize: typography.fontSize.xs },
-            ]}
-          >
+          <Text style={[styles.sectionTitle, { color: theme.textMuted }]}>
             NOTIFICATIONS
           </Text>
         </View>
 
-        <Card
-          variant="outlined"
-          padding="md"
-          style={{ marginBottom: 20 }}
+        <View
+          style={[
+            styles.cardContainer,
+            {
+              backgroundColor: isDark ? '#141D2E' : '#FFFFFF',
+              borderColor: isDark ? '#23324D' : '#E2E8F0',
+            },
+          ]}
         >
           <View style={styles.switchRow}>
             <View style={{ flex: 1, marginRight: 12 }}>
               <Text style={[styles.settingLabel, { color: theme.text }]}>
                 Push Notifications
               </Text>
-              <Text style={{ color: theme.textMuted, fontSize: 11, marginTop: 2 }}>
+              <Text style={{ color: theme.textMuted, fontSize: 12, marginTop: 2 }}>
                 Instant alerts when you are added to an expense or settlement
               </Text>
             </View>
             <Switch
               value={pushEnabled}
               onValueChange={setPushEnabled}
-              trackColor={{ false: theme.border, true: theme.primary }}
+              trackColor={{ false: isDark ? '#1E293B' : '#E2E8F0', true: theme.primary }}
             />
           </View>
 
-          <View style={[styles.divider, { backgroundColor: isDark ? '#1E293B' : '#E2E8F0' }]} />
+          <View style={[styles.divider, { backgroundColor: isDark ? '#23324D' : '#F1F5F9' }]} />
 
           <View style={styles.switchRow}>
             <View style={{ flex: 1, marginRight: 12 }}>
               <Text style={[styles.settingLabel, { color: theme.text }]}>
                 Email Summaries
               </Text>
-              <Text style={{ color: theme.textMuted, fontSize: 11, marginTop: 2 }}>
+              <Text style={{ color: theme.textMuted, fontSize: 12, marginTop: 2 }}>
                 Weekly balance digests & settlement confirmations
               </Text>
             </View>
             <Switch
               value={emailEnabled}
               onValueChange={setEmailEnabled}
-              trackColor={{ false: theme.border, true: theme.primary }}
+              trackColor={{ false: isDark ? '#1E293B' : '#E2E8F0', true: theme.primary }}
             />
           </View>
-        </Card>
+        </View>
 
         {/* UI Showcase / Design System Link */}
-        <Card
-          variant="outlined"
-          padding="md"
-          style={{ marginBottom: 20 }}
+        <View
+          style={[
+            styles.cardContainer,
+            {
+              backgroundColor: isDark ? '#141D2E' : '#FFFFFF',
+              borderColor: isDark ? '#23324D' : '#E2E8F0',
+            },
+          ]}
         >
           <Pressable
             onPress={() => router.push('/settings/ui-showcase')}
@@ -388,26 +378,31 @@ export default function SettingsScreen() {
                   { backgroundColor: isDark ? 'rgba(16,185,129,0.14)' : '#D1FAE5' },
                 ]}
               >
-                <Ionicons name="color-palette-outline" size={18} color={theme.primary} />
+                <Ionicons name="color-palette-outline" size={20} color={theme.primary} />
               </View>
-              <View style={{ marginLeft: 12 }}>
-                <Text style={{ color: theme.text, fontWeight: '700', fontSize: 14 }}>
+              <View style={{ marginLeft: 14 }}>
+                <Text style={{ color: theme.text, fontWeight: '700', fontSize: 14.5 }}>
                   Design System Showcase
                 </Text>
-                <Text style={{ color: theme.textMuted, fontSize: 11, marginTop: 2 }}>
+                <Text style={{ color: theme.textMuted, fontSize: 12, marginTop: 2 }}>
                   Preview all buttons, badges, avatars & input states
                 </Text>
               </View>
             </View>
-            <Ionicons name="chevron-forward" size={16} color={theme.textMuted} />
+            <Ionicons name="chevron-forward" size={18} color={theme.textMuted} />
           </Pressable>
-        </Card>
+        </View>
 
         {/* Danger & Session Zone */}
-        <Card
-          variant="outlined"
-          padding="sm"
-          style={{ marginBottom: 40 }}
+        <View
+          style={[
+            styles.cardContainer,
+            {
+              backgroundColor: isDark ? '#141D2E' : '#FFFFFF',
+              borderColor: isDark ? '#23324D' : '#E2E8F0',
+              marginBottom: 40,
+            },
+          ]}
         >
           <Pressable
             onPress={handleLogout}
@@ -416,13 +411,13 @@ export default function SettingsScreen() {
               { opacity: pressed ? 0.7 : 1 },
             ]}
           >
-            <Ionicons name="log-out-outline" size={18} color={theme.text} style={{ marginRight: 10 }} />
-            <Text style={{ color: theme.text, fontWeight: '700', fontSize: 14 }}>
+            <Ionicons name="log-out-outline" size={20} color={theme.text} style={{ marginRight: 12 }} />
+            <Text style={{ color: theme.text, fontWeight: '700', fontSize: 14.5 }}>
               Log Out of MatrixSplit
             </Text>
           </Pressable>
 
-          <View style={[styles.divider, { backgroundColor: isDark ? '#1E293B' : '#E2E8F0' }]} />
+          <View style={[styles.divider, { backgroundColor: isDark ? '#23324D' : '#F1F5F9' }]} />
 
           <Pressable
             onPress={handleDeleteAccount}
@@ -431,12 +426,12 @@ export default function SettingsScreen() {
               { opacity: pressed ? 0.7 : 1 },
             ]}
           >
-            <Ionicons name="trash-outline" size={18} color={theme.negative} style={{ marginRight: 10 }} />
-            <Text style={{ color: theme.negative, fontWeight: '700', fontSize: 14 }}>
+            <Ionicons name="trash-outline" size={20} color={theme.negative} style={{ marginRight: 12 }} />
+            <Text style={{ color: theme.negative, fontWeight: '700', fontSize: 14.5 }}>
               Delete Account Permanently
             </Text>
           </Pressable>
-        </Card>
+        </View>
       </ScrollView>
     </SafeAreaView>
   );
@@ -452,85 +447,103 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: 20,
     paddingTop: 8,
-    paddingBottom: 8,
+    paddingBottom: 12,
+    borderBottomWidth: 1,
   },
   backBtn: {
-    width: 38,
-    height: 38,
+    width: 40,
+    height: 40,
     borderRadius: 12,
-    borderWidth: 1,
+    borderWidth: 1.5,
     alignItems: 'center',
     justifyContent: 'center',
   },
   headerTitle: {
-    fontWeight: '800',
-    letterSpacing: -0.2,
-  },
-  scrollContent: {
-    paddingHorizontal: 20,
-    paddingTop: 8,
-    paddingBottom: 40,
-  },
-  userName: {
+    fontSize: 18,
     fontWeight: '800',
     letterSpacing: -0.3,
   },
+  scrollContent: {
+    paddingHorizontal: 20,
+    paddingTop: 16,
+    paddingBottom: 48,
+  },
+  profileCard: {
+    padding: 24,
+    borderRadius: 24,
+    borderWidth: 1.5,
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  userName: {
+    fontSize: 20,
+    fontWeight: '800',
+    letterSpacing: -0.4,
+    marginTop: 12,
+  },
   userEmail: {
     fontSize: 13,
-    marginTop: 2,
+    marginTop: 3,
+    marginBottom: 4,
   },
   sectionHeader: {
-    marginBottom: 8,
-    marginTop: 4,
+    marginBottom: 10,
+    marginTop: 14,
   },
   sectionTitle: {
+    fontSize: 11,
     fontWeight: '700',
-    letterSpacing: 0.6,
+    letterSpacing: 0.8,
+  },
+  cardContainer: {
+    padding: 18,
+    borderRadius: 22,
+    borderWidth: 1.5,
+    marginBottom: 16,
   },
   themeSelectorRow: {
     flexDirection: 'row',
-    gap: 8,
+    gap: 10,
   },
   themeOptionCard: {
     flex: 1,
-    paddingVertical: 12,
+    height: 68,
     alignItems: 'center',
     justifyContent: 'center',
-    borderRadius: 12,
-    borderWidth: 1,
+    borderRadius: 16,
   },
   fieldLabel: {
+    fontSize: 11,
     fontWeight: '700',
-    letterSpacing: 0.6,
+    letterSpacing: 0.8,
     marginBottom: 8,
-    marginTop: 6,
+    marginTop: 8,
   },
   currencyRow: {
     flexDirection: 'row',
     gap: 8,
-    marginBottom: 6,
+    marginBottom: 8,
   },
   currChip: {
     flex: 1,
-    paddingVertical: 10,
+    height: 50,
     alignItems: 'center',
     justifyContent: 'center',
-    borderRadius: 10,
-    borderWidth: 1,
+    borderRadius: 14,
   },
   switchRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingVertical: 4,
+    paddingVertical: 6,
   },
   settingLabel: {
     fontWeight: '700',
-    fontSize: 14,
+    fontSize: 14.5,
   },
   divider: {
     height: 1,
-    marginVertical: 10,
+    marginVertical: 12,
   },
   showcaseRow: {
     flexDirection: 'row',
@@ -539,16 +552,16 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
   },
   showcaseIconWrap: {
-    width: 36,
-    height: 36,
-    borderRadius: 10,
+    width: 40,
+    height: 40,
+    borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
   },
   actionItemRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 10,
-    paddingHorizontal: 8,
+    paddingVertical: 12,
+    paddingHorizontal: 4,
   },
 });

@@ -1,31 +1,25 @@
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useEffect, useState, useMemo } from "react";
 import {
   View,
   Text,
-  StyleSheet,
   ScrollView,
   Pressable,
   TextInput,
   KeyboardAvoidingView,
   Platform,
   Alert,
-} from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRouter, useLocalSearchParams } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
-import {
-  Avatar,
-  Input,
-  SegmentedControl,
-  Button,
-} from '@/components';
-import { useWatermelonTheme } from '@/theme';
+  ActivityIndicator,
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { useRouter, useLocalSearchParams } from "expo-router";
+import { Ionicons } from "@expo/vector-icons";
+import { useWatermelonTheme } from "@/theme";
 import {
   useCreateExpense,
   useMyGroups,
   useFriends,
-} from '../../src/hooks/useQueries';
-import { useAuthStore } from '../../src/stores/authStore';
+} from "../../src/hooks/useQueries";
+import { useAuthStore } from "../../src/stores/authStore";
 import {
   ExpenseCategory,
   SplitType,
@@ -33,7 +27,8 @@ import {
   toMinorUnits,
   formatCurrency,
   resolveSplit,
-} from '@matrixsplit/shared';
+} from "@matrixsplit/shared";
+import { cn } from "@/lib/utils";
 
 const categoryOptions: {
   label: string;
@@ -41,16 +36,66 @@ const categoryOptions: {
   icon: keyof typeof Ionicons.glyphMap;
   color: string;
 }[] = [
-  { label: 'Food & Drink', value: 'food_and_drink', icon: 'restaurant-outline', color: '#F59E0B' },
-  { label: 'Groceries', value: 'groceries', icon: 'cart-outline', color: '#10B981' },
-  { label: 'Transport', value: 'transport', icon: 'car-outline', color: '#3B82F6' },
-  { label: 'Housing', value: 'housing', icon: 'home-outline', color: '#8B5CF6' },
-  { label: 'Entertainment', value: 'entertainment', icon: 'film-outline', color: '#EC4899' },
-  { label: 'Travel', value: 'travel', icon: 'airplane-outline', color: '#06B6D4' },
-  { label: 'Utilities', value: 'utilities', icon: 'flash-outline', color: '#F97316' },
-  { label: 'Shopping', value: 'shopping', icon: 'bag-handle-outline', color: '#EAB308' },
-  { label: 'Health', value: 'health', icon: 'medkit-outline', color: '#EF4444' },
-  { label: 'General', value: 'general', icon: 'receipt-outline', color: '#64748B' },
+  {
+    label: "Food & Drink",
+    value: "food_and_drink",
+    icon: "restaurant-outline",
+    color: "#F59E0B",
+  },
+  {
+    label: "Groceries",
+    value: "groceries",
+    icon: "cart-outline",
+    color: "#10B981",
+  },
+  {
+    label: "Transport",
+    value: "transport",
+    icon: "car-outline",
+    color: "#3B82F6",
+  },
+  {
+    label: "Housing",
+    value: "housing",
+    icon: "home-outline",
+    color: "#8B5CF6",
+  },
+  {
+    label: "Entertainment",
+    value: "entertainment",
+    icon: "film-outline",
+    color: "#EC4899",
+  },
+  {
+    label: "Travel",
+    value: "travel",
+    icon: "airplane-outline",
+    color: "#06B6D4",
+  },
+  {
+    label: "Utilities",
+    value: "utilities",
+    icon: "flash-outline",
+    color: "#F97316",
+  },
+  {
+    label: "Shopping",
+    value: "shopping",
+    icon: "bag-handle-outline",
+    color: "#EAB308",
+  },
+  {
+    label: "Health",
+    value: "health",
+    icon: "medkit-outline",
+    color: "#EF4444",
+  },
+  {
+    label: "General",
+    value: "general",
+    icon: "receipt-outline",
+    color: "#64748B",
+  },
 ];
 
 export default function AddExpenseScreen() {
@@ -59,7 +104,7 @@ export default function AddExpenseScreen() {
     preselectedGroupId?: string;
   }>();
   const preselectedGroupId = params?.preselectedGroupId;
-  const { theme, typography, spacing, borderRadius, isDark } = useWatermelonTheme();
+  const { isDark } = useWatermelonTheme();
   const user = useAuthStore((s) => s.user);
 
   const { data: groups } = useMyGroups();
@@ -67,18 +112,18 @@ export default function AddExpenseScreen() {
   const createExpenseMutation = useCreateExpense();
 
   // Form State
-  const [title, setTitle] = useState('');
-  const [amountStr, setAmountStr] = useState('');
+  const [title, setTitle] = useState("");
+  const [amountStr, setAmountStr] = useState("");
   const [currency, setCurrency] = useState<CurrencyCode>(
-    user?.defaultCurrency || 'INR'
+    user?.defaultCurrency || "INR",
   );
-  const [category, setCategory] = useState<ExpenseCategory>('food_and_drink');
+  const [category, setCategory] = useState<ExpenseCategory>("food_and_drink");
   const [groupId, setGroupId] = useState<string | null>(
-    preselectedGroupId || null
+    preselectedGroupId || null,
   );
-  const [payerId, setPayerId] = useState<string>(user?.id || '');
-  const [splitType, setSplitType] = useState<SplitType>('equal');
-  const [notes, setNotes] = useState('');
+  const [payerId, setPayerId] = useState<string>(user?.id || "");
+  const [splitType, setSplitType] = useState<SplitType>("equal");
+  const [notes, setNotes] = useState("");
 
   // Available participants list
   const [participants, setParticipants] = useState<
@@ -102,12 +147,15 @@ export default function AddExpenseScreen() {
         setParticipants(
           selectedGroup.members.map((m: any) => ({
             userId: m.userId,
-            fullName: m.userId === user.id ? `${m.user.fullName} (You)` : m.user.fullName,
+            fullName:
+              m.userId === user.id
+                ? `${m.user.fullName} (You)`
+                : m.user.fullName,
             selected: true,
-            exactAmountStr: '',
-            percentageStr: '',
-            sharesStr: '1',
-          }))
+            exactAmountStr: "",
+            percentageStr: "",
+            sharesStr: "1",
+          })),
         );
         return;
       }
@@ -119,9 +167,9 @@ export default function AddExpenseScreen() {
         userId: user.id,
         fullName: `${user.fullName} (You)`,
         selected: true,
-        exactAmountStr: '',
-        percentageStr: '',
-        sharesStr: '1',
+        exactAmountStr: "",
+        percentageStr: "",
+        sharesStr: "1",
       },
     ];
 
@@ -131,9 +179,9 @@ export default function AddExpenseScreen() {
           userId: f.id,
           fullName: f.fullName,
           selected: true,
-          exactAmountStr: '',
-          percentageStr: '',
-          sharesStr: '1',
+          exactAmountStr: "",
+          percentageStr: "",
+          sharesStr: "1",
         });
       }
     }
@@ -144,34 +192,34 @@ export default function AddExpenseScreen() {
   const toggleParticipant = (userId: string) => {
     setParticipants((prev) =>
       prev.map((p) =>
-        p.userId === userId ? { ...p, selected: !p.selected } : p
-      )
+        p.userId === userId ? { ...p, selected: !p.selected } : p,
+      ),
     );
   };
 
   const updateExactAmount = (userId: string, val: string) => {
     setParticipants((prev) =>
       prev.map((p) =>
-        p.userId === userId ? { ...p, exactAmountStr: val } : p
-      )
+        p.userId === userId ? { ...p, exactAmountStr: val } : p,
+      ),
     );
   };
 
   const updatePercentage = (userId: string, val: string) => {
     setParticipants((prev) =>
-      prev.map((p) => (p.userId === userId ? { ...p, percentageStr: val } : p))
+      prev.map((p) => (p.userId === userId ? { ...p, percentageStr: val } : p)),
     );
   };
 
   const updateShares = (userId: string, val: string) => {
     setParticipants((prev) =>
-      prev.map((p) => (p.userId === userId ? { ...p, sharesStr: val } : p))
+      prev.map((p) => (p.userId === userId ? { ...p, sharesStr: val } : p)),
     );
   };
 
   // Calculations for live split breakdown
   const totalMinor = useMemo(() => {
-    return toMinorUnits(amountStr || '0', currency);
+    return toMinorUnits(amountStr || "0", currency);
   }, [amountStr, currency]);
 
   const selectedParticipants = useMemo(() => {
@@ -181,59 +229,59 @@ export default function AddExpenseScreen() {
   const splitBreakdown = useMemo(() => {
     if (totalMinor <= 0 || selectedParticipants.length === 0) return null;
 
-    if (splitType === 'equal') {
+    if (splitType === "equal") {
       const perPerson = Math.floor(totalMinor / selectedParticipants.length);
       return {
-        type: 'equal',
+        type: "equal",
         perPerson,
         valid: true,
         message: `Each person owes ${formatCurrency(perPerson, currency)}`,
       };
     }
 
-    if (splitType === 'exact') {
+    if (splitType === "exact") {
       const assignedSum = selectedParticipants.reduce(
-        (sum, p) => sum + toMinorUnits(p.exactAmountStr || '0', currency),
-        0
+        (sum, p) => sum + toMinorUnits(p.exactAmountStr || "0", currency),
+        0,
       );
       const remaining = totalMinor - assignedSum;
       return {
-        type: 'exact',
+        type: "exact",
         assignedSum,
         remaining,
         valid: remaining === 0,
         message:
           remaining === 0
-            ? 'Amounts matched perfectly!'
+            ? "Amounts matched perfectly!"
             : remaining > 0
-            ? `${formatCurrency(remaining, currency)} remaining to allocate`
-            : `${formatCurrency(Math.abs(remaining), currency)} over allocated`,
+              ? `${formatCurrency(remaining, currency)} remaining to allocate`
+              : `${formatCurrency(Math.abs(remaining), currency)} over allocated`,
       };
     }
 
-    if (splitType === 'percentage') {
+    if (splitType === "percentage") {
       const totalPercent = selectedParticipants.reduce(
-        (sum, p) => sum + (parseFloat(p.percentageStr || '0') || 0),
-        0
+        (sum, p) => sum + (parseFloat(p.percentageStr || "0") || 0),
+        0,
       );
       const valid = Math.abs(totalPercent - 100) < 0.01;
       return {
-        type: 'percentage',
+        type: "percentage",
         totalPercent,
         valid,
         message: valid
-          ? 'Percentages equal 100%!'
+          ? "Percentages equal 100%!"
           : `Total is ${totalPercent.toFixed(1)}% (must be 100%)`,
       };
     }
 
-    if (splitType === 'shares') {
+    if (splitType === "shares") {
       const totalShares = selectedParticipants.reduce(
-        (sum, p) => sum + (parseInt(p.sharesStr || '1', 10) || 1),
-        0
+        (sum, p) => sum + (parseInt(p.sharesStr || "1", 10) || 1),
+        0,
       );
       return {
-        type: 'shares',
+        type: "shares",
         totalShares,
         valid: totalShares > 0,
         message: `${totalShares} total shares calculated`,
@@ -245,44 +293,44 @@ export default function AddExpenseScreen() {
 
   const handleSave = async () => {
     if (!title.trim()) {
-      Alert.alert('Required', 'Please enter what this expense was for');
+      Alert.alert("Required", "Please enter what this expense was for");
       return;
     }
 
     if (totalMinor <= 0) {
-      Alert.alert('Invalid Amount', 'Please enter a valid expense amount');
+      Alert.alert("Invalid Amount", "Please enter a valid expense amount");
       return;
     }
 
     if (selectedParticipants.length === 0) {
-      Alert.alert('Participants Required', 'Select at least one participant');
+      Alert.alert("Participants Required", "Select at least one participant");
       return;
     }
 
     if (splitBreakdown && !splitBreakdown.valid) {
-      Alert.alert('Split Mismatch', splitBreakdown.message);
+      Alert.alert("Split Mismatch", splitBreakdown.message);
       return;
     }
 
     try {
       const participantInputs = selectedParticipants.map((p) => {
-        if (splitType === 'exact') {
+        if (splitType === "exact") {
           return {
             userId: p.userId,
             allocatedAmountMinor: toMinorUnits(
-              p.exactAmountStr || '0',
-              currency
+              p.exactAmountStr || "0",
+              currency,
             ),
           };
-        } else if (splitType === 'percentage') {
+        } else if (splitType === "percentage") {
           return {
             userId: p.userId,
-            percentage: parseFloat(p.percentageStr || '0'),
+            percentage: parseFloat(p.percentageStr || "0"),
           };
-        } else if (splitType === 'shares') {
+        } else if (splitType === "shares") {
           return {
             userId: p.userId,
-            shares: parseInt(p.sharesStr || '1', 10),
+            shares: parseInt(p.sharesStr || "1", 10),
           };
         } else {
           return { userId: p.userId };
@@ -304,35 +352,35 @@ export default function AddExpenseScreen() {
         participants: participantInputs,
       });
 
-      Alert.alert('Success', 'Expense recorded successfully!', [
+      Alert.alert("Success", "Expense recorded successfully!", [
         {
-          text: 'OK',
+          text: "OK",
           onPress: () => {
             if (router.canGoBack()) {
               router.back();
             } else {
-              router.replace('/(tabs)');
+              router.replace("/(tabs)");
             }
           },
         },
       ]);
     } catch (err: any) {
       const msg =
-        err.response?.data?.message || err.message || 'Failed to save expense';
-      Alert.alert('Error', msg);
+        err.response?.data?.message || err.message || "Failed to save expense";
+      Alert.alert("Error", msg);
     }
   };
 
   const getCurrencySymbol = (curr: CurrencyCode) => {
     switch (curr) {
-      case 'INR':
-        return '₹';
-      case 'USD':
-        return '$';
-      case 'EUR':
-        return '€';
-      case 'GBP':
-        return '£';
+      case "INR":
+        return "₹";
+      case "USD":
+        return "$";
+      case "EUR":
+        return "€";
+      case "GBP":
+        return "£";
       default:
         return curr;
     }
@@ -340,284 +388,208 @@ export default function AddExpenseScreen() {
 
   const selectedCategoryObj = categoryOptions.find((c) => c.value === category);
 
+  const currentGroupName = useMemo(() => {
+    if (!groupId || !groups) return null;
+    return groups.find((g: any) => g.id === groupId)?.name || null;
+  }, [groupId, groups]);
+
   return (
     <SafeAreaView
-      style={[styles.container, { backgroundColor: theme.background }]}
-      edges={['top', 'left', 'right']}
+      edges={["top", "left", "right"]}
+      className={cn("flex-1", isDark ? "bg-[#090D16]" : "bg-[#F8FAFC]")}
     >
       <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        style={{ flex: 1 }}
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
+        className="flex-1"
       >
         {/* Top Header Bar */}
         <View
-          style={[
-            styles.headerBar,
-            {
-              borderBottomColor: theme.divider,
-              backgroundColor: theme.surface,
-            },
-          ]}
+          className={cn(
+            "flex-row items-center justify-between px-5 pt-3 pb-3 border-b",
+            isDark
+              ? "border-[#1E293B] bg-[#090D16]"
+              : "border-slate-200 bg-white",
+          )}
         >
           <Pressable
             onPress={() => {
               if (router.canGoBack()) {
                 router.back();
               } else {
-                router.replace('/(tabs)');
+                router.replace("/(tabs)");
               }
             }}
             hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-            style={({ pressed }) => [
-              {
-                backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)',
-                width: 36,
-                height: 36,
-                borderRadius: 18,
-                alignItems: 'center',
-                justifyContent: 'center',
-                opacity: pressed ? 0.7 : 1,
-              },
-            ]}
+            className={cn(
+              "w-9 h-9 rounded-xl items-center justify-center border active:scale-95",
+              isDark
+                ? "bg-[#141D2E] border-[#23324D] active:bg-[#1E2A42]"
+                : "bg-white border-slate-200 active:bg-slate-100",
+            )}
           >
-            <Ionicons name="close" size={20} color={theme.text} />
+            <Ionicons
+              name="chevron-back"
+              size={20}
+              color={isDark ? "#E2E8F0" : "#334155"}
+            />
           </Pressable>
 
-          <View style={{ alignItems: 'center' }}>
+          <View className="items-center">
             <Text
-              style={{
-                color: theme.text,
-                fontSize: typography.fontSize.base,
-                fontWeight: '700',
-              }}
+              className={cn(
+                "text-base font-extrabold tracking-tight",
+                isDark ? "text-white" : "text-slate-900",
+              )}
             >
               Add Expense
             </Text>
-            <Text
-              style={{
-                color: theme.textMuted,
-                fontSize: typography.fontSize.xs,
-                marginTop: 2,
-              }}
-            >
-              {groupId ? 'Group Expense' : 'Personal / Friends'}
+            <Text className="text-xs text-slate-400 mt-0.5 font-medium">
+              {currentGroupName || "Personal Expense"}
             </Text>
           </View>
 
-          <Pressable
-            onPress={handleSave}
-            disabled={createExpenseMutation.isPending || !title.trim() || totalMinor <= 0}
-            style={({ pressed }) => [
-              {
-                backgroundColor: theme.primary,
-                opacity:
-                  createExpenseMutation.isPending || !title.trim() || totalMinor <= 0
-                    ? 0.5
-                    : pressed
-                    ? 0.85
-                    : 1,
-                flexDirection: 'row',
-                alignItems: 'center',
-                borderRadius: 20,
-                paddingHorizontal: 14,
-                paddingVertical: 7,
-              },
-            ]}
-          >
-            <Ionicons name="checkmark" size={16} color="#FFFFFF" />
-            <Text
-              style={{
-                color: '#FFFFFF',
-                fontWeight: '700',
-                fontSize: 12,
-                marginLeft: 4,
-              }}
-            >
-              Save
-            </Text>
-          </Pressable>
+          {/* Spacer to keep center title balanced */}
+          <View className="w-9 h-9" />
         </View>
 
         <ScrollView
-          contentContainerStyle={styles.scrollContent}
+          contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 16 }}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
         >
           {/* Hero Amount & Description Card */}
           <View
-            style={[
-              styles.heroCard,
-              {
-                backgroundColor: theme.card,
-                borderColor: theme.border,
-                borderRadius: borderRadius.xl,
-              },
-            ]}
+            className={cn(
+              "p-5 rounded-3xl border mb-5",
+              isDark
+                ? "bg-[#141D2E] border-[#23324D]"
+                : "bg-white border-slate-200 shadow-sm shadow-black/5",
+            )}
           >
-            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
-              <Text
-                style={{
-                  color: theme.textMuted,
-                  fontSize: typography.fontSize.xs,
-                  fontWeight: '600',
-                  letterSpacing: 0.5,
-                  textTransform: 'uppercase',
-                }}
-              >
-                Amount
+            <View className="flex-row items-center justify-between mb-1.5">
+              <Text className="text-xs font-bold text-slate-400 tracking-wider">
+                AMOUNT
               </Text>
               <View
-                style={{
-                  backgroundColor: theme.surface,
-                  borderColor: theme.border,
-                  borderWidth: 1,
-                  borderRadius: 8,
-                  paddingHorizontal: 8,
-                  paddingVertical: 2,
-                }}
+                className={cn(
+                  "px-2.5 py-1 rounded-full border",
+                  isDark
+                    ? "bg-[#1E293B] border-[#23324D]"
+                    : "bg-slate-100 border-slate-200",
+                )}
               >
                 <Text
-                  style={{
-                    color: theme.text,
-                    fontSize: typography.fontSize.xs,
-                    fontWeight: '700',
-                  }}
+                  className={cn(
+                    "text-[11px] font-extrabold font-mono",
+                    isDark ? "text-slate-300" : "text-slate-700",
+                  )}
                 >
                   {currency}
                 </Text>
               </View>
             </View>
 
-            <View style={{ flexDirection: 'row', alignItems: 'center', marginVertical: 4 }}>
-              <Text
-                style={{
-                  color: theme.primary,
-                  fontSize: 36,
-                  fontWeight: '800',
-                  marginRight: 6,
-                }}
-              >
+            <View className="flex-row items-center my-1">
+              <Text className="text-3xl font-extrabold text-emerald-500 font-mono mr-1.5">
                 {getCurrencySymbol(currency)}
               </Text>
               <TextInput
                 placeholder="0.00"
-                placeholderTextColor={theme.textMuted}
+                placeholderTextColor={isDark ? "#475569" : "#94A3B8"}
                 value={amountStr}
                 onChangeText={setAmountStr}
                 keyboardType="decimal-pad"
-                style={{
-                  color: theme.text,
-                  fontSize: 36,
-                  fontWeight: '800',
-                  flex: 1,
-                  paddingVertical: 0,
-                  paddingHorizontal: 0,
-                }}
+                className={cn(
+                  "text-3xl font-extrabold font-mono flex-1 py-0",
+                  isDark ? "text-white" : "text-slate-900",
+                )}
               />
             </View>
 
-            <View style={{ height: 1, backgroundColor: theme.divider, marginVertical: 12 }} />
+            <View
+              className={cn(
+                "h-[1px] my-3.5",
+                isDark ? "bg-[#23324D]" : "bg-slate-100",
+              )}
+            />
 
-            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+            <View className="flex-row items-center">
               <View
+                className="w-9 h-9 rounded-xl items-center justify-center mr-3"
                 style={{
-                  backgroundColor: isDark ? 'rgba(16,185,129,0.15)' : '#D1FAE5',
-                  width: 36,
-                  height: 36,
-                  borderRadius: 18,
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  marginRight: 10,
+                  backgroundColor: `${selectedCategoryObj?.color || "#10B981"}20`,
                 }}
               >
                 <Ionicons
-                  name={selectedCategoryObj?.icon || 'receipt-outline'}
-                  size={18}
-                  color={theme.primary}
+                  name={selectedCategoryObj?.icon || "receipt-outline"}
+                  size={17}
+                  color={selectedCategoryObj?.color || "#10B981"}
                 />
               </View>
               <TextInput
                 placeholder="What was this expense for? (e.g. Dinner, Taxi)"
-                placeholderTextColor={theme.textMuted}
+                placeholderTextColor={isDark ? "#475569" : "#94A3B8"}
                 value={title}
                 onChangeText={setTitle}
-                style={{
-                  color: theme.text,
-                  fontSize: typography.fontSize.sm,
-                  fontWeight: '500',
-                  flex: 1,
-                  paddingVertical: 0,
-                }}
+                className={cn(
+                  "flex-1 text-sm font-medium py-0",
+                  isDark ? "text-white" : "text-slate-900",
+                )}
               />
             </View>
           </View>
 
           {/* Group Selector */}
           {groups && groups.length > 0 && (
-            <View style={{ marginVertical: 8 }}>
+            <View className="mb-5">
               <Text
-                style={{
-                  color: theme.text,
-                  fontSize: typography.fontSize.sm,
-                  fontWeight: '700',
-                  marginBottom: 8,
-                }}
+                className={cn(
+                  "text-xs font-bold tracking-wider mb-2.5 uppercase",
+                  isDark ? "text-slate-400" : "text-slate-500",
+                )}
               >
                 Choose Group
               </Text>
               <ScrollView
                 horizontal
                 showsHorizontalScrollIndicator={false}
-                contentContainerStyle={{ paddingVertical: 4, gap: 10 }}
+                contentContainerStyle={{ paddingRight: 10 }}
               >
                 <Pressable
                   onPress={() => setGroupId(null)}
-                  style={({ pressed }) => [
-                    styles.chip,
-                    {
-                      backgroundColor:
-                        groupId === null
-                          ? isDark
-                            ? 'rgba(16,185,129,0.22)'
-                            : '#D1FAE5'
-                          : isDark
-                          ? '#1E293B'
-                          : '#FFFFFF',
-                      borderColor:
-                        groupId === null ? '#10B981' : isDark ? '#334155' : '#E2E8F0',
-                      opacity: pressed ? 0.8 : 1,
-                      transform: [{ scale: pressed ? 0.97 : 1 }],
-                    },
-                  ]}
+                  className={cn(
+                    "h-9 px-4 rounded-full flex-row items-center mr-2.5 active:scale-95",
+                    groupId === null
+                      ? "bg-emerald-500 shadow-sm"
+                      : isDark
+                        ? "bg-[#141D2E] border border-[#23324D]"
+                        : "bg-white border border-slate-200",
+                  )}
                 >
-                  <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                    <Ionicons
-                      name="people-outline"
-                      size={16}
-                      color={
-                        groupId === null
-                          ? isDark
-                            ? '#34D399'
-                            : '#059669'
-                          : theme.textMuted
-                      }
-                      style={{ marginRight: 6 }}
-                    />
-                    <Text
-                      style={{
-                        color:
-                          groupId === null
-                            ? isDark
-                              ? '#34D399'
-                              : '#059669'
-                            : theme.text,
-                        fontSize: typography.fontSize.xs,
-                        fontWeight: groupId === null ? '700' : '500',
-                      }}
-                    >
-                      Non-group / Direct
-                    </Text>
-                  </View>
+                  <Ionicons
+                    name="people-outline"
+                    size={15}
+                    color={
+                      groupId === null
+                        ? "#FFFFFF"
+                        : isDark
+                          ? "#94A3B8"
+                          : "#64748B"
+                    }
+                    style={{ marginRight: 6 }}
+                  />
+                  <Text
+                    className={cn(
+                      "text-xs font-bold",
+                      groupId === null
+                        ? "text-white"
+                        : isDark
+                          ? "text-slate-300"
+                          : "text-slate-700",
+                    )}
+                  >
+                    Non-group / Direct
+                  </Text>
                 </Pressable>
 
                 {groups.map((g: any) => {
@@ -626,50 +598,39 @@ export default function AddExpenseScreen() {
                     <Pressable
                       key={g.id}
                       onPress={() => setGroupId(g.id)}
-                      style={({ pressed }) => [
-                        styles.chip,
-                        {
-                          backgroundColor: isSelected
-                            ? isDark
-                              ? 'rgba(16,185,129,0.22)'
-                              : '#D1FAE5'
-                            : isDark
-                            ? '#1E293B'
-                            : '#FFFFFF',
-                          borderColor:
-                            isSelected ? '#10B981' : isDark ? '#334155' : '#E2E8F0',
-                          opacity: pressed ? 0.8 : 1,
-                          transform: [{ scale: pressed ? 0.97 : 1 }],
-                        },
-                      ]}
+                      className={cn(
+                        "h-9 px-4 rounded-full flex-row items-center mr-2.5 active:scale-95",
+                        isSelected
+                          ? "bg-emerald-500 shadow-sm"
+                          : isDark
+                            ? "bg-[#141D2E] border border-[#23324D]"
+                            : "bg-white border border-slate-200",
+                      )}
                     >
-                      <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                        <Ionicons
-                          name="folder-outline"
-                          size={16}
-                          color={
-                            isSelected
-                              ? isDark
-                                ? '#34D399'
-                                : '#059669'
-                              : theme.textMuted
-                          }
-                          style={{ marginRight: 6 }}
-                        />
-                        <Text
-                          style={{
-                            color: isSelected
-                              ? isDark
-                                ? '#34D399'
-                                : '#059669'
-                              : theme.text,
-                            fontSize: typography.fontSize.xs,
-                            fontWeight: isSelected ? '700' : '500',
-                          }}
-                        >
-                          {g.name}
-                        </Text>
-                      </View>
+                      <Ionicons
+                        name="folder-outline"
+                        size={15}
+                        color={
+                          isSelected
+                            ? "#FFFFFF"
+                            : isDark
+                              ? "#94A3B8"
+                              : "#64748B"
+                        }
+                        style={{ marginRight: 6 }}
+                      />
+                      <Text
+                        className={cn(
+                          "text-xs font-bold",
+                          isSelected
+                            ? "text-white"
+                            : isDark
+                              ? "text-slate-300"
+                              : "text-slate-700",
+                        )}
+                      >
+                        {g.name}
+                      </Text>
                     </Pressable>
                   );
                 })}
@@ -678,21 +639,19 @@ export default function AddExpenseScreen() {
           )}
 
           {/* Category Selector Chips */}
-          <View style={{ marginVertical: 8 }}>
+          <View className="mb-5">
             <Text
-              style={{
-                color: theme.text,
-                fontSize: typography.fontSize.sm,
-                fontWeight: '700',
-                marginBottom: 8,
-              }}
+              className={cn(
+                "text-xs font-bold tracking-wider mb-2.5 uppercase",
+                isDark ? "text-slate-400" : "text-slate-500",
+              )}
             >
               Category
             </Text>
             <ScrollView
               horizontal
               showsHorizontalScrollIndicator={false}
-              contentContainerStyle={{ paddingVertical: 4, gap: 10 }}
+              contentContainerStyle={{ paddingRight: 10 }}
             >
               {categoryOptions.map((opt) => {
                 const isSelected = category === opt.value;
@@ -700,50 +659,33 @@ export default function AddExpenseScreen() {
                   <Pressable
                     key={opt.value}
                     onPress={() => setCategory(opt.value)}
-                    style={({ pressed }) => [
-                      styles.chip,
-                      {
-                        backgroundColor: isSelected
-                          ? isDark
-                            ? 'rgba(16,185,129,0.22)'
-                            : '#D1FAE5'
-                          : isDark
-                          ? '#1E293B'
-                          : '#FFFFFF',
-                        borderColor:
-                          isSelected ? '#10B981' : isDark ? '#334155' : '#E2E8F0',
-                        opacity: pressed ? 0.8 : 1,
-                        transform: [{ scale: pressed ? 0.97 : 1 }],
-                      },
-                    ]}
+                    className={cn(
+                      "h-9 px-3.5 rounded-full flex-row items-center mr-2.5 active:scale-95",
+                      isSelected
+                        ? "bg-emerald-500 shadow-sm"
+                        : isDark
+                          ? "bg-[#141D2E] border border-[#23324D]"
+                          : "bg-white border border-slate-200",
+                    )}
                   >
-                    <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                      <Ionicons
-                        name={opt.icon}
-                        size={16}
-                        color={
-                          isSelected
-                            ? isDark
-                              ? '#34D399'
-                              : '#059669'
-                            : theme.textMuted
-                        }
-                        style={{ marginRight: 6 }}
-                      />
-                      <Text
-                        style={{
-                          color: isSelected
-                            ? isDark
-                              ? '#34D399'
-                              : '#059669'
-                            : theme.text,
-                          fontSize: typography.fontSize.xs,
-                          fontWeight: isSelected ? '700' : '500',
-                        }}
-                      >
-                        {opt.label}
-                      </Text>
-                    </View>
+                    <Ionicons
+                      name={opt.icon}
+                      size={15}
+                      color={isSelected ? "#FFFFFF" : opt.color}
+                      style={{ marginRight: 6 }}
+                    />
+                    <Text
+                      className={cn(
+                        "text-xs font-bold",
+                        isSelected
+                          ? "text-white"
+                          : isDark
+                            ? "text-slate-300"
+                            : "text-slate-700",
+                      )}
+                    >
+                      {opt.label}
+                    </Text>
                   </Pressable>
                 );
               })}
@@ -751,21 +693,19 @@ export default function AddExpenseScreen() {
           </View>
 
           {/* Paid By Selector */}
-          <View style={{ marginVertical: 8 }}>
+          <View className="mb-5">
             <Text
-              style={{
-                color: theme.text,
-                fontSize: typography.fontSize.sm,
-                fontWeight: '700',
-                marginBottom: 8,
-              }}
+              className={cn(
+                "text-xs font-bold tracking-wider mb-2.5 uppercase",
+                isDark ? "text-slate-400" : "text-slate-500",
+              )}
             >
               Paid By
             </Text>
             <ScrollView
               horizontal
               showsHorizontalScrollIndicator={false}
-              contentContainerStyle={{ paddingVertical: 4, gap: 10 }}
+              contentContainerStyle={{ paddingRight: 10 }}
             >
               {participants.map((p) => {
                 const isSelected = payerId === p.userId;
@@ -773,48 +713,58 @@ export default function AddExpenseScreen() {
                   <Pressable
                     key={p.userId}
                     onPress={() => setPayerId(p.userId)}
-                    style={({ pressed }) => [
-                      styles.chip,
-                      {
-                        backgroundColor: isSelected
-                          ? isDark
-                            ? 'rgba(16,185,129,0.22)'
-                            : '#D1FAE5'
-                          : isDark
-                          ? '#1E293B'
-                          : '#FFFFFF',
-                        borderColor:
-                          isSelected ? '#10B981' : isDark ? '#334155' : '#E2E8F0',
-                        opacity: pressed ? 0.8 : 1,
-                        transform: [{ scale: pressed ? 0.97 : 1 }],
-                      },
-                    ]}
+                    className={cn(
+                      "h-9 px-3.5 rounded-full flex-row items-center mr-2.5 active:scale-95",
+                      isSelected
+                        ? "bg-emerald-500 shadow-sm"
+                        : isDark
+                          ? "bg-[#141D2E] border border-[#23324D]"
+                          : "bg-white border border-slate-200",
+                    )}
                   >
-                    <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                      <Avatar name={p.fullName} size="sm" />
-                      <Text
-                        style={{
-                          color: isSelected
-                            ? isDark
-                              ? '#34D399'
-                              : '#059669'
-                            : theme.text,
-                          fontSize: typography.fontSize.xs,
-                          fontWeight: isSelected ? '700' : '500',
-                          marginLeft: 8,
-                        }}
-                      >
-                        {p.fullName}
-                      </Text>
-                      {isSelected && (
-                        <Ionicons
-                          name="checkmark-circle"
-                          size={16}
-                          color={isDark ? '#34D399' : '#059669'}
-                          style={{ marginLeft: 6 }}
-                        />
+                    <View
+                      className={cn(
+                        "w-5 h-5 rounded-full items-center justify-center mr-2",
+                        isSelected
+                          ? "bg-white/20"
+                          : isDark
+                            ? "bg-[#1E293B]"
+                            : "bg-slate-200",
                       )}
+                    >
+                      <Text
+                        className={cn(
+                          "text-[10px] font-bold",
+                          isSelected
+                            ? "text-white"
+                            : isDark
+                              ? "text-slate-300"
+                              : "text-slate-700",
+                        )}
+                      >
+                        {p.fullName.slice(0, 1)}
+                      </Text>
                     </View>
+                    <Text
+                      className={cn(
+                        "text-xs font-bold",
+                        isSelected
+                          ? "text-white"
+                          : isDark
+                            ? "text-slate-300"
+                            : "text-slate-700",
+                      )}
+                    >
+                      {p.fullName}
+                    </Text>
+                    {isSelected && (
+                      <Ionicons
+                        name="checkmark-circle"
+                        size={14}
+                        color="#FFFFFF"
+                        style={{ marginLeft: 5 }}
+                      />
+                    )}
                   </Pressable>
                 );
               })}
@@ -822,59 +772,97 @@ export default function AddExpenseScreen() {
           </View>
 
           {/* Split Type Selector */}
-          <View style={{ marginVertical: 8 }}>
+          <View className="mb-5">
             <Text
-              style={{
-                color: theme.text,
-                fontSize: typography.fontSize.sm,
-                fontWeight: '700',
-                marginBottom: 8,
-              }}
+              className={cn(
+                "text-xs font-bold tracking-wider mb-2.5 uppercase",
+                isDark ? "text-slate-400" : "text-slate-500",
+              )}
             >
               Split Method
             </Text>
-            <SegmentedControl
-              value={splitType}
-              onChange={(val) => setSplitType(val as SplitType)}
-              options={[
-                { value: 'equal', label: 'Equal' },
-                { value: 'exact', label: 'Exact' },
-                { value: 'percentage', label: 'Percent' },
-                { value: 'shares', label: 'Shares' },
-              ]}
-            />
+            <View
+              className={cn(
+                "flex-row p-1 rounded-2xl border",
+                isDark
+                  ? "bg-[#141D2E] border-[#23324D]"
+                  : "bg-slate-100 border-slate-200",
+              )}
+            >
+              {(
+                [
+                  { value: "equal" as const, label: "Equal" },
+                  { value: "exact" as const, label: "Exact" },
+                  { value: "percentage" as const, label: "Percent" },
+                  { value: "shares" as const, label: "Shares" },
+                ] as const
+              ).map((tab) => {
+                const isActive = splitType === tab.value;
+                return (
+                  <Pressable
+                    key={tab.value}
+                    onPress={() => setSplitType(tab.value)}
+                    className={cn(
+                      "flex-1 py-2 rounded-xl items-center justify-center active:scale-95",
+                      isActive
+                        ? isDark
+                          ? "bg-[#1E293B] shadow-sm"
+                          : "bg-white shadow-sm"
+                        : "",
+                    )}
+                  >
+                    <Text
+                      className={cn(
+                        "text-xs font-bold",
+                        isActive
+                          ? isDark
+                            ? "text-white"
+                            : "text-slate-900"
+                          : isDark
+                            ? "text-slate-400"
+                            : "text-slate-500",
+                      )}
+                    >
+                      {tab.label}
+                    </Text>
+                  </Pressable>
+                );
+              })}
+            </View>
 
             {/* Split Status Banner */}
             {splitBreakdown && (
               <View
-                style={{
-                  backgroundColor: splitBreakdown.valid
-                    ? (isDark ? 'rgba(16,185,129,0.12)' : '#ECFDF5')
-                    : (isDark ? 'rgba(239,68,68,0.12)' : '#FEF2F2'),
-                  borderColor: splitBreakdown.valid
-                    ? (isDark ? '#065F46' : '#A7F3D0')
-                    : (isDark ? '#991B1B' : '#FECACA'),
-                  borderWidth: 1,
-                  borderRadius: borderRadius.md,
-                  paddingHorizontal: 12,
-                  paddingVertical: 8,
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  marginTop: 10,
-                }}
+                className={cn(
+                  "flex-row items-center p-3 rounded-2xl border mt-3",
+                  splitBreakdown.valid
+                    ? isDark
+                      ? "bg-emerald-500/10 border-emerald-500/30"
+                      : "bg-emerald-50 border-emerald-200"
+                    : isDark
+                      ? "bg-red-500/10 border-red-500/30"
+                      : "bg-red-50 border-red-200",
+                )}
               >
                 <Ionicons
-                  name={splitBreakdown.valid ? 'information-circle' : 'alert-circle'}
+                  name={
+                    splitBreakdown.valid ? "checkmark-circle" : "alert-circle"
+                  }
                   size={16}
-                  color={splitBreakdown.valid ? theme.positive : theme.negative}
-                  style={{ marginRight: 6 }}
+                  color={splitBreakdown.valid ? "#10B981" : "#EF4444"}
+                  style={{ marginRight: 8 }}
                 />
                 <Text
-                  style={{
-                    color: splitBreakdown.valid ? theme.positive : theme.negative,
-                    fontSize: typography.fontSize.xs,
-                    fontWeight: '600',
-                  }}
+                  className={cn(
+                    "text-xs font-bold flex-1",
+                    splitBreakdown.valid
+                      ? isDark
+                        ? "text-emerald-400"
+                        : "text-emerald-600"
+                      : isDark
+                        ? "text-red-400"
+                        : "text-red-600",
+                  )}
                 >
                   {splitBreakdown.message}
                 </Text>
@@ -883,14 +871,13 @@ export default function AddExpenseScreen() {
           </View>
 
           {/* Participants Allocation List */}
-          <View style={{ marginVertical: 8 }}>
-            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+          <View className="mb-5">
+            <View className="flex-row items-center justify-between mb-2.5">
               <Text
-                style={{
-                  color: theme.text,
-                  fontSize: typography.fontSize.sm,
-                  fontWeight: '700',
-                }}
+                className={cn(
+                  "text-xs font-bold tracking-wider uppercase",
+                  isDark ? "text-slate-400" : "text-slate-500",
+                )}
               >
                 Split Between ({selectedParticipants.length} selected)
               </Text>
@@ -898,227 +885,176 @@ export default function AddExpenseScreen() {
                 onPress={() => {
                   const allSelected = participants.every((p) => p.selected);
                   setParticipants((prev) =>
-                    prev.map((p) => ({ ...p, selected: !allSelected }))
+                    prev.map((p) => ({ ...p, selected: !allSelected })),
                   );
                 }}
-                style={({ pressed }) => [{ opacity: pressed ? 0.7 : 1 }]}
+                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
               >
-                <Text
-                  style={{
-                    color: theme.primary,
-                    fontSize: typography.fontSize.xs,
-                    fontWeight: '600',
-                  }}
-                >
-                  {participants.every((p) => p.selected) ? 'Deselect all' : 'Select all'}
+                <Text className="text-xs font-bold text-emerald-500">
+                  {participants.every((p) => p.selected)
+                    ? "Deselect all"
+                    : "Select all"}
                 </Text>
               </Pressable>
             </View>
 
             {participants.map((p) => {
               const perPersonMinor =
-                splitType === 'equal' && selectedParticipants.length > 0
+                splitType === "equal" && selectedParticipants.length > 0
                   ? Math.floor(totalMinor / selectedParticipants.length)
                   : 0;
 
               return (
                 <View
                   key={p.userId}
-                  style={{
-                    backgroundColor: p.selected
+                  className={cn(
+                    "flex-row items-center justify-between p-3.5 rounded-2xl border mb-2.5",
+                    p.selected
                       ? isDark
-                        ? 'rgba(16,185,129,0.08)'
-                        : 'rgba(16,185,129,0.04)'
+                        ? "bg-[#141D2E] border-emerald-500/40"
+                        : "bg-white border-emerald-500/50 shadow-sm shadow-emerald-500/5"
                       : isDark
-                      ? '#161F30'
-                      : '#FFFFFF',
-                    borderColor: p.selected ? theme.primary : isDark ? '#1E293B' : '#E2E8F0',
-                    borderRadius: 14,
-                    borderWidth: p.selected ? 1.5 : 1,
-                    padding: 12,
-                    marginBottom: 8,
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                  }}
+                        ? "bg-[#141D2E]/60 border-[#23324D] opacity-60"
+                        : "bg-white/60 border-slate-200 opacity-60",
+                  )}
                 >
                   <Pressable
                     onPress={() => toggleParticipant(p.userId)}
-                    style={({ pressed }) => [
-                      {
-                        flex: 1,
-                        flexDirection: 'row',
-                        alignItems: 'center',
-                        opacity: pressed ? 0.75 : 1,
-                      },
-                    ]}
+                    className="flex-row items-center flex-1 mr-2"
                   >
+                    {/* Custom Checkbox */}
                     <View
-                      style={{
-                        borderColor: p.selected ? theme.primary : isDark ? '#475569' : '#CBD5E1',
-                        backgroundColor: p.selected ? theme.primary : 'transparent',
-                        width: 22,
-                        height: 22,
-                        borderRadius: 6,
-                        borderWidth: 1.5,
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        marginRight: 10,
-                      }}
+                      className={cn(
+                        "w-5 h-5 rounded-md items-center justify-center mr-3 border",
+                        p.selected
+                          ? "bg-emerald-500 border-emerald-500"
+                          : isDark
+                            ? "border-[#23324D]"
+                            : "border-slate-300",
+                      )}
                     >
                       {p.selected && (
-                        <Ionicons name="checkmark" size={14} color="#FFFFFF" />
+                        <Ionicons name="checkmark" size={13} color="#FFFFFF" />
                       )}
                     </View>
-                    <Avatar name={p.fullName} size="sm" />
-                    <View style={{ marginLeft: 10, flex: 1 }}>
+
+                    <View
+                      className={cn(
+                        "w-7 h-7 rounded-full items-center justify-center mr-2.5",
+                        isDark ? "bg-[#1E293B]" : "bg-slate-100",
+                      )}
+                    >
                       <Text
-                        style={{
-                          color: theme.text,
-                          fontSize: typography.fontSize.sm,
-                          fontWeight: '600',
-                        }}
-                        numberOfLines={1}
+                        className={cn(
+                          "text-xs font-bold",
+                          isDark ? "text-slate-300" : "text-slate-700",
+                        )}
                       >
-                        {p.fullName}
+                        {p.fullName.slice(0, 1)}
                       </Text>
-                      {p.selected && splitType === 'equal' && totalMinor > 0 && (
-                        <Text
-                          style={{
-                            color: theme.primary,
-                            fontSize: typography.fontSize.xs,
-                            fontWeight: '700',
-                            marginTop: 2,
-                          }}
-                        >
-                          {formatCurrency(perPersonMinor, currency)}
-                        </Text>
-                      )}
                     </View>
+
+                    <Text
+                      numberOfLines={1}
+                      className={cn(
+                        "text-sm flex-1",
+                        p.selected ? "font-bold" : "font-normal",
+                        isDark ? "text-white" : "text-slate-900",
+                      )}
+                    >
+                      {p.fullName}
+                    </Text>
                   </Pressable>
 
-                  {/* Input field for non-equal splits */}
+                  {/* Right side controls based on split type */}
                   {p.selected && (
-                    <View style={{ marginLeft: 8 }}>
-                      {splitType === 'exact' && (
+                    <View>
+                      {splitType === "equal" && totalMinor > 0 && (
+                        <View className="px-2.5 py-1 rounded-lg bg-emerald-500/10 border border-emerald-500/20">
+                          <Text className="text-xs font-bold font-mono text-emerald-500">
+                            {formatCurrency(perPersonMinor, currency)}
+                          </Text>
+                        </View>
+                      )}
+
+                      {splitType === "exact" && (
                         <View
-                          style={{
-                            backgroundColor: isDark ? '#111827' : '#F1F5F9',
-                            borderColor: theme.border,
-                            borderWidth: 1,
-                            borderRadius: 8,
-                            paddingHorizontal: 10,
-                            paddingVertical: 5,
-                            flexDirection: 'row',
-                            alignItems: 'center',
-                          }}
+                          className={cn(
+                            "flex-row items-center h-8 px-2.5 rounded-xl border",
+                            isDark
+                              ? "bg-[#1E293B] border-[#23324D]"
+                              : "bg-slate-100 border-slate-200",
+                          )}
                         >
-                          <Text
-                            style={{
-                              color: theme.textMuted,
-                              fontSize: typography.fontSize.xs,
-                              fontWeight: '700',
-                              marginRight: 4,
-                            }}
-                          >
+                          <Text className="text-xs font-bold text-slate-400 mr-1">
                             {getCurrencySymbol(currency)}
                           </Text>
                           <TextInput
                             placeholder="0.00"
-                            placeholderTextColor={theme.textMuted}
+                            placeholderTextColor="#64748B"
                             value={p.exactAmountStr}
-                            onChangeText={(val) => updateExactAmount(p.userId, val)}
+                            onChangeText={(val) =>
+                              updateExactAmount(p.userId, val)
+                            }
                             keyboardType="decimal-pad"
-                            style={{
-                              color: theme.text,
-                              fontSize: typography.fontSize.xs,
-                              fontWeight: '700',
-                              width: 65,
-                              textAlign: 'right',
-                              paddingVertical: 0,
-                            }}
+                            className={cn(
+                              "text-xs font-bold font-mono py-0 min-w-[45px]",
+                              isDark ? "text-white" : "text-slate-900",
+                            )}
                           />
                         </View>
                       )}
 
-                      {splitType === 'percentage' && (
+                      {splitType === "percentage" && (
                         <View
-                          style={{
-                            backgroundColor: isDark ? '#111827' : '#F1F5F9',
-                            borderColor: theme.border,
-                            borderWidth: 1,
-                            borderRadius: 8,
-                            paddingHorizontal: 10,
-                            paddingVertical: 5,
-                            flexDirection: 'row',
-                            alignItems: 'center',
-                          }}
+                          className={cn(
+                            "flex-row items-center h-8 px-2.5 rounded-xl border",
+                            isDark
+                              ? "bg-[#1E293B] border-[#23324D]"
+                              : "bg-slate-100 border-slate-200",
+                          )}
                         >
                           <TextInput
                             placeholder="0"
-                            placeholderTextColor={theme.textMuted}
+                            placeholderTextColor="#64748B"
                             value={p.percentageStr}
-                            onChangeText={(val) => updatePercentage(p.userId, val)}
+                            onChangeText={(val) =>
+                              updatePercentage(p.userId, val)
+                            }
                             keyboardType="decimal-pad"
-                            style={{
-                              color: theme.text,
-                              fontSize: typography.fontSize.xs,
-                              fontWeight: '700',
-                              width: 45,
-                              textAlign: 'right',
-                              paddingVertical: 0,
-                            }}
+                            className={cn(
+                              "text-xs font-bold font-mono py-0 min-w-[30px] text-right",
+                              isDark ? "text-white" : "text-slate-900",
+                            )}
                           />
-                          <Text
-                            style={{
-                              color: theme.textMuted,
-                              fontSize: typography.fontSize.xs,
-                              fontWeight: '700',
-                              marginLeft: 4,
-                            }}
-                          >
+                          <Text className="text-xs font-bold text-slate-400 ml-1">
                             %
                           </Text>
                         </View>
                       )}
 
-                      {splitType === 'shares' && (
+                      {splitType === "shares" && (
                         <View
-                          style={{
-                            backgroundColor: isDark ? '#111827' : '#F1F5F9',
-                            borderColor: theme.border,
-                            borderWidth: 1,
-                            borderRadius: 8,
-                            paddingHorizontal: 10,
-                            paddingVertical: 5,
-                            flexDirection: 'row',
-                            alignItems: 'center',
-                          }}
+                          className={cn(
+                            "flex-row items-center h-8 px-2.5 rounded-xl border",
+                            isDark
+                              ? "bg-[#1E293B] border-[#23324D]"
+                              : "bg-slate-100 border-slate-200",
+                          )}
                         >
                           <TextInput
                             placeholder="1"
-                            placeholderTextColor={theme.textMuted}
+                            placeholderTextColor="#64748B"
                             value={p.sharesStr}
                             onChangeText={(val) => updateShares(p.userId, val)}
                             keyboardType="number-pad"
-                            style={{
-                              color: theme.text,
-                              fontSize: typography.fontSize.xs,
-                              fontWeight: '700',
-                              width: 35,
-                              textAlign: 'center',
-                              paddingVertical: 0,
-                            }}
+                            className={cn(
+                              "text-xs font-bold font-mono py-0 min-w-[24px] text-center",
+                              isDark ? "text-white" : "text-slate-900",
+                            )}
                           />
-                          <Text
-                            style={{
-                              color: theme.textMuted,
-                              fontSize: typography.fontSize.xs,
-                              fontWeight: '700',
-                              marginLeft: 4,
-                            }}
-                          >
-                            share{p.sharesStr !== '1' ? 's' : ''}
+                          <Text className="text-xs font-bold text-slate-400 ml-1">
+                            share{p.sharesStr !== "1" ? "s" : ""}
                           </Text>
                         </View>
                       )}
@@ -1130,70 +1066,82 @@ export default function AddExpenseScreen() {
           </View>
 
           {/* Notes Input */}
-          <View style={{ marginVertical: 8 }}>
-            <Input
-              label="Notes (Optional)"
-              placeholder="Add payment method, notes, or items purchased..."
-              value={notes}
-              onChangeText={setNotes}
-              multiline
-              numberOfLines={2}
-              style={{ minHeight: 56 }}
-            />
+          <View className="mb-6">
+            <Text
+              className={cn(
+                "text-xs font-bold tracking-wider mb-2.5 uppercase",
+                isDark ? "text-slate-400" : "text-slate-500",
+              )}
+            >
+              Notes (Optional)
+            </Text>
+            <View
+              className={cn(
+                "p-3.5 rounded-2xl border",
+                isDark
+                  ? "bg-[#141D2E] border-[#23324D]"
+                  : "bg-white border-slate-200 shadow-sm shadow-black/5",
+              )}
+            >
+              <TextInput
+                placeholder="Add payment method, notes, or items purchased..."
+                placeholderTextColor={isDark ? "#475569" : "#94A3B8"}
+                value={notes}
+                onChangeText={setNotes}
+                multiline
+                numberOfLines={2}
+                className={cn(
+                  "text-sm font-medium py-0 min-h-[48px]",
+                  isDark ? "text-white" : "text-slate-900",
+                )}
+              />
+            </View>
           </View>
 
           {/* Primary Save Button */}
-          <View style={{ marginTop: 14, marginBottom: 36 }}>
-            <Button
-              label={
-                createExpenseMutation.isPending
-                  ? 'Saving Expense...'
-                  : totalMinor > 0
-                  ? `Save Expense (${formatCurrency(totalMinor, currency)})`
-                  : 'Save Expense'
-              }
+          <View className="mb-8">
+            <Pressable
               onPress={handleSave}
               disabled={
-                createExpenseMutation.isPending || !title.trim() || totalMinor <= 0
+                createExpenseMutation.isPending ||
+                !title.trim() ||
+                totalMinor <= 0
               }
-              loading={createExpenseMutation.isPending}
-              size="lg"
-            />
+              className={cn(
+                "h-13 py-3.5 rounded-2xl items-center justify-center active:scale-[0.98] shadow-md",
+                createExpenseMutation.isPending ||
+                  !title.trim() ||
+                  totalMinor <= 0
+                  ? isDark
+                    ? "bg-[#1A2333] opacity-60"
+                    : "bg-slate-200 opacity-60"
+                  : "bg-emerald-500 active:bg-emerald-600",
+              )}
+            >
+              {createExpenseMutation.isPending ? (
+                <ActivityIndicator size="small" color="#FFFFFF" />
+              ) : (
+                <Text
+                  className={cn(
+                    "text-sm font-extrabold",
+                    createExpenseMutation.isPending ||
+                      !title.trim() ||
+                      totalMinor <= 0
+                      ? isDark
+                        ? "text-slate-500"
+                        : "text-slate-400"
+                      : "text-white",
+                  )}
+                >
+                  {totalMinor > 0
+                    ? `Save Expense (${formatCurrency(totalMinor, currency)})`
+                    : "Save Expense"}
+                </Text>
+              )}
+            </Pressable>
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  headerBar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    borderBottomWidth: 1,
-  },
-  scrollContent: {
-    padding: 16,
-    paddingBottom: 40,
-  },
-  heroCard: {
-    padding: 16,
-    borderWidth: 1,
-    marginBottom: 8,
-  },
-  chip: {
-    height: 38,
-    paddingHorizontal: 14,
-    borderRadius: 19,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1.5,
-  },
-});

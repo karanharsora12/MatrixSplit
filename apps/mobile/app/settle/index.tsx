@@ -167,7 +167,7 @@ export default function SettleScreen() {
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
-            contentContainerStyle={{ paddingVertical: 4, gap: 10 }}
+            contentContainerStyle={{ paddingVertical: 4, paddingRight: 16 }}
           >
             {/* If param target is present but friend not in list */}
             {params.targetUserId && !friends?.some((f: any) => f.id === params.targetUserId) && (
@@ -177,9 +177,11 @@ export default function SettleScreen() {
                   styles.friendChip,
                   {
                     backgroundColor: selectedFriendId === params.targetUserId
-                      ? (isDark ? 'rgba(16,185,129,0.18)' : '#ECFDF5')
-                      : theme.card,
-                    borderColor: selectedFriendId === params.targetUserId ? theme.primary : theme.border,
+                      ? (isDark ? '#1E2A42' : '#ECFDF5')
+                      : (isDark ? '#141D2E' : '#FFFFFF'),
+                    borderColor: selectedFriendId === params.targetUserId ? '#10B981' : (isDark ? '#23324D' : '#E2E8F0'),
+                    borderWidth: selectedFriendId === params.targetUserId ? 2 : 1.5,
+                    marginRight: 10,
                     opacity: pressed ? 0.8 : 1,
                   },
                 ]}
@@ -189,7 +191,7 @@ export default function SettleScreen() {
                   <View style={{ marginLeft: 8 }}>
                     <Text
                       style={{
-                        color: selectedFriendId === params.targetUserId ? theme.primary : theme.text,
+                        color: selectedFriendId === params.targetUserId ? '#10B981' : theme.text,
                         fontWeight: selectedFriendId === params.targetUserId ? '700' : '600',
                         fontSize: 13,
                       }}
@@ -201,7 +203,7 @@ export default function SettleScreen() {
                     <Ionicons
                       name="checkmark-circle"
                       size={16}
-                      color={theme.primary}
+                      color="#10B981"
                       style={{ marginLeft: 6 }}
                     />
                   )}
@@ -229,9 +231,11 @@ export default function SettleScreen() {
                       styles.friendChip,
                       {
                         backgroundColor: isSelected
-                          ? (isDark ? 'rgba(16,185,129,0.18)' : '#ECFDF5')
-                          : theme.card,
-                        borderColor: isSelected ? theme.primary : theme.border,
+                          ? (isDark ? '#1E2A42' : '#ECFDF5')
+                          : (isDark ? '#141D2E' : '#FFFFFF'),
+                        borderColor: isSelected ? '#10B981' : (isDark ? '#23324D' : '#E2E8F0'),
+                        borderWidth: isSelected ? 2 : 1.5,
+                        marginRight: 10,
                         opacity: pressed ? 0.8 : 1,
                       },
                     ]}
@@ -241,7 +245,7 @@ export default function SettleScreen() {
                       <View style={{ marginLeft: 8 }}>
                         <Text
                           style={{
-                            color: isSelected ? theme.primary : theme.text,
+                            color: isSelected ? '#10B981' : theme.text,
                             fontWeight: isSelected ? '700' : '600',
                             fontSize: 13,
                           }}
@@ -254,7 +258,7 @@ export default function SettleScreen() {
                               fontSize: 10,
                               fontVariant: ['tabular-nums'],
                               fontWeight: '600',
-                              color: balanceMinor > 0 ? theme.positive : theme.negative,
+                              color: balanceMinor > 0 ? '#10B981' : '#EF4444',
                             }}
                           >
                             {balanceMinor > 0 ? 'owes you' : 'you owe'}{' '}
@@ -266,7 +270,7 @@ export default function SettleScreen() {
                         <Ionicons
                           name="checkmark-circle"
                           size={16}
-                          color={theme.primary}
+                          color="#10B981"
                           style={{ marginLeft: 8 }}
                         />
                       )}
@@ -278,7 +282,7 @@ export default function SettleScreen() {
               <View
                 style={[
                   styles.emptyFriendsPill,
-                  { backgroundColor: theme.surface, borderColor: theme.border },
+                  { backgroundColor: isDark ? '#141D2E' : theme.surface, borderColor: isDark ? '#23324D' : theme.border },
                 ]}
               >
                 <Text style={{ color: theme.textMuted, fontSize: 12 }}>
@@ -387,9 +391,10 @@ export default function SettleScreen() {
                     styles.methodCard,
                     {
                       backgroundColor: isSelected
-                        ? (isDark ? 'rgba(16,185,129,0.14)' : '#ECFDF5')
-                        : theme.card,
-                      borderColor: isSelected ? theme.primary : theme.border,
+                        ? (isDark ? '#1E2A42' : '#ECFDF5')
+                        : (isDark ? '#141D2E' : '#FFFFFF'),
+                      borderColor: isSelected ? '#10B981' : (isDark ? '#23324D' : '#E2E8F0'),
+                      borderWidth: isSelected ? 2 : 1.5,
                       opacity: pressed ? 0.8 : 1,
                     },
                   ]}

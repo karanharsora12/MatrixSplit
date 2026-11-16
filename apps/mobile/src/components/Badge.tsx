@@ -71,7 +71,6 @@ export const Badge: React.FC<BadgeProps> = ({
 
   return (
     <View
-      className={badgeClass}
       style={[
         styles.badge,
         {

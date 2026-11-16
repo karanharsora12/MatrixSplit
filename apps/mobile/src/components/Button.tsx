@@ -9,8 +9,62 @@ import {
   ViewStyle,
 } from "react-native";
 import { useWatermelonTheme } from "@/theme";
-import { cn } from "@/lib/utils";
-export { buttonTextVariants, buttonVariants } from "./ui/button";
+import { cva, type VariantProps } from "class-variance-authority";
+
+export const buttonVariants = cva(
+  "flex-row items-center justify-center font-semibold rounded-2xl",
+  {
+    variants: {
+      variant: {
+        default: "bg-emerald-500 text-white",
+        primary: "bg-emerald-500 text-white",
+        secondary: "bg-slate-800 text-slate-100",
+        outline: "border border-slate-700 text-slate-100",
+        ghost: "text-emerald-500",
+        destructive: "bg-rose-500 text-white",
+        danger: "bg-rose-500 text-white",
+        link: "text-emerald-500 underline",
+      },
+      size: {
+        default: "h-12 px-5",
+        sm: "h-10 px-4",
+        md: "h-12 px-5",
+        lg: "h-14 px-7",
+        icon: "h-11 w-11 p-0",
+      },
+    },
+    defaultVariants: {
+      variant: "primary",
+      size: "md",
+    },
+  }
+);
+
+export const buttonTextVariants = cva("font-bold text-center", {
+  variants: {
+    variant: {
+      default: "text-white",
+      primary: "text-white",
+      secondary: "text-slate-100",
+      outline: "text-slate-100",
+      ghost: "text-emerald-500",
+      destructive: "text-white",
+      danger: "text-white",
+      link: "text-emerald-500",
+    },
+    size: {
+      default: "text-base",
+      sm: "text-xs",
+      md: "text-sm",
+      lg: "text-base",
+      icon: "text-sm",
+    },
+  },
+  defaultVariants: {
+    variant: "primary",
+    size: "md",
+  },
+});
 
 export interface ButtonProps {
   label?: string;
@@ -23,7 +77,8 @@ export interface ButtonProps {
     | "ghost"
     | "danger"
     | "destructive"
-    | "default";
+    | "default"
+    | "link";
   size?: "sm" | "md" | "lg" | "icon" | "default";
   disabled?: boolean;
   loading?: boolean;
@@ -54,7 +109,7 @@ export const Button: React.FC<ButtonProps> = ({
   className,
   ...rest
 }) => {
-  const { theme, typography, isDark } = useWatermelonTheme();
+  const { isDark } = useWatermelonTheme();
 
   // Normalize variant names
   const normVariant =
@@ -69,31 +124,23 @@ export const Button: React.FC<ButtonProps> = ({
   let textColor = "#FFFFFF";
   let borderWidth = 0;
   let borderColor = "transparent";
-  let shadowStyle: ViewStyle = {};
 
   if (normVariant === "primary") {
     bgColor = "#10B981";
     pressedBgColor = "#059669";
     textColor = "#FFFFFF";
-    shadowStyle = {
-      shadowColor: "#10B981",
-      shadowOffset: { width: 0, height: 2 },
-      shadowOpacity: isDark ? 0.3 : 0.2,
-      shadowRadius: 4,
-      elevation: 2,
-    };
   } else if (normVariant === "secondary") {
-    bgColor = isDark ? "#1E293B" : "#F1F5F9";
-    pressedBgColor = isDark ? "#334155" : "#E2E8F0";
-    textColor = isDark ? "#F8FAFC" : "#0F172A";
-    borderWidth = 1;
-    borderColor = isDark ? "#334155" : "#CBD5E1";
-  } else if (normVariant === "outline") {
-    bgColor = "transparent";
-    pressedBgColor = isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.05)";
+    bgColor = isDark ? "#141D2E" : "#F1F5F9";
+    pressedBgColor = isDark ? "#1E2A42" : "#E2E8F0";
     textColor = isDark ? "#F8FAFC" : "#0F172A";
     borderWidth = 1.5;
-    borderColor = isDark ? "#334155" : "#CBD5E1";
+    borderColor = isDark ? "#23324D" : "#CBD5E1";
+  } else if (normVariant === "outline") {
+    bgColor = "transparent";
+    pressedBgColor = isDark ? "rgba(35,50,77,0.5)" : "rgba(0,0,0,0.05)";
+    textColor = isDark ? "#F8FAFC" : "#0F172A";
+    borderWidth = 1.5;
+    borderColor = isDark ? "#23324D" : "#CBD5E1";
   } else if (normVariant === "ghost") {
     bgColor = "transparent";
     pressedBgColor = isDark ? "rgba(16,185,129,0.14)" : "rgba(16,185,129,0.08)";
@@ -103,39 +150,38 @@ export const Button: React.FC<ButtonProps> = ({
     bgColor = "#EF4444";
     pressedBgColor = "#DC2626";
     textColor = "#FFFFFF";
-    shadowStyle = {
-      shadowColor: "#EF4444",
-      shadowOffset: { width: 0, height: 2 },
-      shadowOpacity: isDark ? 0.25 : 0.2,
-      shadowRadius: 4,
-      elevation: 2,
-    };
+  } else if (normVariant === "link") {
+    bgColor = "transparent";
+    pressedBgColor = "transparent";
+    textColor = "#10B981";
   }
 
-  let minHeight = 48;
+  let minHeight = 50;
   let minWidth: number | undefined = undefined;
   let paddingVertical = 12;
-  let paddingHorizontal = 18;
+  let paddingHorizontal = 20;
   let fontSize = 15;
+  let baseRadius = 16;
 
   if (size === "sm") {
-    minHeight = 38;
+    minHeight = 40;
     paddingVertical = 8;
     paddingHorizontal = 14;
     fontSize = 13;
+    baseRadius = 12;
   } else if (size === "lg") {
-    minHeight = 52;
-    paddingVertical = 14;
+    minHeight = 54;
+    paddingVertical = 15;
     paddingHorizontal = 24;
     fontSize = 16;
+    baseRadius = 18;
   } else if (size === "icon") {
     minHeight = 44;
     minWidth = 44;
     paddingVertical = 0;
     paddingHorizontal = 0;
+    baseRadius = 14;
   }
-
-  const baseRadius = 14;
 
   const labelStyle: TextStyle = {
     color: disabled ? (isDark ? "#64748B" : "#94A3B8") : textColor,
@@ -145,18 +191,11 @@ export const Button: React.FC<ButtonProps> = ({
     letterSpacing: -0.2,
   };
 
-  const tailwindClasses = cn(
-    "flex-row items-center justify-center",
-    fullWidth && "w-full",
-    normVariant === "primary" && !disabled && "bg-emerald-500",
-    className,
-  );
-
   return (
     <Pressable
       onPress={onPress}
       disabled={disabled || loading}
-      className={tailwindClasses}
+      role="button"
       style={({ pressed }) => {
         const resolvedCustomStyle =
           typeof style === "function" ? style({ pressed }) : style;
@@ -166,7 +205,9 @@ export const Button: React.FC<ButtonProps> = ({
             alignItems: "center",
             justifyContent: "center",
             backgroundColor: disabled
-              ? (isDark ? "#1E293B" : "#E2E8F0")
+              ? isDark
+                ? "#1A2333"
+                : "#E2E8F0"
               : pressed
               ? pressedBgColor
               : bgColor,
@@ -180,7 +221,6 @@ export const Button: React.FC<ButtonProps> = ({
             width: fullWidth ? "100%" : undefined,
             opacity: disabled ? 0.5 : pressed ? 0.92 : 1,
             transform: [{ scale: pressed && !disabled ? 0.98 : 1 }],
-            ...shadowStyle,
           },
           resolvedCustomStyle,
         ];
@@ -191,7 +231,6 @@ export const Button: React.FC<ButtonProps> = ({
         <ActivityIndicator color={textColor} size="small" />
       ) : (
         <View
-          className="flex-row items-center justify-center"
           style={{
             flexDirection: "row",
             alignItems: "center",

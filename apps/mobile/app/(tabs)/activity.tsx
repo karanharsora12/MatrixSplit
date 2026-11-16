@@ -2,40 +2,36 @@ import React, { useState, useMemo } from 'react';
 import {
   View,
   Text,
-  StyleSheet,
   ScrollView,
   RefreshControl,
+  Pressable,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import {
-  Card,
-  Avatar,
-  SkeletonCard,
-  SegmentedControl,
-} from '@/components';
+import { Avatar, SkeletonCard } from '@/components';
 import { useWatermelonTheme } from '@/theme';
 import { useActivities } from '../../src/hooks/useQueries';
+import { cn } from '@/lib/utils';
 
 const activityMeta: Record<
   string,
   { icon: keyof typeof Ionicons.glyphMap; color: string; bg: string }
 > = {
-  expense_created: { icon: 'receipt-outline', color: '#10B981', bg: 'rgba(16,185,129,0.14)' },
-  expense_updated: { icon: 'create-outline', color: '#F59E0B', bg: 'rgba(245,158,11,0.14)' },
-  expense_deleted: { icon: 'trash-outline', color: '#EF4444', bg: 'rgba(239,68,68,0.14)' },
-  settlement_created: { icon: 'swap-horizontal', color: '#3B82F6', bg: 'rgba(59,130,246,0.14)' },
-  settlement_confirmed: { icon: 'checkmark-circle', color: '#10B981', bg: 'rgba(16,185,129,0.14)' },
-  settlement_rejected: { icon: 'close-circle', color: '#EF4444', bg: 'rgba(239,68,68,0.14)' },
-  group_created: { icon: 'people-circle-outline', color: '#8B5CF6', bg: 'rgba(139,92,246,0.14)' },
-  member_joined: { icon: 'person-add-outline', color: '#8B5CF6', bg: 'rgba(139,92,246,0.14)' },
-  member_removed: { icon: 'exit-outline', color: '#64748B', bg: 'rgba(100,116,139,0.14)' },
-  friend_request_sent: { icon: 'mail-outline', color: '#06B6D4', bg: 'rgba(6,182,212,0.14)' },
-  friend_request_accepted: { icon: 'people-outline', color: '#10B981', bg: 'rgba(16,185,129,0.14)' },
+  expense_created: { icon: 'receipt-outline', color: '#10B981', bg: 'rgba(16,185,129,0.15)' },
+  expense_updated: { icon: 'create-outline', color: '#F59E0B', bg: 'rgba(245,158,11,0.15)' },
+  expense_deleted: { icon: 'trash-outline', color: '#EF4444', bg: 'rgba(239,68,68,0.15)' },
+  settlement_created: { icon: 'swap-horizontal', color: '#3B82F6', bg: 'rgba(59,130,246,0.15)' },
+  settlement_confirmed: { icon: 'checkmark-circle', color: '#10B981', bg: 'rgba(16,185,129,0.15)' },
+  settlement_rejected: { icon: 'close-circle', color: '#EF4444', bg: 'rgba(239,68,68,0.15)' },
+  group_created: { icon: 'people-circle-outline', color: '#8B5CF6', bg: 'rgba(139,92,246,0.15)' },
+  member_joined: { icon: 'person-add-outline', color: '#8B5CF6', bg: 'rgba(139,92,246,0.15)' },
+  member_removed: { icon: 'exit-outline', color: '#64748B', bg: 'rgba(100,116,139,0.15)' },
+  friend_request_sent: { icon: 'mail-outline', color: '#06B6D4', bg: 'rgba(6,182,212,0.15)' },
+  friend_request_accepted: { icon: 'people-outline', color: '#10B981', bg: 'rgba(16,185,129,0.15)' },
 };
 
 export default function ActivityScreen() {
-  const { theme, typography, spacing, borderRadius, isDark } = useWatermelonTheme();
+  const { isDark } = useWatermelonTheme();
   const { data: activities, isLoading, refetch, isRefetching } = useActivities(50);
   const [filterType, setFilterType] = useState<'all' | 'expense' | 'settlement' | 'group'>('all');
 
@@ -79,145 +75,204 @@ export default function ActivityScreen() {
   }, [activities]);
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]} edges={['top', 'left', 'right']}>
+    <SafeAreaView
+      edges={['top', 'left', 'right']}
+      className={cn('flex-1', isDark ? 'bg-[#090D16]' : 'bg-[#F8FAFC]')}
+    >
       {/* Top Header */}
-      <View style={styles.headerBar}>
-        <View>
-          <Text
-            style={[
-              styles.headerTitle,
-              { color: theme.text, fontSize: typography.fontSize['2xl'] },
-            ]}
-          >
-            Activity
-          </Text>
-          <Text style={[styles.headerSubtitle, { color: theme.textMuted }]}>
-            Real-time audit log of ledger events & updates
-          </Text>
-        </View>
+      <View
+        className={cn(
+          'px-5 pt-2 pb-3.5 border-b',
+          isDark ? 'border-[#1E293B]' : 'border-slate-200'
+        )}
+      >
+        <Text
+          className={cn(
+            'text-2xl font-extrabold tracking-tight',
+            isDark ? 'text-white' : 'text-slate-900'
+          )}
+        >
+          Activity
+        </Text>
+        <Text className="text-xs text-slate-400 mt-0.5">
+          Real-time audit log of ledger events & updates
+        </Text>
       </View>
 
       {/* Filter Tabs */}
-      <View style={styles.filterSection}>
-        <SegmentedControl
-          value={filterType}
-          onChange={(val) => setFilterType(val as any)}
-          options={[
-            { value: 'all', label: 'All', badge: counts.all },
-            { value: 'expense', label: 'Expenses', badge: counts.expense },
-            { value: 'settlement', label: 'Settlements', badge: counts.settlement },
-            { value: 'group', label: 'Groups', badge: counts.group },
-          ]}
-        />
+      <View className="pt-3 pb-2">
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 6 }}
+        >
+          {[
+            { key: 'all' as const, label: 'All', badge: counts.all },
+            { key: 'expense' as const, label: 'Expenses', badge: counts.expense },
+            { key: 'settlement' as const, label: 'Settlements', badge: counts.settlement },
+            { key: 'group' as const, label: 'Groups', badge: counts.group },
+          ].map((item) => {
+            const isSelected = filterType === item.key;
+            return (
+              <Pressable
+                key={item.key}
+                onPress={() => setFilterType(item.key)}
+                className={cn(
+                  'h-9 px-4 rounded-full flex-row items-center justify-center mr-2.5 active:scale-95',
+                  isSelected
+                    ? 'bg-emerald-500 shadow-sm'
+                    : isDark
+                    ? 'bg-[#141D2E] border border-[#23324D]'
+                    : 'bg-white border border-slate-200'
+                )}
+              >
+                <Text
+                  className={cn(
+                    'text-xs font-bold',
+                    isSelected
+                      ? 'text-white'
+                      : isDark
+                      ? 'text-slate-300'
+                      : 'text-slate-700'
+                  )}
+                >
+                  {item.label}
+                </Text>
+                {item.badge !== undefined && (
+                  <View
+                    className={cn(
+                      'px-1.5 py-0.5 rounded-full ml-1.5',
+                      isSelected
+                        ? 'bg-white/20'
+                        : isDark
+                        ? 'bg-[#1E2A42]'
+                        : 'bg-slate-100'
+                    )}
+                  >
+                    <Text
+                      className={cn(
+                        'text-[10px] font-bold',
+                        isSelected
+                          ? 'text-white'
+                          : isDark
+                          ? 'text-slate-400'
+                          : 'text-slate-600'
+                      )}
+                    >
+                      {item.badge}
+                    </Text>
+                  </View>
+                )}
+              </Pressable>
+            );
+          })}
+        </ScrollView>
       </View>
 
       <ScrollView
-        contentContainerStyle={styles.scrollContent}
+        contentContainerStyle={{ paddingBottom: 20 }}
         showsVerticalScrollIndicator={false}
         refreshControl={
           <RefreshControl
             refreshing={isRefetching}
             onRefresh={refetch}
-            tintColor={theme.primary}
+            tintColor="#10B981"
           />
         }
       >
         {isLoading ? (
-          <>
+          <View className="px-5 pt-2">
             <SkeletonCard />
             <SkeletonCard />
             <SkeletonCard />
             <SkeletonCard />
-          </>
+          </View>
         ) : filteredActivities && filteredActivities.length > 0 ? (
           filteredActivities.map((act: any) => {
             const meta = activityMeta[act.type] || {
               icon: 'flash-outline',
-              color: theme.primary,
-              bg: 'rgba(16,185,129,0.14)',
+              color: '#10B981',
+              bg: 'rgba(16,185,129,0.15)',
             };
 
             return (
-              <Card
+              <View
                 key={act.id}
-                variant="outlined"
-                padding="md"
-                style={{ marginBottom: 10 }}
+                className={cn(
+                  'mx-5 mb-2.5 p-3.5 rounded-2xl border flex-row items-center',
+                  isDark
+                    ? 'bg-[#141D2E] border-[#23324D]'
+                    : 'bg-white border-slate-200 shadow-sm shadow-black/5'
+                )}
               >
-                <View style={styles.activityRow}>
-                  <View style={styles.actorAvatarContainer}>
-                    <Avatar name={act.actor?.fullName || 'User'} size="md" />
-                    <View
-                      style={[
-                        styles.iconBadge,
-                        {
-                          backgroundColor: meta.bg,
-                          borderColor: isDark ? '#111827' : '#FFFFFF',
-                          borderWidth: 2,
-                        },
-                      ]}
-                    >
-                      <Ionicons name={meta.icon} size={11} color={meta.color} />
-                    </View>
-                  </View>
-
-                  <View style={styles.activityContent}>
-                    <Text
-                      style={[
-                        styles.activityText,
-                        { color: theme.text, fontSize: typography.fontSize.sm },
-                      ]}
-                    >
-                      <Text style={{ fontWeight: '700', color: theme.text }}>
-                        {act.actor?.fullName || 'Someone'}{' '}
-                      </Text>
-                      {act.description}
-                    </Text>
-
-                    <View style={styles.timeRow}>
-                      <Ionicons name="time-outline" size={12} color={theme.textMuted} style={{ marginRight: 4 }} />
-                      <Text
-                        style={[
-                          styles.timestamp,
-                          { color: theme.textMuted, fontSize: typography.fontSize.xs },
-                        ]}
-                      >
-                        {formatTimeAgo(act.createdAt)}
-                      </Text>
-                    </View>
+                {/* Actor Avatar with event badge */}
+                <View className="relative mr-3">
+                  <Avatar name={act.actor?.fullName || 'User'} size="md" />
+                  <View
+                    className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full items-center justify-center border-2"
+                    style={{
+                      backgroundColor: meta.color,
+                      borderColor: isDark ? '#141D2E' : '#FFFFFF',
+                    }}
+                  >
+                    <Ionicons name={meta.icon} size={11} color="#FFFFFF" />
                   </View>
                 </View>
-              </Card>
+
+                {/* Event Description */}
+                <View className="flex-1">
+                  <Text
+                    className={cn(
+                      'text-xs leading-5',
+                      isDark ? 'text-slate-200' : 'text-slate-800'
+                    )}
+                  >
+                    <Text
+                      className={cn(
+                        'font-bold',
+                        isDark ? 'text-white' : 'text-slate-900'
+                      )}
+                    >
+                      {act.actor?.fullName || 'Someone'}{' '}
+                    </Text>
+                    {act.description}
+                  </Text>
+
+                  <View className="flex-row items-center mt-1">
+                    <Ionicons
+                      name="time-outline"
+                      size={12}
+                      color="#64748B"
+                      style={{ marginRight: 4 }}
+                    />
+                    <Text className="text-[11px] text-slate-400">
+                      {formatTimeAgo(act.createdAt)}
+                    </Text>
+                  </View>
+                </View>
+              </View>
             );
           })
         ) : (
-          <View style={styles.emptyContainer}>
-            <View
-              style={[
-                styles.emptyIconCircle,
-                {
-                  backgroundColor: isDark ? 'rgba(16,185,129,0.12)' : '#D1FAE5',
-                  borderRadius: borderRadius.full,
-                },
-              ]}
-            >
-              <Ionicons name="pulse-outline" size={42} color={theme.primary} />
+          <View
+            className={cn(
+              'mx-5 my-10 p-8 rounded-3xl border items-center',
+              isDark ? 'bg-[#141D2E] border-[#23324D]' : 'bg-white border-slate-200 shadow-sm'
+            )}
+          >
+            <View className="w-16 h-16 rounded-full bg-emerald-500/15 items-center justify-center mb-3">
+              <Ionicons name="pulse-outline" size={36} color="#10B981" />
             </View>
             <Text
-              style={[
-                styles.emptyTitle,
-                { color: theme.text, fontSize: typography.fontSize.lg },
-              ]}
+              className={cn(
+                'text-base font-bold mt-1',
+                isDark ? 'text-white' : 'text-slate-900'
+              )}
             >
               No activities found
             </Text>
-            <Text
-              style={[
-                styles.emptyDesc,
-                { color: theme.textMuted, fontSize: typography.fontSize.sm },
-              ]}
-            >
-              Shared bills, settlement records, and group invitations will appear here as they occur.
+            <Text className="text-xs text-slate-400 text-center mt-1 leading-5 max-w-[270px]">
+              Shared bills, settlement records, and group updates will appear here in real time.
             </Text>
           </View>
         )}
@@ -225,84 +280,3 @@ export default function ActivityScreen() {
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  headerBar: {
-    paddingHorizontal: 20,
-    paddingTop: 8,
-    paddingBottom: 8,
-  },
-  headerTitle: {
-    fontWeight: '800',
-    letterSpacing: -0.5,
-  },
-  headerSubtitle: {
-    fontSize: 12,
-    marginTop: 2,
-  },
-  filterSection: {
-    paddingHorizontal: 20,
-    paddingTop: 4,
-    paddingBottom: 8,
-  },
-  scrollContent: {
-    paddingHorizontal: 20,
-    paddingTop: 8,
-    paddingBottom: 40,
-  },
-  activityRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  actorAvatarContainer: {
-    position: 'relative',
-  },
-  iconBadge: {
-    position: 'absolute',
-    bottom: -3,
-    right: -3,
-    width: 20,
-    height: 20,
-    borderRadius: 10,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  activityContent: {
-    flex: 1,
-    marginLeft: 12,
-  },
-  activityText: {
-    lineHeight: 19,
-  },
-  timeRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: 4,
-  },
-  timestamp: {},
-  emptyContainer: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 56,
-    paddingHorizontal: 24,
-  },
-  emptyIconCircle: {
-    width: 80,
-    height: 80,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 16,
-  },
-  emptyTitle: {
-    fontWeight: '800',
-    marginBottom: 6,
-  },
-  emptyDesc: {
-    textAlign: 'center',
-    lineHeight: 20,
-    maxWidth: 290,
-  },
-});
