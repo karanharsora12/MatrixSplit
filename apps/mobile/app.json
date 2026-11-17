@@ -6,7 +6,11 @@
     "orientation": "portrait",
     "scheme": "matrixsplit",
     "userInterfaceStyle": "automatic",
-    "platforms": ["ios", "android", "web"],
+    "platforms": [
+      "ios",
+      "android",
+      "web"
+    ],
     "splash": {
       "backgroundColor": "#0F172A"
     },
@@ -25,6 +29,14 @@
     },
     "plugins": [
       "expo-router"
-    ]
+    ],
+    "extra": {
+      "router": {
+        "origin": false
+      },
+      "eas": {
+        "projectId": "7f6b7593-d76e-4ea6-a8d2-fdae03e2637a"
+      }
+    }
   }
 }

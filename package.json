@@ -13,6 +13,7 @@
     "start:backend": "npm --workspace=apps/backend run start:dev",
     "start:backend:prod": "npm --workspace=@matrixsplit/backend run start",
     "start:mobile": "npm --workspace=apps/mobile start",
+    "build:apk": "npm --workspace=apps/mobile run build:apk",
     "test": "npm run test --workspaces --if-present"
   },
   "devDependencies": {

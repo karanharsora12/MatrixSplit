@@ -1,7 +1,7 @@
-import axios from 'axios';
-import { Platform } from 'react-native';
-import Constants from 'expo-constants';
-import { useAuthStore } from '../stores/authStore';
+import axios from "axios";
+import { Platform } from "react-native";
+import Constants from "expo-constants";
+import { useAuthStore } from "../stores/authStore";
 
 const getBaseUrl = (): string => {
   if (process.env.EXPO_PUBLIC_API_URL) {
@@ -15,29 +15,29 @@ const getBaseUrl = (): string => {
     (Constants as any).manifest?.debuggerHost;
 
   if (debuggerHost) {
-    const host = debuggerHost.split(':')[0];
-    if (host && host !== 'localhost' && host !== '127.0.0.1') {
+    const host = debuggerHost.split(":")[0];
+    if (host && host !== "localhost" && host !== "127.0.0.1") {
       return `http://${host}:3001/api/v1`;
     }
   }
 
   // Android emulator loopback fallback
-  if (Platform.OS === 'android') {
-    return 'http://10.0.2.2:3001/api/v1';
+  if (Platform.OS === "android") {
+    return "http://10.0.2.2:3001/api/v1";
   }
 
   // Web / iOS simulator default
-  return 'http://localhost:3001/api/v1';
+  return "http://localhost:3001/api/v1";
 };
 
 export const API_BASE_URL = getBaseUrl();
-console.log('[MatrixSplit API] Connected to:', API_BASE_URL);
+console.log("[MatrixSplit API] Connected to:", API_BASE_URL);
 
 export const apiClient = axios.create({
   baseURL: API_BASE_URL,
   timeout: 15000,
   headers: {
-    'Content-Type': 'application/json',
+    "Content-Type": "application/json",
   },
 });
 
@@ -50,7 +50,7 @@ apiClient.interceptors.request.use(
     }
     return config;
   },
-  (error) => Promise.reject(error)
+  (error) => Promise.reject(error),
 );
 
 // Response interceptor: Automatic token refresh on 401 & error logging
@@ -58,7 +58,12 @@ apiClient.interceptors.response.use(
   (response) => response,
   async (error) => {
     const originalRequest = error.config;
-    console.warn('[MatrixSplit API Error]:', error.config?.url, error.message, error.response?.data);
+    console.warn(
+      "[MatrixSplit API Error]:",
+      error.config?.url,
+      error.message,
+      error.response?.data,
+    );
 
     if (error.response?.status === 401 && !originalRequest?._retry) {
       originalRequest._retry = true;
@@ -85,5 +90,5 @@ apiClient.interceptors.response.use(
     }
 
     return Promise.reject(error);
-  }
+  },
 );
