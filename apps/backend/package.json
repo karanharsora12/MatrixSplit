@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
+    "prebuild": "npm --workspace=@matrixsplit/shared run build",
     "build": "tsc -p tsconfig.build.json",
     "start": "node dist/main",
     "start:dev": "node -r ts-node/register src/main.ts",

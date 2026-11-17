@@ -7,10 +7,13 @@
     "apps/*"
   ],
   "scripts": {
-    "build": "npm run build --workspaces --if-present",
-    "test": "npm run test --workspaces --if-present",
+    "build": "npm --workspace=@matrixsplit/shared run build && npm --workspace=@matrixsplit/backend run build",
+    "build:all": "npm run build --workspaces --if-present",
+    "build:backend": "npm --workspace=@matrixsplit/shared run build && npm --workspace=@matrixsplit/backend run build",
     "start:backend": "npm --workspace=apps/backend run start:dev",
-    "start:mobile": "npm --workspace=apps/mobile start"
+    "start:backend:prod": "npm --workspace=@matrixsplit/backend run start",
+    "start:mobile": "npm --workspace=apps/mobile start",
+    "test": "npm run test --workspaces --if-present"
   },
   "devDependencies": {
     "@types/react": "~18.2.79",
